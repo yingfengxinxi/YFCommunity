@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.security.PreventMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.govern.security.PreventSafety">
+        <id column="prevent_id" jdbcType="BIGINT" property="preventId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="prevent_title" jdbcType="VARCHAR" property="preventTitle"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="prevent_type_id" jdbcType="VARCHAR" property="preventTypeId"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        prevent_id, estate_id, prevent_title, image_url, content, create_by, create_time,
+    update_by, update_time, del_flag,brief_introduction,prevent_type_id
+    </sql>
+
+    <insert id="addPrevent" useGeneratedKeys="true" keyProperty="preventId">
+        insert into xccj_govern.bus_prevent_safety
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="preventTitle != null and preventTitle != ''">
+                prevent_title,
+            </if>
+            <if test="imageUrl != null and imageUrl != ''">
+                image_url,
+            </if>
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="content != null and content != ''">
+                content,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="briefIntroduction != null and briefIntroduction != ''">
+                brief_introduction,
+            </if>
+            prevent_type_id,
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="preventTitle != null">
+                #{preventTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl != null">
+                #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="estateId != null">
+                #{estateId},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="briefIntroduction != null and briefIntroduction != ''">
+                #{briefIntroduction,jdbcType=VARCHAR},
+            </if>
+            '治安防控',
+            sysDate()
+        </trim>
+    </insert>
+
+    <insert id="addPreventRang">
+        insert into xccj_govern.bus_prevent_rang (prevent_id,community_id)
+        VALUES
+        <foreach collection="communityIds" item="item" separator=",">
+            (#{preventId},#{item})
+        </foreach>
+    </insert>
+
+    <update id="updatePrevent">
+        update xccj_govern.bus_prevent_safety
+        <set>
+            <if test="preventTitle != null">
+                prevent_title = #{preventTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl != null">
+                image_url = #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="briefIntroduction != null and briefIntroduction != ''">
+                brief_introduction = #{briefIntroduction,jdbcType=VARCHAR},
+            </if>
+            update_time=sysDate()
+        </set>
+        where prevent_id = #{preventId,jdbcType=BIGINT} and del_flag=0
+    </update>
+
+    <delete id="removePreventRang">
+        DELETE
+        FROM xccj_govern.bus_prevent_rang
+        WHERE prevent_id = #{preventId,jdbcType=BIGINT}
+    </delete>
+
+    <update id="delPrevent">
+        update xccj_govern.bus_prevent_safety
+        <set>
+            del_flag=1
+        </set>
+        where prevent_id = #{preventId,jdbcType=BIGINT} and del_flag=0
+    </update>
+
+    <select id="getList" resultType="com.wr.remote.govern.security.PreventSafety">
+        SELECT prevent_id,
+        image_url,
+        prevent_title,
+        content,
+        create_time,
+        estate_id,
+        prevent_type_id,
+        brief_introduction
+        FROM xccj_govern.bus_prevent_safety
+        <where>
+            del_flag=0
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            <if test="estateId != null">
+                AND estate_id = #{estateId}
+            </if>
+        </where>
+        ORDER BY create_time Desc
+    </select>
+
+    <select id="getPreventDetail" resultType="com.wr.remote.govern.security.vo.PreventVO">
+        select
+        <include refid="Base_Column_List"></include>
+        from xccj_govern.bus_prevent_safety
+        WHERE del_flag=0 and prevent_id=#{preventId}
+    </select>
+
+    <select id="getPreventRangInfo" resultType="java.lang.Long">
+        SELECT community_id
+        FROM xccj_govern.bus_prevent_rang
+        WHERE prevent_id = #{preventId}
+    </select>
+
+
+</mapper>

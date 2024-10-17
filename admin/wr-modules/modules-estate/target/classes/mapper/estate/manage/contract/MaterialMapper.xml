@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.manage.contract.MaterialMapper">
+
+    <insert id="addMaterial" parameterType="com.wr.remote.estate.manage.contract.Material">
+        insert into xccj_community.bus_material
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="materialName!= null and materialName!='' ">material_name,</if>
+            <if test="materialId!= null and materialId!='' ">material_id,</if>
+            <if test="unitPrice!= null ">unit_price,</if>
+            <if test="specification!= null  ">specification,</if>
+            <if test="materialNum!= null  ">material_num,</if>
+            <if test="totalAmount!= null  ">total_amount,</if>
+            <if test="actuallyAmount!= null  ">actually_amount,</if>
+            <if test="procurementId!= null  ">procurement_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="materialName!= null and materialName!='' ">#{materialName},</if>
+            <if test="materialId!= null  ">#{materialId},</if>
+            <if test="unitPrice!= null ">#{unitPrice},</if>
+            <if test="specification!= null  ">#{specification},</if>
+            <if test="materialNum!= null  ">#{materialNum},</if>
+            <if test="totalAmount!= null  ">#{totalAmount},</if>
+            <if test="actuallyAmount!= null  ">#{actuallyAmount},</if>
+            <if test="procurementId!= null  ">#{procurementId},</if>
+        </trim>
+    </insert>
+    
+</mapper>

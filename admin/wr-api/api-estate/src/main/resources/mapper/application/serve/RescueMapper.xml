@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.serve.RescueMapper">
+
+    <sql id="Base_RescueColumn_List">
+        br.rescue_id, br.community_id, br.rescue_title, br.address, br.release_type, br.release_id, br.need_num,
+    br.content, br.start_time, br.end_time, br.contact_name, br.contact_phone, br.release_time, br.del_flag
+    </sql>
+
+    <select id="selectRescueList" resultType="com.wr.api.estate.entity.vo.application.serve.RescueVO">
+        SELECT rescue_id,
+        rescue_title,
+        release_time,
+        start_time,
+        end_time,
+        (CASE
+        WHEN end_time &lt; NOW() THEN '2'
+        WHEN start_time > NOW()THEN '1'
+        WHEN NOW() BETWEEN start_time and end_time THEN '0'
+        ELSE '-1' END) AS "rescue_status"
+        FROM xccj_govern.bus_rescue
+        WHERE community_id = #{communityId}
+        AND del_flag = '0'
+        <choose>
+            <when test="rescueStatus==1"><!-- 未开始   -->
+                AND start_time>NOW()
+            </when>
+            <when test="rescueStatus==0"><!-- 进行中   -->
+                AND NOW() BETWEEN start_time AND end_time
+            </when>
+            <when test="rescueStatus==2"><!-- 已结束   -->
+                AND end_time&lt;NOW()
+            </when>
+        </choose>
+    </select>
+
+    <select id="getRescueDetail" resultType="com.wr.api.estate.entity.vo.application.serve.RescueVO">
+        SELECT
+        (CASE
+        WHEN br.end_time &lt; NOW() THEN '2'
+        WHEN br.start_time > NOW()THEN '1'
+        WHEN br.start_time &lt; NOW() and br.end_time > NOW() THEN '0'
+        ELSE '-1' END) AS "rescue_status",
+        <include refid="Base_RescueColumn_List"/>
+        FROM xccj_govern.bus_rescue br
+        where br.rescue_id=#{rescueId} and br.del_flag='0'
+    </select>
+
+    <select id="selectRescueUserList" resultType="com.wr.api.estate.entity.application.serve.RescueUser">
+        SELECT user_name,
+               user_phone
+        FROM xccj_govern.bus_rescue_user
+        WHERE rescue_id = #{rescueId}
+    </select>
+
+    <select id="getReleaseInfo" resultType="com.wr.api.estate.entity.vo.application.serve.RescueVO">
+        <choose>
+            <when test="releaseType==0">
+                SELECT owner_name AS 'publisherName',
+                owner_phone AS 'publisherPhone',
+                card_no AS 'publisherIdCard',
+                YEAR(NOW()) - YEAR(DATE(SUBSTR(card_no, 7, 8))) AS "publisherAge",
+                gender
+                FROM xccj_community.bus_owner
+                WHERE owner_id = #{releaseId}
+                AND del_flag = '0'
+            </when>
+            <when test="releaseType==1">
+                SELECT tenant_name AS 'publisherName',
+                tenant_phone AS 'publisherPhone',
+                card_no AS 'publisherIdCard',
+                YEAR(NOW()) - YEAR(DATE(SUBSTR(card_no, 7, 8))) AS "publisherAge",
+                gender
+                FROM xccj_community.bus_tenant
+                WHERE tenant_id = #{releaseId}
+                AND del_flag = '0'
+            </when>
+        </choose>
+    </select>
+
+</mapper>

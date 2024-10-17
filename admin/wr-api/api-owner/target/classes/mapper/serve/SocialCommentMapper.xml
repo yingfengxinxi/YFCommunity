@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.SocialCommentMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.domain.ApiSocialComment">
+        <id column="comment_id" jdbcType="BIGINT" property="commentId"/>
+        <result column="social_id" jdbcType="BIGINT" property="socialId"/>
+        <result column="user_type" jdbcType="CHAR" property="userType"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="reply_id" jdbcType="BIGINT" property="replyId"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        comment_id,
+        social_id,
+        user_type,
+        user_id,
+        reply_id,
+        content,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_social_comment
+        where comment_id = #{commentId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        <!--@mbg.generated-->
+        delete
+        from xccj_govern.bus_social_comment
+        where comment_id = #{commentId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="comment_id" keyProperty="commentId"
+            parameterType="com.wr.remote.domain.ApiSocialComment" useGeneratedKeys="true">
+        insert into xccj_govern.bus_social_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="socialId != null">
+                social_id,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="replyId != null">
+                reply_id,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="socialId != null">
+                #{socialId,jdbcType=BIGINT},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=CHAR},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="replyId != null">
+                #{replyId,jdbcType=BIGINT},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.remote.domain.ApiSocialComment">
+        update xccj_govern.bus_social_comment
+        <set>
+            <if test="socialId != null">
+                social_id = #{socialId,jdbcType=BIGINT},
+            </if>
+            <if test="userType != null">
+                user_type = #{userType,jdbcType=CHAR},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="replyId != null">
+                reply_id = #{replyId,jdbcType=BIGINT},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where comment_id = #{commentId,jdbcType=BIGINT}
+    </update>
+</mapper>

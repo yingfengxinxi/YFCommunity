@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.payBillingRecord.PayBillingRecordMapper">
+
+
+    <select id="getList" resultType="com.wr.estate.entity.vo.PayBillingRecordVo">
+        SELECT
+        bpbr.id,
+        bc.community_name AS "communityName",
+        IFNULL( bb.building_name, '-' ) AS "buildingName",
+        IFNULL( bu.unit_name, '-' ) AS "unitName",
+        IFNULL( br.room_name, '-' ) AS "roomName",
+        bpbr.type AS "type",
+        IFNULL( bo.owner_name, '-' ) AS "ownerName",
+        IFNULL( br.total_area, '-' ) AS "totalArea",
+        bpbr.pay_amount AS "payAmount",
+        bpbr.discount_amount AS "discountAmount",
+        bpbr.paid_amount AS "paidAmount",
+        sdd.dict_label AS "payTypeName",
+        bpbr.pay_type as "payType",
+        DATE_FORMAT(bpbr.start_time, '%Y-%m-%d') AS "startTime",
+        DATE_FORMAT(bpbr.end_time, '%Y-%m-%d') AS "endTime",
+        IFNULL( ba.account_name, bpbr.pay_by ) AS "payBy",
+        bpbr.pay_time AS "payTime",
+        bpbr.is_unpaid_property_fee as "isUnpaidPropertyFee"
+        FROM
+        xccj_community.bus_pay_billing_record bpbr
+        LEFT JOIN xccj_community.bus_owner bo ON bpbr.owner_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_room br ON bpbr.room_id = br.room_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bpbr.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bpbr.unit_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bpbr.community_id
+        LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_type = 'pay_type'
+        AND sdd.dict_value = bpbr.pay_type
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bpbr.pay_by
+        WHERE
+        bpbr.del_flag="0" AND bpbr.estate_id =#{estateId}
+        <if test="communityId !=null">
+            AND bpbr.community_id=#{communityId}
+        </if>
+        <if test="buildingId !=null">
+            AND bpbr.building_id=#{buildingId}
+        </if>
+        <if test="roomId !=null">
+            AND bpbr.room_id=#{roomId}
+        </if>
+        <if test="ownerName !=null and ownerName !=''">
+            AND bo.owner_name like CONCAT('%',#{ownerName},'#')
+        </if>
+        <if test="payType !=null and payType !=''">
+            AND bpbr.pay_type=#{payType}
+        </if>
+        <if test="payStatTime !=null and payStatTime !='' and payEndTime!=null and payEndTime !=''">
+            AND DATE_FORMAT(bpbr.pay_time, '%Y-%m-%d') BETWEEN DATE_FORMAT(#{payStatTime}, '%Y-%m-%d') and
+            DATE_FORMAT(#{payEndTime}, '%Y-%m-%d')
+        </if>
+
+
+        order by bpbr.pay_time desc
+    </select>
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.goods.CompensateMapper">
+
+    <!--查询列表-->
+    <select id="selectCompensateList" resultType="com.wr.remote.estate.customer.goods.vo.CompensateVo" >
+        SELECT
+            bg.goods_no,
+            bg.goods_name,
+            bg.goods_price,
+            ba.account_name,
+            bc.compensate_way,
+            bc.compensate_time
+        FROM
+            xccj_community.bus_compensate bc
+            LEFT JOIN xccj_community.bus_goods bg ON bc.goods_id = bg.goods_id
+            LEFT JOIN xccj_community.bus_account ba ON bc.account_id = ba.account_id
+        WHERE bc.del_flag = '0' AND bg.del_flag = '0' AND ba.del_flag = '0'
+        <if test="communityId != null"> AND bg.community_id = #{communityId} </if>
+        <if test="goodsNo != null and goodsNo != ''"> AND bg.goods_no = #{goodsNo} </if>
+        <if test="compensateWay != null and compensateWay != ''"> AND bc.compensate_way = #{compensateWay} </if>
+        <if test="goodsName != null and goodsName != ''"> AND bg.goods_name = #{goodsName} </if>
+        <if test="compensateWay != null"> AND bc.compensate_way = #{compensateWay} </if>
+        <if test="accountName != null and accountName != ''"> AND bc.account_id IN (SELECT account_id FROM xccj_community.bus_account WHERE account_name = #{accountName}) </if>
+        ORDER BY bc.compensate_time DESC
+    </select>
+
+    <!--新增-->
+    <insert id="insertCompensate">
+        INSERT INTO
+            xccj_community.bus_compensate(community_id, compensate_way, account_id, goods_id,compensate_time, del_flag)
+        VALUES
+            (#{communityId}, #{compensateWay}, #{accountId}, #{goodsId}, #{compensateTime},'0')
+    </insert>
+
+</mapper>
+

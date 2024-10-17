@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.EstateMobileMenuMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.EstateMobileMenu">
+        select
+        estate_menu_id as "estateMenuId",
+        estate_menu_code as "estateMenuCode",
+        estate_menu_name as "estateMenuName"
+        from xccj_community.bus_estate_mobile_menu
+        <where>
+
+            <if test="estateMenuName!=null and estateMenuName !=''">
+                AND estate_menu_name like CONCAT('%',#{estateMenuName},'%')
+            </if>
+            <if test="estateMenuCode!=null and estateMenuCode !=''">
+                AND estate_menu_code like CONCAT('%',#{estateMenuCode},'%')
+            </if>
+
+        </where>
+    </select>
+
+    <select id="getStaffIdAuthMenuList" resultType="com.wr.remote.domain.EstateMobileMenu">
+        SELECT
+            emm.*
+        FROM
+            xccj_community.bus_estate_staff_role esr
+                LEFT JOIN xccj_community.bus_estate_role es ON es.estate_role_id = esr.estate_role_id
+                LEFT JOIN xccj_community.bus_estate_mobile_role_menu emrm ON emrm.estate_role_id = es.estate_role_id
+                LEFT JOIN xccj_community.bus_estate_mobile_menu emm ON emm.estate_menu_id = emrm.estate_menu_id
+        WHERE
+            esr.staff_id =#{staffId}
+    </select>
+</mapper>

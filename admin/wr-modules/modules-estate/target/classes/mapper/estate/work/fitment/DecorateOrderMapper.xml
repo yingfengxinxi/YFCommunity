@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.work.fitment.DecorateOrderMapper">
+    <!--字段映射-->
+    <resultMap type="com.wr.remote.work.fitment.DecorateOrder" id="DecorateOrderResult">
+        <id property="orderId" column="order_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="decorateId" column="decorate_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="orderName" column="order_name"/>
+        <result property="orderType" column="order_type"/>
+        <result property="allotWay" column="allot_way"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="staffId" column="staff_id"/>
+        <result property="assistNum" column="assist_num"/>
+        <result property="transferStatus" column="transfer_status"/>
+        <result property="allotStatus" column="allot_status"/>
+        <result property="acceptStatus" column="accept_status"/>
+        <result property="executeStatus" column="execute_status"/>
+        <result property="assessResult" column="assess_result"/>
+        <result property="executeId" column="execute_id"/>
+        <result property="executeTime" column="execute_time"/>
+        <result property="finishTime" column="finish_time"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="damageStatus" column="damage_status"/>
+        <result property="neatStatus" column="neat_status"/>
+    </resultMap>
+
+    <!--装修评定工单列表-->
+    <select id="getDecorateOrderList" resultMap="DecorateOrderResult">
+        select
+            xwbdo.order_id, xwbdo.community_id, xwbdo.decorate_id, xwbdo.order_no, xwbdo.allot_way, xwbdo.assess_result, xwbdo.update_time, xwbdo.allot_status, xwbdo.accept_status, xwbdo.execute_status,
+            (case xwbdo.update_by when '' then xwbdo.create_by else xwbdo.update_by end) update_by,
+            xcbo.owner_name ownerName,
+            xcbr.room_name roomName,
+            CONCAT_WS('-',xcbc.community_name,xcbb.building_name,xcbu.unit_name,xcbr.room_name) address
+        from xccj_work.bus_decorate_order xwbdo
+        left join xccj_community.bus_community xcbc on xwbdo.community_id = xcbc.community_id
+        left join xccj_community.bus_decorate xcbd on xwbdo.decorate_id = xcbd.decorate_id
+        left join xccj_community.bus_owner xcbo on xcbd.owner_id = xcbo.owner_id
+        left join xccj_community.bus_room xcbr on xcbd.room_id = xcbr.room_id
+        left join xccj_community.bus_building xcbb on xcbd.building_id = xcbb.building_id
+        left join xccj_community.bus_unit xcbu on xcbd.unit_id = xcbu.unit_id
+        <where>
+            xwbdo.del_flag = '0'
+            <if test="ownerName != null and ownerName != ''">
+                AND xcbo.owner_name like concat('%', #{ownerName}, '%')
+            </if>
+            <if test="roomName != null and roomName != ''">
+                AND xcbr.room_name like concat('%', #{roomName}, '%')
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                AND xwbdo.allot_way = #{allotWay}
+            </if>
+            <if test="assessResult != null and assessResult != ''">
+                AND xwbdo.assess_result = #{assessResult}
+            </if>
+            <if test="executeStatus != null and executeStatus != ''">
+                AND xwbdo.execute_status = #{executeStatus}
+            </if>
+            <if test="communityId != null and communityId != 0">
+                AND xwbdo.community_id = #{communityId}
+            </if>
+        </where>
+        order by xwbdo.create_time desc
+    </select>
+
+    <!--查询装修列表-->
+    <select id="getDecorateList" resultType="com.wr.remote.estate.customer.decorate.Decorate">
+        select
+            xcbd.decorate_id decorateId,
+            CONCAT_WS('-',xcbo.owner_name,xcbr.room_name) decorateName
+        from xccj_community.bus_decorate xcbd
+        left join xccj_community.bus_owner xcbo on xcbd.owner_id = xcbo.owner_id
+        left join xccj_community.bus_room xcbr on xcbd.room_id = xcbr.room_id
+        where xcbd.del_flag = '0' and xcbd.audit_status != '0' and xcbd.audit_status != '1' and xcbd.community_id = #{communityId}
+    </select>
+
+    <!--根据装修id查询装修详细信息-->
+    <select id="getDecorateDetail" resultType="com.wr.remote.estate.customer.decorate.Decorate">
+        select
+            xcbd.community_id communityId, xcbd.finish_date finishDate, xcbd.plan_start planStart, xcbd.plan_end planEnd,
+            xcbd.audit_status auditStatus, xcbd.delay_day delayDay, xcbd.decorate_type decorateType,
+            xcbo.owner_name ownerName,
+            xcbr.room_name roomName,
+            CONCAT_WS('-',xcbc.community_name,xcbb.building_name,xcbu.unit_name,xcbr.room_name) address
+        from xccj_community.bus_decorate xcbd
+        left join xccj_community.bus_owner xcbo on xcbd.owner_id = xcbo.owner_id
+        left join xccj_community.bus_room xcbr on xcbd.room_id = xcbr.room_id
+        left join xccj_community.bus_community xcbc on xcbd.community_id = xcbc.community_id
+        left join xccj_community.bus_building xcbb on xcbd.building_id = xcbb.building_id
+        left join xccj_community.bus_unit xcbu on xcbd.unit_id = xcbu.unit_id
+        where xcbd.decorate_id = #{decorateId}
+    </select>
+
+    <!--装修评定工单新增-->
+    <insert id="addDecorateOrder">
+        insert into xccj_work.bus_decorate_order(
+        <if test="communityId != null and communityId != 0">community_id,</if>
+        <if test="decorateId != null and decorateId != 0">decorate_id,</if>
+        <if test="orderNo != null and orderNo != ''">order_no,</if>
+        <if test="orderName != null and orderName != ''">order_name,</if>
+        <if test="orderType != null and orderType != ''">order_type,</if>
+        <if test="allotWay != null and allotWay != ''">allot_way,</if>
+        <if test="startTime != null">start_time,</if>
+        <if test="endTime != null">end_time,</if>
+        <if test="staffId != null and staffId != 0">staff_id,</if>
+        <if test="assistNum != null">assist_num,</if>
+        <if test="allotStatus != null and allotStatus != ''">allot_status,</if>
+        <if test="damageStatus != null and damageStatus != ''">damage_status,</if>
+        <if test="neatStatus != null and neatStatus != ''">neat_status,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        create_time
+        )values(
+        <if test="communityId != null and communityId != 0">#{communityId},</if>
+        <if test="decorateId != null and decorateId != 0">#{decorateId},</if>
+        <if test="orderNo != null and orderNo != ''">#{orderNo},</if>
+        <if test="orderName != null and orderName != ''">#{orderName},</if>
+        <if test="orderType != null and orderType != ''">#{orderType},</if>
+        <if test="allotWay != null and allotWay != ''">#{allotWay},</if>
+        <if test="startTime != null">#{startTime},</if>
+        <if test="endTime != null">#{endTime},</if>
+        <if test="staffId != null and staffId != 0">#{staffId},</if>
+        <if test="assistNum != null">#{assistNum},</if>
+        <if test="allotStatus != null and allotStatus != ''">#{allotStatus},</if>
+        <if test="damageStatus != null and damageStatus != ''">#{damageStatus},</if>
+        <if test="neatStatus != null and neatStatus != ''">#{neatStatus},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        sysdate()
+        )
+    </insert>
+
+    <!--工单执行情况表插入数据-->
+    <insert id="insertOrderRecord">
+        insert into xccj_work.bus_order_record(
+        <if test="orderType != null and orderType != ''">order_type,</if>
+        <if test="orderId != null and orderId != 0">order_id,</if>
+        <if test="dataType != null and dataType != ''">data_type,</if>
+        <if test="orderResult != null and orderResult != ''">order_result,</if>
+        <if test="userName != null and userName != ''">user_name,</if>
+        create_time
+        )values(
+        <if test="orderType != null and orderType != ''">#{orderType},</if>
+        <if test="orderId != null and orderId != 0">#{orderId},</if>
+        <if test="dataType != null and dataType != ''">#{dataType},</if>
+        <if test="orderResult != null and orderResult != ''">#{orderResult},</if>
+        <if test="userName != null and userName != ''">#{userName},</if>
+        sysdate()
+        )
+    </insert>
+
+    <!--查询工单分配设置-->
+    <select id="getDecorateOrderDistribution" resultType="com.wr.remote.work.distribution.Distribution">
+        select allot_id allotId, allot_way allotWay, user_type userType, assist_num assistNum, community_id communityId
+        from xccj_work.bus_allot where allot_type = '4' and del_flag = '0' and community_id = #{communityId}
+    </select>
+
+    <!--装修评定工单删除-->
+    <delete id="deleteDecorateOrder">
+        update xccj_work.bus_decorate_order set del_flag = '1' where order_id in
+        <foreach collection="array" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+
+    <!--装修评定工单整改-->
+    <update id="rectificationDecorateOrder">
+        update xccj_work.bus_decorate_order set assess_result = '3' where order_id = #{orderId}
+    </update>
+
+    <!--查询装修评定工单详情-->
+    <select id="getDecorateOrderDetail" resultMap="DecorateOrderResult">
+         select
+            xwbdo.order_id, xwbdo.community_id, xwbdo.decorate_id, xwbdo.order_no, xwbdo.order_name, xwbdo.allot_way, xwbdo.image_url,
+            xwbdo.assess_result, xwbdo.update_time, xwbdo.finish_time, xwbdo.start_time, xwbdo.end_time, xwbdo.remark,
+            (select staff_name from xccj_community.bus_staff xcbs where xcbs.staff_id = xwbdo.staff_id) staffName,
+            (IF((select count(xwba.abnormal_id) from xccj_work.bus_abnormal xwba where xwba.order_id = xwbdo.order_id and xwba.order_type = '4') = 0,'无异常', '异常')) abnormalType
+        from xccj_work.bus_decorate_order xwbdo
+        where xwbdo.order_id = #{orderId}
+    </select>
+
+    <!--装修评定工单修改页面查询数据-->
+    <select id="getUpdateDetail" resultMap="DecorateOrderResult">
+         select
+            xwbdo.order_id, xwbdo.order_name, xwbdo.end_time, xwbdo.decorate_id, xwbdo.damage_status, xwbdo.neat_status,
+            (case xwbdo.update_by when '' then xwbdo.create_by when !'' then xwbdo.update_by end) update_by,
+            xcbo.owner_name ownerName,
+            xcbr.room_name roomName,
+            CONCAT_WS('-',xcbc.community_name,xcbb.building_name,xcbu.unit_name,xcbr.room_name) address
+        from xccj_work.bus_decorate_order xwbdo
+        left join xccj_community.bus_community xcbc on xwbdo.community_id = xcbc.community_id
+        left join xccj_community.bus_decorate xcbd on xwbdo.decorate_id = xcbd.decorate_id
+        left join xccj_community.bus_owner xcbo on xcbd.owner_id = xcbo.owner_id
+        left join xccj_community.bus_room xcbr on xcbd.room_id = xcbr.room_id
+        left join xccj_community.bus_building xcbb on xcbd.building_id = xcbb.building_id
+        left join xccj_community.bus_unit xcbu on xcbd.unit_id = xcbu.unit_id
+        where xwbdo.order_id = #{orderId}
+    </select>
+
+    <!--查询工单协助人信息-->
+    <select id="getStaffList" resultType="com.wr.remote.estate.manage.Staff">
+        select
+            xcbs.staff_name staffName, xcbs.staff_phone staffPhone, xcbs.card_no cardNo, xcbs.work_post workPost
+        from xccj_work.bus_order_audit xwboa
+        left join xccj_work.bus_order_assist xwboas on xwboa.audit_id = xwboas.audit_id
+        left join xccj_community.bus_staff xcbs on xcbs.staff_id = xwboas.staff_id
+        where
+              xcbs.audit_status = '1' and xcbs.del_flag = '0' and xwboa.order_type = '4' and
+              xwboa.audit_type = '1' and xwboa.audit_status = '1' and xwboa.del_flag = '0' and xwboa.order_id = #{orderId}
+    </select>
+
+    <!--装修评定工单修改-->
+    <update id="updateDecorateOrder">
+        update xccj_work.bus_decorate_order
+        <set>
+            <if test="communityId != null and communityId != 0">community_id= #{communityId},</if>
+            <if test="decorateId != null and decorateId != 0">decorate_id = #{decorateId},</if>
+            <if test="orderName != null and orderName != ''">order_name = #{orderName},</if>
+            <if test="orderType != null and orderType != ''">order_type = #{orderType},</if>
+            <if test="allotWay != null and allotWay != ''">allot_way = #{allotWay},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="staffId != null and staffId != 0">staff_id = #{staffId},</if>
+            <if test="assistNum != null">assist_num = #{assistNum},</if>
+            <if test="allotStatus != null and allotStatus != ''">allot_status = #{allotStatus},</if>
+            <if test="damageStatus != null and damageStatus != ''">damage_status = #{damageStatus},</if>
+            <if test="neatStatus != null and neatStatus != ''">neat_status = #{neatStatus},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where order_id = #{orderId}
+    </update>
+
+    <!--工单分配-->
+    <update id="decorateOrderDistribution">
+        update xccj_work.bus_decorate_order set staff_id = #{staffId} , allot_status = '1' where order_id = #{orderId}
+    </update>
+</mapper>

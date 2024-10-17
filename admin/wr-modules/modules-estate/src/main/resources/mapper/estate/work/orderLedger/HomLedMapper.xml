@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.orderLedger.HomLedMapper">
+    <select id="listHomLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.HomeLedVo">
+        SELECT bho.order_id,bho.order_no,bho.order_name,bho.deposit,bho.staff_id,bho.execute_time,
+               bs.staff_name,bo.owner_name,bhr.repair_name
+        FROM xccj_work.bus_home_order bho
+        LEFT JOIN xccj_community.bus_staff bs ON bho.staff_id = bs.staff_id
+        LEFT JOIN xccj_community.bus_owner bo ON bho.owner_id = bo.owner_id
+        LEFT JOIN xccj_work.bus_home_repair bhr ON bhr.repair_id = bho.repair_id
+        WHERE bho.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            AND bho.community_id = #{communityId}
+        </if>
+        <if test="orderName != null and orderName != ''">
+            AND bho.order_name like concat('%', #{orderName}, '%')
+        </if>
+        <if test="ownerName != null and ownerName != ''">
+            AND bo.owner_name like concat('%', #{ownerName}, '%')
+        </if>
+        <if test="repairName != null and repairName != ''">
+            AND bhr.repair_name like concat('%', #{repairName}, '%')
+        </if>
+        and bho.execute_status = '2' or bho.execute_status = '3'
+    </select>
+    <select id="getHomLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.HomeLedVo">
+        SELECT DISTINCT bho.order_id,bho.order_no,bho.order_name,bho.deposit,bho.staff_id,bho.execute_time,
+                        bho.plan_start,bho.plan_end,bho.finish_time,bho.remark,bho.address,bhr.repair_name,
+                        bho.image_url,bsf.staff_name,
+               if(ba.abnormal_id != '' and ba.abnormal_id != null ,'异常','正常') AS status
+        FROM xccj_work.bus_home_order bho
+                 LEFT JOIN xccj_work.bus_abnormal ba ON bho.order_id = ba.order_id
+                 LEFT JOIN xccj_work.bus_home_repair bhr ON bhr.repair_id = bho.repair_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = bho.staff_id
+        WHERE bsf.del_flag = '0' AND bhr.repair_status = '0'AND bho.order_id = #{orderId}
+    </select>
+    <select id="getHomStaffList" resultType="com.wr.remote.estate.order.vo.ledgerVo.HomeLedVo">
+        SELECT DISTINCT bsf.staff_name,
+               bsf.staff_phone,
+               bsf.card_no,
+               bsf.work_post
+        FROM xccj_work.bus_order_audit AS boat
+                 LEFT JOIN xccj_work.bus_order_assist AS boar ON boar.audit_id = boat.audit_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = boar.staff_id
+                 LEFT JOIN xccj_work.bus_home_order bho ON bho.order_id = boat.order_id
+        WHERE bsf.del_flag = '0' and boat.audit_status='1' and boat.del_flag='0' and boat.audit_type='1' and boat.order_type='5'
+          AND bho.order_id = #{orderId}
+    </select>
+    <select id="orderImg" resultType="com.wr.remote.estate.order.vo.ledgerVo.HomeLedVo">
+        SELECT image_url AS orderImageUrl
+        from xccj_work.bus_order_image
+        WHERE del_flag='0' and image_type='0' and table_id=#{orderId}
+    </select>
+</mapper>

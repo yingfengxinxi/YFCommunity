@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.estate.EstateMobileMenuMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.EstateMobileMenu">
+        select
+        estate_menu_id as "estateMenuId",
+        estate_menu_code as "estateMenuCode",
+        estate_menu_name as "estateMenuName"
+        from xccj_community.bus_estate_mobile_menu
+        <where>
+
+            <if test="estateMenuName!=null and estateMenuName !=''">
+                AND estate_menu_name like CONCAT('%',#{estateMenuName},'%')
+            </if>
+            <if test="estateMenuCode!=null and estateMenuCode !=''">
+                AND estate_menu_code like CONCAT('%',#{estateMenuCode},'%')
+            </if>
+
+        </where>
+    </select>
+
+    <select id="getById" resultType="com.wr.remote.domain.EstateMobileMenu">
+        select estate_menu_id   as "estateMenuId",
+               estate_menu_name as "estateMenuName",
+               estate_menu_code as "estateMenuCode"
+        from xccj_community.bus_estate_mobile_menu
+        where estate_menu_id = #{estateMenuId}
+    </select>
+
+    <select id="getByNameCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_estate_mobile_menu
+        <where>
+            <if test="estateMenuName!=null and estateMenuName !=''">
+                AND estate_menu_name=#{estateMenuName}
+            </if>
+            <if test="estateMenuCode!=null and estateMenuCode !=''">
+                AND estate_menu_code =#{estateMenuCode}
+            </if>
+            <if test="estateMenuId!=null">
+                AND estate_menu_id != #{estateMenuId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="estateMenuId">
+        insert into xccj_community.bus_estate_mobile_menu(estate_menu_code, estate_menu_name)
+        values (#{estateMenuCode}, #{estateMenuName})
+    </insert>
+    <update id="update">
+        update xccj_community.bus_estate_mobile_menu
+        set estate_menu_name=#{estateMenuName}
+        where estate_menu_id = #{estateMenuId}
+    </update>
+
+    <delete id="delete">
+        delete
+        from xccj_community.bus_estate_mobile_menu
+        where estate_menu_id = #{estateMenuId}
+    </delete>
+</mapper>

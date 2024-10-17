@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.meter.MeterSmsPushMapper">
+
+    <!--获取已认证的房间所有用户-->
+    <select id="getPushOwner" resultType="com.wr.remote.estate.manage.meter.PushOwnerVo">
+        SELECT
+            bc.community_name,
+            bb.building_name,
+            bu.unit_name,
+            br.room_name,
+            br.room_id,
+            br.owner_id,
+            bo.owner_name,
+            bo.owner_phone
+        FROM
+            xccj_community.bus_room br
+            LEFT JOIN xccj_community.bus_community bc ON br.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = br.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+            LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.owner_id
+        WHERE
+            bc.estate_id = #{estateId} AND br.del_flag = '0'
+            AND br.owner_id != '0'
+    </select>
+
+    <!--查询物业名-->
+    <select id="getEstateName" resultType="string">
+        SELECT estate_name FROM xccj_community.bus_estate WHERE estate_id = #{estateId}
+    </select>
+
+</mapper>

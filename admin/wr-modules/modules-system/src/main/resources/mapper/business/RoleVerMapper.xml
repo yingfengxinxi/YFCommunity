@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.business.mapper.RoleVerMapper">
+    <sql id="roleColumns">
+        sr.role_id, sr.role_name, sr.role_key, sr.role_sort,
+        sr.status, sr.role_type,sr.create_by,sr.create_time,sr.update_by,sr.update_time,sr.remark
+    </sql>
+
+    <delete id="deleteVerRole">
+        DELETE FROM xccj_community.bus_role_ver WHERE role_id IN
+        <foreach collection="array" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
+    <update id="deletePropRoleByIds">
+        UPDATE xccj_estate_sys.sys_role SET del_flag = '1' WHERE role_id IN
+        <foreach collection="array" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </update>
+
+    <resultMap id="roleVerVOResult" type="com.wr.system.business.domain.RoleVerVO">
+    <result property="roleId" column="role_id"/>
+    <result property="roleName" column="role_name"/>
+    <result property="roleKey" column="role_key"/>
+    <result property="roleSort" column="role_sort"/>
+    <result property="status" column="status"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="remark" column="remark"/>
+
+    <result property="versionId" column="version_id"/>
+    <result property="versionName" column="version_name"/>
+    </resultMap>
+
+    <select id="selectProRoleList" resultMap="roleVerVOResult">
+        select
+        sbv.version_id,
+        sbv.version_name,
+        <include refid="roleColumns"/>
+        from xccj_estate_sys.sys_role sr
+        LEFT JOIN xccj_community.bus_role_ver rv USING(role_id)
+        LEFT JOIN xccj_community.bus_server_ver sbv USING (version_id)
+        where sr.del_flag='0' and sr.role_type='10' and sbv.del_flag=0
+        <if test="roleName!=null and roleName!=''">
+            and sr.role_name=#{roleName}
+        </if>
+        <if test="status!=null and status!=''">
+            and sr.status=#{status}
+        </if>
+        <if test="params.beginTime!=null and params.beginTime!=''">
+            and date_format(sr.create_time,'%y%m%d')>= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime!=null and params.endTime!=''">
+            and date_format(sr.create_time,'%y%m%d')&lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        order by sr.role_sort
+    </select>
+
+
+
+    <select id="checkRoleNameUnique" resultType="com.wr.system.business.domain.RoleVerVO">
+        SELECT
+        <include refid="roleColumns"/>
+        FROM xccj_estate_sys.sys_role sr
+        WHERE sr.del_flag = '0' AND sr.role_type = '10' AND sr.role_name = #{roleName}
+    </select>
+
+<!--    <select id="getAutoIncrement" resultType="java.lang.Long">-->
+<!--        SELECT-->
+<!--            AUTO_INCREMENT-->
+<!--        FROM information_schema.tables-->
+<!--        WHERE table_schema='xccj_estate_sys' AND table_name='sys_role';-->
+<!--    </select>-->
+
+    <select id="getAutoIncrement" resultType="java.lang.Long">
+        SELECT MAX(role_id) + 1
+        FROM xccj_estate_sys.sys_role;
+    </select>
+
+
+    <select id="selectMenuListByVersionId" resultType="java.lang.Long">
+        SELECT m.menu_id
+        FROM xccj_estate_sys.sys_menu m
+                 LEFT JOIN xccj_community.bus_server_ver_menu rvm ON m.menu_id = rvm.menu_id
+        WHERE rvm.version_id = #{versionId}
+        order by m.parent_id, m.order_num
+    </select>
+
+
+    <select id="selectRoleVersionList" resultType="com.wr.system.business.domain.RoleVerVO">
+        SELECT
+            version_id,version_name
+        FROM xccj_community.bus_server_ver
+        WHERE del_flag='0'
+    </select>
+
+
+    <select id="selectPropRoleById" resultType="com.wr.system.business.domain.RoleVerVO">
+        SELECT
+        rv.version_id ,
+        rv.version_name,
+        <include refid="roleColumns"/>
+        FROM xccj_estate_sys.sys_role sr
+        LEFT JOIN xccj_community.bus_role_ver vr ON sr.role_id = vr.role_id
+        LEFT JOIN xccj_community.bus_server_ver rv ON rv.version_id = vr.version_id
+        WHERE sr.del_flag = '0' AND sr.role_id = #{roleId}
+    </select>
+
+
+    <select id="countPropUserRoleByRoleId" resultType="java.lang.Integer">
+        SELECT count(1) FROM xccj_estate_sys.sys_user_role WHERE role_id=#{roleId}
+    </select>
+
+
+    <update id="updatePropRoleStatus">
+        UPDATE xccj_estate_sys.sys_role SET status = #{status} WHERE role_id = #{roleId}
+    </update>
+
+
+    <update id="updatePropRole">
+        UPDATE xccj_estate_sys.sys_role
+        <set>
+            <if test="roleName != null and roleName != ''">role_name = #{roleName},</if>
+            <if test="roleKey != null and roleKey != ''">role_key = #{roleKey},</if>
+            <if test="roleSort != null and roleSort != ''">role_sort = #{roleSort},</if>
+            <if test="dataScope != null and dataScope != ''">data_scope = #{dataScope},</if>
+            <if test="menuCheckStrictly != null">menu_check_strictly = #{menuCheckStrictly},</if>
+            <if test="deptCheckStrictly != null">dept_check_strictly = #{deptCheckStrictly},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        WHERE role_id = #{roleId}
+    </update>
+
+    <insert id="insertPropRole">
+        INSERT INTO xccj_estate_sys.sys_role(
+        <if test="roleName != null and roleName != ''">role_name,</if>
+        <if test="roleKey != null and roleKey != ''">role_key,</if>
+        <if test="roleType != null and roleType != ''">role_type,</if>
+        <if test="roleSort != null and roleSort != ''">role_sort,</if>
+        <if test="dataScope != null and dataScope != ''">data_scope,</if>
+        <if test="menuCheckStrictly != null">menu_check_strictly,</if>
+        <if test="deptCheckStrictly != null">dept_check_strictly,</if>
+        <if test="status != null and status != ''">status,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        create_time
+        ) VALUES (
+        <if test="roleName != null and roleName != ''">#{roleName},</if>
+        <if test="roleKey != null and roleKey != ''">#{roleKey},</if>
+        <if test="roleType != null and roleType != ''">#{roleType},</if>
+        <if test="roleSort != null and roleSort != ''">#{roleSort},</if>
+        <if test="dataScope != null and dataScope != ''">#{dataScope},</if>
+        <if test="menuCheckStrictly != null">#{menuCheckStrictly},</if>
+        <if test="deptCheckStrictly != null">#{deptCheckStrictly},</if>
+        <if test="status != null and status != ''">#{status},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        sysdate()
+        )
+    </insert>
+
+    <insert id="insertVerRole">
+        INSERT INTO xccj_community.bus_role_ver(
+            version_id,role_id
+        )VALUES (
+                    #{versionId},#{roleId}
+                )
+    </insert>
+
+
+</mapper>

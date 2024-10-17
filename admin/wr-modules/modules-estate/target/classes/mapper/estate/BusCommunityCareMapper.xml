@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.rescue.BusCommunityCareMapper">
+
+    <sql id="columns">
+        bcc.id,
+        bcc.community_id,
+        bcc.activity_name,
+        bcc.active_picture,
+        bcc.community_care_id,
+        bcc.event_release_time as "eventReleaseTime",
+        bcc.active_list_content,
+        su.nick_name as "eventReleaseBy",
+        bcc.status,
+        bcc.sort,
+        bcc.create_by,
+        bcc.create_time,
+        bcc.update_by,
+        bcc.update_time,
+        bcc.del_flag
+    </sql>
+
+    <select id="getList" resultType="com.wr.estate.entity.BusCommunityCare">
+        select
+        <include refid="columns"></include>
+        from xccj_community.bus_community_care bcc
+        LEFT JOIN xccj_estate_sys.sys_user su ON bcc.event_release_by = su.user_id
+        where bcc.del_flag='0'
+        and estate_id=#{estateId}
+        <if test="communityId !=null">
+            and bcc.community_id=#{communityId}
+        </if>
+          <if test="communityCareId !=null">
+            and bcc.community_care_id=#{communityCareId}
+        </if>
+        <if test="activityName !=null and activityName !=''">
+            and bcc.activity_name like CONCAT('%',#{activityName},'%')
+        </if>
+        order by bcc.sort asc,bcc.create_time desc
+    </select>
+
+
+    <select id="getById" resultType="com.wr.estate.entity.BusCommunityCare">
+        select
+        <include refid="columns"></include>,
+        content
+        from xccj_community.bus_community_care bcc
+        LEFT JOIN xccj_estate_sys.sys_user su ON bcc.event_release_by = su.user_id
+        where bcc.del_flag='0'
+        and bcc.id=#{id}
+    </select>
+
+    <insert id="insert">
+        insert into xccj_community.bus_community_care(
+            estate_id,
+            community_id,
+            activity_name,
+            active_list_content,
+            active_picture,
+            content,
+            community_care_id,
+            status,
+            event_release_time,
+            event_release_by,
+            sort,
+            create_by,
+            create_time,
+            update_by,
+            update_time,
+            del_flag)
+        values (
+                #{estateId},
+                #{communityId},
+                #{activityName},
+                #{activeListContent},
+                #{activePicture},
+                #{content},
+                #{communityCareId},
+                #{status},
+                #{eventReleaseTime},
+                #{eventReleaseBy},
+                #{sort},
+                #{createBy},
+                NOW(),
+                #{createBy},
+                NOW(),
+                '0')
+    </insert>
+
+
+    <update id="update">
+        update xccj_community.bus_community_care
+        set activity_name=#{activityName},
+            active_list_content=#{activeListContent},
+            community_id=#{communityId},
+            sort=#{sort},
+            status=#{status},
+            event_release_time=#{eventReleaseTime},
+            event_release_by=#{eventReleaseBy},
+            active_picture=#{activePicture},
+            content=#{content},
+            community_care_id=#{communityCareId},
+            update_by=#{updateBy},
+            update_time=NOW()
+        where id = #{id}
+    </update>
+
+    <update id="delete">
+        update xccj_community.bus_community_care
+        set del_flag='1'
+        where id = #{id}
+    </update>
+
+
+    <update id="updateByIdStatus">
+        update xccj_community.bus_community_care
+        set event_release_time=#{eventReleaseTime},
+            event_release_by=#{eventReleaseBy},
+            status=#{status}
+        where id = #{id}
+    </update>
+
+
+
+</mapper>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.distribution.DistributionMapper">
+
+
+    <select id="selectList" parameterType="com.wr.remote.work.distribution.Distribution"
+            resultType="com.wr.remote.work.distribution.Distribution">
+        select allot_id,
+        community_id,
+        allot_type,
+        allot_way,
+        user_type,
+        assist_num,
+        gap_hour,
+        update_time,
+        update_by
+        from xccj_work.bus_allot
+        <where>
+            del_flag = '0'
+            <if test="communityId != null and communityId != 0"><!-- 所属小区 -->
+                AND community_id = #{communityId}
+            </if>
+
+        </where>
+    </select>
+    <select id="getAllotByType"
+            resultType="com.wr.remote.work.distribution.Distribution">
+        select allot_id,
+        community_id,
+        allot_type,
+        allot_way,
+        user_type,
+        assist_num,
+        gap_hour,
+        update_time,
+        update_by
+        from xccj_work.bus_allot
+        <where>
+            del_flag = '0'
+            AND community_id = #{communityId}
+            AND allot_type = #{allotType}
+        </where>
+    </select>
+    <insert id="insertAllot" parameterType="com.wr.remote.work.distribution.Distribution" useGeneratedKeys="true"
+            keyProperty="allotId">
+        insert into xccj_work.bus_allot(
+        <if test="communityId != null and communityId != 0">community_id,</if>
+        <if test="allotType != null ">allot_type,</if>
+        <if test="allotWay != null and allotWay != ''">allot_way,</if>
+        <if test="userType != null and userType != ''">user_type,</if>
+        <if test="assistNum != null ">assist_num,</if>
+        <if test="gapHour != null ">gap_hour,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        <if test="updateBy != null and updateBy != ''">update_by,</if>
+        create_time,
+        update_time
+        )values(
+        <if test="communityId != null and communityId != 0">#{communityId},</if>
+        <if test="allotType != null">#{allotType},</if>
+        <if test="allotWay != null and allotWay != ''">#{allotWay},</if>
+        <if test="userType != null and userType != ''">#{userType},</if>
+        <if test="assistNum != null">#{assistNum},</if>
+        <if test="gapHour != null ">#{gapHour},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+        sysdate(),
+        sysdate()
+        )
+    </insert>
+
+
+    <insert id="insertAllotPost" parameterType="com.wr.remote.work.distribution.Distribution">
+        insert into xccj_work.bus_allot_post(
+        <if test="workPost != null and workPost != 0">user_post,</if>
+        <if test="allotId != null and allotId != 0">allot_id</if>
+        )values(
+        <if test="workPost != null and workPost != 0">#{workPost},</if>
+        <if test="allotId != null and allotId != 0">#{allotId}</if>
+        )
+    </insert>
+
+
+    <update id="updateAllot" parameterType="com.wr.remote.work.distribution.Distribution">
+        update xccj_work.bus_allot
+        <set>
+            <if test="allotWay != null ">allot_way = #{allotWay},</if>
+            <if test="userType != null">user_type = #{userType},</if>
+            <if test="assistNum != null ">assist_num = #{assistNum},</if>
+            <if test="gapHour != null ">gap_hour = #{gapHour},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        where allot_id = #{allotId}
+    </update>
+
+
+    <select id="selectAllot" parameterType="com.wr.remote.work.distribution.Distribution" resultType="integer">
+        select count(allot_id)
+        from xccj_work.bus_allot
+        where del_flag = 0 AND community_id = #{communityId}
+          and allot_type = #{allotType}
+    </select>
+
+    <select id="selectAllotById" resultType="com.wr.remote.work.distribution.Distribution" parameterType="long">
+        select allot_id,
+               community_id,
+               allot_type,
+               allot_way,
+               user_type,
+               assist_num,
+               gap_hour,
+               update_time,
+               update_by
+        from xccj_work.bus_allot
+        where del_flag = '0'
+          and allot_id = #{allotId}
+
+    </select>
+
+    <select id="selectListAllot" resultType="String" parameterType="long">
+        select user_post
+        from xccj_work.bus_allot_post as bap
+        where bap.allot_id = #{allotId}
+
+    </select>
+
+    <delete id="deleteAllot" parameterType="com.wr.remote.work.distribution.Distribution">
+        delete
+        from xccj_work.bus_allot_post
+        where allot_id = #{allotId}
+    </delete>
+
+
+    <select id="selectName" parameterType="long" resultType="string">
+        select community_name
+        from xccj_community.bus_community
+        where community_id = #{communityId}
+    </select>
+
+
+</mapper>

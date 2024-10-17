@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.autonomy.decide.DecideMapper">
+
+    <select id="getList" parameterType="com.wr.remote.govern.autonomy.decide.Decide" resultType="com.wr.remote.govern.autonomy.decide.Decide">
+        SELECT
+        ide.decide_id,
+        ide.decide_title,
+        ide.content,
+        ide.start_time,
+        ide.end_time,
+        ide.create_time
+        FROM
+        xccj_govern.bus_decide as ide
+        <where>
+            ide.del_flag='0'
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(ide.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(ide.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            <if test="decideTitle!=null and decideTitle!=''">
+                AND ide.decide_title like concat('%', #{decideTitle}, '%')
+            </if>
+            <if test="estateId != null">
+                AND ide.estate_id = #{estateId}
+            </if>
+        </where>
+    </select>
+
+
+   <!--新增表决-->
+    <insert id="addDecide" parameterType="com.wr.remote.govern.autonomy.decide.vo.decideVo" useGeneratedKeys="true"  keyProperty="decideId">
+        insert into  xccj_govern.bus_decide
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null and estateId !=''">estate_id,</if>
+            <if test="decideTitle != null and decideTitle !=''">decide_title,</if>
+            <if test="content != null and content !=''">content,</if>
+            <if test="startTime != null ">start_time,</if>
+            <if test="endTime != null ">end_time,</if>
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null and estateId !=''">#{estateId},</if>
+            <if test="decideTitle != null and decideTitle !=''">#{decideTitle},</if>
+            <if test="content != null and content !=''">#{content},</if>
+            <if test="startTime != null ">#{startTime},</if>
+            <if test="endTime != null ">#{endTime},</if>
+            #{createBy},sysdate()
+        </trim>
+    </insert>
+
+
+   <!--新增关联表-->
+    <insert id="addDecideRang">
+        INSERT INTO xccj_govern.bus_decide_rang(
+        statute_id,community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.statuteId},#{item.communityId})
+        </foreach>
+    </insert>
+
+<!--新增选项    statute_id,item_title,create_by,create_time-->
+    <insert id="addDecideItem">
+        INSERT INTO xccj_govern.bus_decide_item
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="decideId != null and decideId !=''">statute_id,</if>
+        <if test="itemTitleOne != null and itemTitleOne !=''">item_title,</if>
+        create_by,create_time
+    </trim>
+        <if test="itemTitleOne != null and itemTitleOne !=''">
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                #{decideId},#{itemTitleOne},#{createBy},sysdate()
+            </trim>
+        </if>
+        <if test="itemTitleTwo != null and itemTitleTwo !=''">
+            ,
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                #{decideId},#{itemTitleTwo},#{createBy},sysdate()
+            </trim>
+        </if>
+
+    </insert>
+
+<!--id查详情： decide表格中记录-->
+    <select id="queryDecideByIdOne" parameterType="Long" resultType="com.wr.remote.govern.autonomy.decide.Decide">
+        SELECT *
+        FROM xccj_govern.bus_decide as ide
+        where ide.del_flag = '0'
+          and ide.decide_id = #{decideId}
+    </select>
+
+<!--id查询当前自联表信息-->
+    <select id="queryDecideRangById" parameterType="Long" resultType="Long">
+        SELECT rang.community_id
+        FROM xccj_govern.bus_decide_rang as rang
+        where rang.statute_id =#{decideId}
+    </select>
+
+<!--id查询选项表信息-->
+    <select id="queryDecideItemById" parameterType="Long" resultType="com.wr.remote.govern.autonomy.decide.DecideItem">
+        SELECT *
+        FROM xccj_govern.bus_decide_item as tem
+        where tem.del_flag = '0'
+          and tem.statute_id = #{decideId}
+    </select>
+
+
+<!--修改主表中信息-->
+    <update id="updateDecide" parameterType="com.wr.remote.govern.autonomy.decide.vo.decideVo">
+        update xccj_govern.bus_decide as ide
+        <set>
+            <if test="decideTitle != null and decideTitle != ''">
+                ide.decide_title = #{decideTitle},
+            </if>
+            <if test="content != null and content != ''">
+                ide.content = #{content},
+            </if>
+            <if test="startTime != null ">
+                ide.start_time = #{startTime},
+            </if>
+            <if test="endTime != null ">
+                ide.end_time = #{endTime},
+            </if>
+            ide.update_by=#{updateBy},
+            ide.update_time = sysdate()
+        </set>
+        where ide.decide_id = #{decideId}
+    </update>
+
+<!--修改所需， 删除关联表（bus_decide_rang）信息-->
+    <delete id="delDecideRangById" parameterType="Long">
+        delete
+        from xccj_govern.bus_decide_rang
+        where statute_id = #{statuteId}
+    </delete>
+
+
+
+    <!--根据选项id修改选项记录-->
+    <update id="updateItemTitleOne" parameterType="com.wr.remote.govern.autonomy.decide.DecideItem">
+        update
+        xccj_govern.bus_decide_item AS tem
+        <set>
+            <if test="itemTitle != null and itemTitle != ''">
+                tem.item_title = #{itemTitle},
+            </if>
+            tem.update_by=#{updateBy},
+            tem.update_time = sysdate()
+        </set>
+        where tem.item_id = #{itemId}
+    </update>
+
+    <!--查询第一个选项的id-->
+    <select id="queryItemTitleOneId" resultType="Long" parameterType="Long">
+        SELECT
+            item_id
+        FROM
+            xccj_govern.bus_decide_item
+        WHERE
+            statute_id = #{decideId}
+        LIMIT 1
+    </select>
+
+
+    <!--查询第二选项的id-->
+    <select id="queryItemTitleTwoId" resultType="Long" parameterType="Long">
+        SELECT
+            item_id
+        FROM
+            xccj_govern.bus_decide_item
+        WHERE
+            statute_id = #{decideId}
+        LIMIT 1,1
+    </select>
+
+
+
+    <!--删除表决表信息-->
+    <update id="delDecide" parameterType="Long">
+        update xccj_govern.bus_decide
+        set del_flag='1'
+        where decide_id in
+        <foreach collection="array" item="decideId" open="(" separator="," close=")">
+            #{decideId}
+        </foreach>
+    </update>
+
+
+<!--删除管理表信息-->
+    <delete id="delDecideRandByIds" parameterType="Long">
+        delete
+        from xccj_govern.bus_decide_rang
+        where statute_id in
+        <foreach collection="array" item="decideId" open="(" separator="," close=")">
+            #{decideId}
+        </foreach>
+    </delete>
+
+<!--删除选项表信息-->
+    <update id="delItemTitleByIds" parameterType="Long">
+        update xccj_govern.bus_decide_item
+        set del_flag='1'
+        where statute_id in
+        <foreach collection="array" item="decideId" open="(" separator="," close=")">
+            #{decideId}
+        </foreach>
+    </update>
+
+
+
+<select id="getDecideItemById" parameterType="Long" resultType="com.wr.remote.govern.autonomy.decide.DecideItem">
+    select * from  xccj_govern.bus_decide_item AS ite
+    where ite.statute_id=#{statuteId}
+</select>
+
+
+<!--修改选项投票记录-->
+    <update id="updateDecideItemById" parameterType="Long">
+        update xccj_govern.bus_decide_item
+        set vote_num=vote_num+1
+        where item_id=#{itemId}
+    </update>
+
+
+
+<!--查业主是否存在-->
+    <select id="queryOwnerById" parameterType="Long" resultType="Integer" >
+        SELECT count(*) FROM xccj_community.bus_owner
+        where owner_id=#{userId} and del_flag='0'
+    </select>
+
+
+    <!--查询关联表改id是否存在-->
+    <select id="queryDecideOwner" parameterType="Long" resultType="Integer" >
+        SELECT count(*) FROM xccj_community.bus_decide_owner
+        where owner_id=#{userId}
+    </select>
+
+
+    <insert id="insertDecideItemByOwnerId" parameterType="com.wr.remote.govern.autonomy.decide.DecideOwner">
+        insert into xccj_community.bus_decide_owner(decide_id, owner_id)
+        values (#{decideId}, #{ownerId})
+    </insert>
+
+
+
+
+</mapper>

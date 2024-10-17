@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.VisualMapper">
+
+    <select id="getList" resultType="com.wr.remote.aiot.Visual">
+        SELECT index_code  AS "indexCode",
+               visual_name AS "visualName"
+        FROM xccj_device.bus_visual
+        WHERE community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND unit_id = #{unitId}
+          AND `online` = 1
+    </select>
+
+
+
+</mapper>

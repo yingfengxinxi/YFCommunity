@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.center.carManage.BusCarportMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.estate.center.BusCarport">
+        <!--@mbg.generated-->
+        <id column="carport_id" jdbcType="BIGINT" property="carportId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="carport_no" jdbcType="VARCHAR" property="carportNo"/>
+        <result column="carport_nature" jdbcType="CHAR" property="carportNature"/>
+        <result column="carport_status" jdbcType="CHAR" property="carportStatus"/>
+        <result column="rental_type" jdbcType="CHAR" property="rentalType"/>
+        <result column="carport_fee" jdbcType="DECIMAL" property="carportFee"/>
+        <result column="rental_start" jdbcType="TIMESTAMP" property="rentalStart"/>
+        <result column="rental_end" jdbcType="TIMESTAMP" property="rentalEnd"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="vehicle_id" jdbcType="BIGINT" property="vehicleId"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+    <!--    <sql id="Base_Column_List">
+            bcl.carport_id,
+            bcl.community_id,
+            bcl.carport_no,
+            bcl.carport_nature,
+            bcl.carport_status,
+            bcl.rental_type,
+            bcl.carport_fee,
+            bcl.rental_start,
+            bcl.rental_end,
+            bcl.account_id,
+            bcl.vehicle_id,
+            bcl.create_by,
+            bcl.create_time,
+            bcl.update_by,
+            bcl.update_time,
+            bcl.del_flag
+        </sql>-->
+
+    <select id="listPage" resultType="com.wr.remote.estate.center.vo.BusCarportVo">
+        SELECT
+        bc.carport_id,
+        bc.community_id,
+        bc.create_time AS "createTime",
+        bcy.community_name,
+        bc.carport_no,
+        IF
+        ( bc.carport_nature = '0', '人防', '非人防' ) AS carportnature,
+        bc.carport_status AS carportstatus,
+        ( CASE WHEN bc.rental_type = '0' THEN '售' WHEN bc.rental_type = '1' THEN '年租' WHEN bc.rental_type = '2' THEN
+        '月租' END ) AS rentaltypename,
+        bc.rental_type,
+        bc.rental_start,
+        IF
+        ( bc.rental_type = '0', '永久', bc.rental_end ) AS rentalend,
+        test1.owner_name AS accountnames,
+        bv.plate_no AS plateno,
+        test1.owner_name AS "account_name",
+        ba.login_name AS loginphone,
+        (
+        CASE
+
+        WHEN ba.account_type = '0' THEN
+        test1.card_no
+        WHEN ba.account_type = '1' THEN
+        test1.card_no
+        WHEN ba.account_type = '2' THEN
+        test1.card_no
+        END
+        ) AS cardno,
+        IF
+        ( bc.rental_type != '0', '-', bc.carport_fee ) AS carportFeeSell,
+        IF
+        ( bc.rental_type != '2', '-', bc.carport_fee ) AS carportFeeMonth,
+        IF
+        ( bc.rental_type != '1', '-', bc.carport_fee ) AS carportFeeYear,
+        bc.all_status AS "allStatus",
+        bc.account_id as "accountId"
+        FROM
+        xccj_community.bus_carport AS bc
+        LEFT JOIN xccj_community.bus_account AS ba ON bc.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_vehicle AS bv ON bc.vehicle_id = bv.vehicle_id
+        LEFT JOIN xccj_community.bus_community AS bcy ON bcy.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_owner AS test1 ON test1.account_id = ba.account_id
+        <where>
+            <if test="communityId != null">
+                AND bc.community_id = #{communityId}
+            </if>
+            <if test="carportNo != null">
+                AND bc.carport_no LIKE CONCAT('%', #{carportNo}, '%')
+            </if>
+            <if test="carportStatus != null">
+                AND bc.carport_status LIKE CONCAT('%', #{carportStatus}, '%')
+            </if>
+            <if test="allStatus !=null and allStatus !=''">
+                AND bc.all_status=#{allStatus}
+            </if>
+            <if test="carportNature != null">
+                AND bc.carport_nature LIKE CONCAT('%', #{carportNature}, '%')
+            </if>
+            AND bc.del_flag = '0'
+        </where>
+        ORDER BY bc.create_time DESC
+    </select>
+
+    <select id="detail" resultType="com.wr.remote.estate.center.vo.BusCarportVo">
+        SELECT bcy.community_name AS communityName,
+        bc.carport_no,
+        IF(bc.carport_nature = '0', '人防', '非人防') AS carportNature,
+        IF(bc.carport_status = '0', '开启', '关闭') AS carportStatus,
+        ba.account_name,
+        ba.login_name AS loginPhone,
+        bv.plate_no,
+        IF(bc.rental_type = '0', '售', '租') AS rentalMode,
+        bc.rental_start,
+        IF(bc.rental_type = '0', '永久', bc.rental_end) AS rentalEnd,
+        CONCAT(TIMESTAMPDIFF(YEAR, bc.rental_start, bc.rental_end), '年') AS dateInterval,
+        (CASE
+        WHEN bc.rental_type = '0' THEN '售'
+        WHEN bc.rental_type = '1' THEN '年租'
+        WHEN bc.rental_type = '2' THEN '月租' END) AS rentalType,
+        bc.rental_type as "rentalTypeValue",
+        bc.carport_fee
+        FROM xccj_community.bus_carport AS bc
+        LEFT JOIN xccj_community.bus_account AS ba ON bc.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_vehicle AS bv ON bc.vehicle_id = bv.vehicle_id
+        LEFT JOIN xccj_community.bus_community AS bcy ON bc.community_id = bcy.community_id
+        <where>
+            bc.carport_id = #{carportId}
+            AND bc.del_flag = '0' and bc.all_status!='0'
+        </where>
+    </select>
+
+
+    <select id="getByCarportIdNo" resultType="Long">
+        SELECT bc.carport_no
+        FROM xccj_community.bus_carport AS bc
+        where bc.carport_id = #{carportId}
+
+    </select>
+
+    <select id="getByCarportId" resultType="Long">
+        SELECT count(1)
+        FROM xccj_community.bus_carport AS bc
+        where bc.carport_no = #{carportNo}
+        <if test="carportId!=null">
+            AND carport_id !=#{carportId}
+        </if>
+
+    </select>
+
+
+    <select id="detailList" resultType="com.wr.remote.estate.center.vo.BusCarportLogVo">
+        SELECT bcl.*,
+        bc.carport_no AS carporNo,
+        IF(ISNULL(bcl.rental_end), "永久", bcl.rental_end) AS rentalEnd
+        FROM xccj_community.bus_carport_log AS bcl
+        LEFT JOIN xccj_community.bus_carport AS bc ON bc.carport_id = bcl.carport_id
+        <where>
+            bcl.carport_id = #{carportId}
+            AND bcl.del_flag = '0'
+        </where>
+        <!--        ORDER BY bcl.create_time DESC-->
+    </select>
+
+    <select id="getCommunityCarportList" resultType="com.wr.remote.domain.vo.CarportVo">
+        SELECT bc.carport_id     AS "carportId",
+               bc.carport_no     AS "carportNo",
+               bc.carport_nature AS "carportNature",
+               account_id        AS "accountId"
+        FROM xccj_community.bus_carport bc
+        WHERE carport_status = '0'
+          AND bc.community_id = #{communityId}
+    </select>
+
+    <!-- 逻辑删除 -->
+    <delete id="removes">
+        UPDATE xccj_community.bus_carport
+        SET del_flag = '1'
+        WHERE carport_id = #{id}
+    </delete>
+
+    <!-- 新增车位租售记录表 -->
+    <insert id="cedeSubmit">
+        INSERT INTO xccj_community.bus_carport_log (carport_id, user_name, user_phone, card_no, plant_no, rental_start)
+        VALUES (#{carportId}, #{accountName}, #{loginPhone}, #{cardNo}, #{plateNo}, #{rentalStart})
+    </insert>
+
+    <!-- 新增车位管理表 -->
+    <insert id="save">
+        INSERT INTO xccj_community.bus_carport (
+        <if test="communityId!=null">community_id,</if>
+        <if test="carportNo!=null and carportNo!=''">carport_no,</if>
+        <if test="carportNature!=null and carportNature!=''">carport_nature,</if>
+        <if test="rentalType!=null and rentalType!=''">rental_type,</if>
+        <if test="carportFee!=null">carport_fee,</if>
+        <if test="rentalStart!=null">rental_start,</if>
+        <if test="rentalEnd!=null">rental_end,</if>
+        <if test="accountId!=null">account_id,</if>
+        <if test="vehicleId!=null">vehicle_id,</if>
+        <if test="createBy!=null and createBy!=''">create_by</if>
+        )
+        VALUES (
+        <if test="communityId!=null">#{communityId},</if>
+        <if test="carportNo!=null and carportNo!=''">#{carportNo},</if>
+        <if test="carportNature!=null and carportNature!=''">#{carportNature},</if>
+        <if test="rentalType!=null and rentalType!=''">#{rentalType},</if>
+        <if test="carportFee!=null">#{carportFee},</if>
+        <if test="rentalStart!=null">#{rentalStart},</if>
+        <if test="rentalEnd!=null">#{rentalEnd},</if>
+        <if test="accountId!=null">#{accountId},</if>
+        <if test="vehicleId!=null">#{vehicleId},</if>
+        <if test="createBy!=null and createBy!=''">#{createBy}</if>
+        )
+    </insert>
+
+    <select id="selectUpdateDetail" resultType="com.wr.remote.estate.center.vo.BusCarportVo">
+        SELECT
+        bc.carport_id as "carportId",
+        bc.carport_no AS carportNo,
+        bc.carport_nature AS carportNature,
+        bc.rental_type AS rentalType,
+        bc.carport_fee AS carportFee,
+        bcy.community_name AS communityName,
+        bcy.community_id AS communityId
+        FROM xccj_community.bus_carport AS bc
+        LEFT JOIN xccj_community.bus_community AS bcy ON bcy.community_id = bc.community_id
+        <where>
+            bc.del_flag = '0'
+            <if test="carportId!=null">
+                AND bc.carport_id = #{carportId}
+            </if>
+            <if test="carportNo!=null and carportNo !=''">
+                AND bc.carport_no = #{carportNo}
+            </if>
+
+        </where>
+    </select>
+
+    <!-- 修改车位管理 -->
+    <update id="update">
+        UPDATE xccj_community.bus_carport
+        <set>
+            <if test="carportNo !=null and carportNo !=''">
+                carport_no =#{carportNo},
+            </if>
+            <if test="carportNature !=null and carportNature !=''">
+                carport_nature = #{carportNature},
+            </if>
+            <if test="rentalType !=null and rentalType !=''">
+                rental_type =#{rentalType},
+            </if>
+            <if test="carportFee !=null and carportFee !=''">
+                carport_fee = #{carportFee},
+            </if>
+            <if test="accountId !=null">
+                account_id=#{accountId},
+            </if>
+            <if test="vehicleId !=null">
+                vehicle_id=#{vehicleId},
+            </if>
+            <if test="rentalStart !=null">
+                rental_start=#{rentalStart},
+            </if>
+            <if test="rentalEnd !=null">
+                rental_end=#{rentalEnd},
+            </if>
+            <if test="updateBy !=null and updateBy !=''">
+                update_by=#{updateBy},
+                update_time=NOW()
+            </if>
+
+        </set>
+        WHERE carport_id = #{carportId}
+    </update>
+
+    <!-- 修改车位状态 -->
+    <update id="changeCarportStatus">
+        UPDATE xccj_community.bus_carport
+        SET carport_status = #{carportStatus}
+        WHERE carport_id = #{carportId}
+    </update>
+
+    <!-- 修改车位状态 -->
+    <update id="updateByCarportId">
+        UPDATE xccj_community.bus_carport
+        <set>
+            <if test="rentalStart!=null">
+                rental_start = #{rentalStart},
+            </if>
+            <if test="rentalEnd!=null">
+                rental_end = #{rentalEnd},
+                rental_over = #{rentalEnd},
+            </if>
+            <if test="carportFee!=null">
+                carport_fee = #{carportFee},
+            </if>
+            <if test="rentalType!=null">
+                rental_type = #{rentalType},
+            </if>
+            <if test="vehicleId !=null">
+                vehicle_id=#{vehicleId},
+            </if>
+            <if test="accountId !=null">
+                account_id=#{accountId},
+            </if>
+            <if test="allStatus !=null and allStatus !=''">
+                all_status=#{allStatus},
+            </if>
+        </set>
+        WHERE carport_id = #{carportId}
+    </update>
+
+    <!--    查找车位是否存在-->
+    <select id="selectCarportNo" resultType="java.lang.Integer">
+        SELECT COUNT(carport_id)
+        FROM xccj_community.bus_carport
+        <where>
+            del_flag = '0'
+
+            AND community_id = #{communityId}
+            <if test="carportId != null">
+                AND carport_id != #{carportId}
+            </if>
+            AND carport_no = #{carportNo}
+        </where>
+        LIMIT 1
+    </select>
+
+    <update id="updateCede">
+        UPDATE xccj_community.bus_carport
+        SET vehicle_id   = #{vehicleId},
+            account_id   = #{accountId},
+            rental_start = #{rentalStart},
+            update_time  = SYSDATE()
+        WHERE carport_id = #{carportId}
+    </update>
+
+    <select id="selectCarportAccount" resultType="java.lang.Long">
+        SELECT bo.account_id
+        FROM xccj_community.bus_owner AS bo
+        WHERE bo.owner_id = #{ownerId}
+          AND bo.del_flag = '0'
+    </select>
+
+
+    <select id="getByCarportIdAccountId" resultType="Long">
+        SELECT account_id
+        FROM xccj_community.bus_carport
+        WHERE carport_id = #{carportId}
+          AND del_flag = '0'
+    </select>
+
+    <select id="selectPlateNoById" resultType="java.lang.String">
+        SELECT bv.plate_no
+        FROM xccj_community.bus_vehicle AS bv
+        <where>
+            bv.vehicle_id = #{ownerCarValueId}
+            AND bv.del_flag = '0'
+        </where>
+    </select>
+
+    <select id="getByCarportNoCarportInfo" resultMap="BaseResultMap">
+        select *
+        from xccj_community.bus_carport
+        where del_flag = "0"
+          and carport_no = #{carportNo}
+          and community_id = #{communityId}
+    </select>
+    <update id="updateByCarportNoAccount">
+        update xccj_community.bus_carport
+        set account_id=#{accountId},
+            vehicle_id=#{vehicleId}
+        where del_flag = "0"
+          and carport_no = #{carportNo}
+          and community_id = #{communityId}
+    </update>
+
+    <select id="getVehicleIdCarport" resultType="com.wr.remote.estate.center.vo.SpaceVehicleVo">
+
+        SELECT bc.carport_no     as "carportNo",
+               bc.carport_nature as "carportNature",
+               bc.rental_type    as "rentalType",
+               bc.carport_fee    as "carportFee",
+               bc.rental_start   as "rentalStart",
+               bc.rental_end     as "rentalEnd"
+        FROM xccj_community.bus_carport bc
+        WHERE bc.account_id = #{accountId}
+          AND bc.community_id = #{communityId}
+          AND bc.vehicle_id = #{vehicleId}
+          AND bc.all_status!='0'
+    </select>
+
+    <select id="getCarportNoCount" resultType="Integer">
+        SELECT count(1)
+        FROM xccj_community.bus_carport bc
+        WHERE bc.community_id = #{communityId}
+          AND bc.carport_no = #{carportNo}
+          AND bc.del_flag = '0';
+    </select>
+
+
+    <select id="getByAccountIdCarportInfo" resultType="com.wr.remote.estate.center.vo.BusCarportVo">
+        SELECT bcl.carport_id     as "carportId",
+               bcl.community_id   as "communityId",
+               bcl.carport_no     as "carportNo",
+               bcl.carport_nature as "carportNature",
+               bcl.carport_status as "carportStatus",
+               bcl.rental_type    as "rentalType",
+               bcl.carport_fee    as "carportFee",
+               bcl.rental_start   as "rentalStart",
+               bcl.rental_end     as "rentalEnd",
+               bcl.account_id     as "accountId",
+               bcl.vehicle_id     as "vehicleId"
+        FROM xccj_community.bus_carport bcl
+        WHERE bcl.account_id = #{accountId}
+          AND bcl.carport_no = #{carportNo}
+    </select>
+    <select id="getOwnerIdCarportList" resultType="com.wr.remote.domain.vo.CarportVo">
+        SELECT bc.carport_no  AS "carportNoId",
+               bcn.carport_no AS "carportNo",
+               "0"            as "isCarport"
+        FROM xccj_community.bus_carport bc
+                 LEFT JOIN xccj_community.bus_owner bo ON bc.account_id = bo.account_id
+                 LEFT JOIN xccj_community.bus_carport_no bcn ON bcn.carport_no_id = bc.carport_no
+        WHERE bc.del_flag = '0'
+          AND bo.del_flag = '0'
+          AND bo.owner_id = #{ownerId}
+          AND bc.community_id = #{communityId}
+    </select>
+
+    <select id="getCarportNoCarportId" resultType="Long">
+        SELECT carport_id
+        from xccj_community.bus_carport
+        where carport_no = #{carportNo}
+    </select>
+
+    <select id="getCarportNoCarportNature" resultType="com.wr.remote.estate.center.vo.BusCarportVo">
+        SELECT carport_nature                                           as "carportNature",
+               (CASE WHEN vehicle_id = 0 THEN NULL ELSE vehicle_id END) AS "vehicleId"
+        from xccj_community.bus_carport
+        where carport_no = #{carportNo}
+          and all_status in ('0', '3')
+          and del_flag = "0"
+    </select>
+
+    <select id="getByCarportIdRentalType" resultType="String">
+        select rental_type
+        from xccj_community.bus_carport
+        where carport_id = #{carportId}
+          and del_flag = "0"
+    </select>
+</mapper>

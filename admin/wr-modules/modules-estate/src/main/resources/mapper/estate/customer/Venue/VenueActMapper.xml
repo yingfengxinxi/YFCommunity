@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.Venue.VenueActMapper">
+
+    <resultMap type="com.wr.estate.entity.VenueActEneity" id="VenueActMap">
+        <result property="activityId" column="activity_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="activityStatus" column="activity_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="activityName" column="activity_name"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+
+    <sql id="list">
+        select activity_id,
+               bva.community_id,
+               bc.community_name,
+               bva.activity_name,
+               bva.activity_status,
+               bva.create_by,
+               bva.create_time,
+               bva.update_by,
+               bva.update_time
+        from xccj_community.bus_venue_act bva
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bva.community_id
+    </sql>
+
+    <!--    查询-->
+    <select id="getlist" parameterType="com.wr.estate.entity.VenueActEneity" resultMap="VenueActMap">
+        <include refid="list"/>
+        <where>
+            bva.del_flag = 0
+            <if test="activityId!=0 and activityId!=null">
+                and bva.activity_id = #{activityId}
+            </if>
+            <if test="communityId!=0 and communityId!=null">
+                and bva.community_id = #{communityId}
+            </if>
+            <if test="activityStatus!=0 and activityStatus!=null">
+                and bva.activity_status = #{activityStatus}
+            </if>
+            <if test="activityName!=null">
+                and bva.activity_name = #{activityName}
+            </if>
+            <if test="updateTime!=null">
+                and bva.create_time = #{updateTime}
+            </if>
+            <if test="updateBy!=null">
+                and bva.update_by = #{updateBy}
+            </if>
+        </where>
+    </select>
+
+    <!--    查询详情-->
+    <select id="getAct" parameterType="com.wr.estate.entity.VenueActEneity" resultMap="VenueActMap">
+        <include refid="list"/>
+        <where>
+            bva.del_flag = 0
+            <if test="activityId!=0 and activityId!=null">
+                and bva.activity_id = #{activityId}
+            </if>
+        </where>
+    </select>
+
+    <!--    增加-->
+    <insert id="add" parameterType="com.wr.estate.entity.VenueActEneity" useGeneratedKeys="true" keyProperty="activityId">
+        insert into xccj_community.bus_venue_act
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="activityName != null and activityName != ''">activity_name,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="activityName != null and activityName != ''">#{activityName},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <!--    修改-->
+    <update id="updateVenueAct" parameterType="com.wr.estate.entity.VenueActEneity">
+        update xccj_community.bus_venue_act
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="activityName != null and activityName != ''">activity_name = #{activityName},</if>
+            <if test="activityStatus != null">activity_status = #{activityStatus},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = now()
+        </trim>
+        where activity_id = #{activityId}
+    </update>
+    <!--    删除-->
+    <delete id="del" parameterType="Long">
+        update xccj_community.bus_venue_act SET del_flag = '1' where activity_id = #{activityId}
+    </delete>
+
+    <delete id="delforeach" parameterType="String">
+        update xccj_community.bus_venue_act  SET del_flag = '1'  where activity_id in
+        <foreach item="activityId" collection="array" open="(" separator="," close=")">
+            #{activityId}
+        </foreach>
+    </delete>
+
+    <select id="getact" resultMap="VenueActMap">
+        SELECT activity_id,community_id,activity_name FROM xccj_community.bus_venue_act
+        WHERE community_id = #{communityId} AND del_flag = 0 AND activity_status = 0
+    </select>
+
+
+    <select id="getActivityName" resultType="int">
+        select count(*) from xccj_community.bus_venue_act where BINARY del_flag = 0 and community_id = #{communityId} and activity_name = #{activityName}
+    </select>
+
+
+</mapper>

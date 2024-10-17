@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.FitmentMapper">
+    <!--添加装修-->
+    <insert id="insertFitment" useGeneratedKeys="true" keyProperty="decorateId">
+        insert into xccj_community.bus_decorate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="buildingId != null and buildingId != ''">building_id,</if>
+            <if test="unitId != null and unitId != ''">unit_id,</if>
+            <if test="roomId != null and roomId != ''">room_id,</if>
+            <if test="ownerId != null and ownerId != ''">owner_id,</if>
+            <if test="decorateType != null and decorateType != ''">decorate_type,</if>
+            <if test="planStart != null">plan_start,</if>
+            <if test="planEnd != null">plan_end,</if>
+            <if test="deposit != null and deposit != ''">deposit,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="auditStatus != null and auditStatus != ''">audit_status,</if>
+            <if test="auditTime != null">audit_time,</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason,</if>
+            <if test="auditBy != null and auditBy != ''">audit_by,</if>
+            <if test="delayDay != null and delayDay != ''">delay_day,</if>
+            <if test="finishDate !=null ">finish_date,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="buildingId != null and buildingId != ''">#{buildingId},</if>
+            <if test="unitId != null and unitId != ''">#{unitId},</if>
+            <if test="roomId != null and roomId != ''">#{roomId},</if>
+            <if test="ownerId != null and ownerId!=''">#{ownerId},</if>
+            <if test="decorateType != null and decorateType != ''">#{decorateType},</if>
+            <if test="planStart != null ">#{planStart},</if>
+            <if test="planEnd != null ">#{planEnd},</if>
+            <if test="deposit != null and deposit != ''">#{deposit},</if>
+            <if test="remark != null and remark !=''">#{remark},</if>
+            <if test="auditStatus != null and auditStatus != ''">#{auditStatus},</if>
+            <if test="auditTime != null ">#{auditTime},</if>
+            <if test="rejectReason != null and rejectReason != ''">#{rejectReason},</if>
+            <if test="auditBy != null and auditBy != ''">#{auditBy},</if>
+            <if test="delayDay != null and delayDay != ''">#{delayDay},</if>
+            <if test="finishDate != null">#{finishDate},</if>
+        </trim>
+    </insert>
+    <!-- 人员申请-->
+    <insert id="insertDecorator">
+
+    </insert>
+    <!-- 我要延期-->
+    <update id="updateByDecorate">
+        update xccj_community.bus_decorate set decorate_type=#{decorateType},delay_day=#{delayDay},audit_status=#{auditStatus} where decorate_id=#{decorateId}
+    </update>
+    <!--装修状态更改-->
+    <update id="updateByState">
+        update xccj_community.bus_decorate set audit_status=#{auditStatus} where decorate_id=#{decorateId}
+    </update>
+    <!--修改装修-->
+    <update id="updateAllFit">
+        update xccj_community.bus_decorate
+        <set>
+            <if test="buildingId != null and buildingId != ''">building_id = #{buildingId},</if>
+            <if test="unitId != null and unitId != ''">unit_id = #{unitId},</if>
+            <if test="roomId != null and roomId != ''">room_id = #{roomId},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="planStart != null">plan_start = #{planStart},</if>
+            <if test="planEnd != null ">plan_end = #{planEnd},</if>
+        </set>
+        where decorate_id=#{decorateId}
+    </update>
+
+
+    <!-- 查询装修列表-->
+    <select id="getFitmentList" resultType="com.wr.api.owner.entity.dto.FitmentDTO">
+        SELECT
+        bdc.decorate_id,
+        bdc.owner_id,
+        br.room_name,
+        bc.community_name,
+        bu.unit_name,
+        bd.building_name,
+        bdc.remark,
+        bdc.audit_status,
+        bdc.plan_start,
+        bdc.plan_end,
+        bdc.audit_time,
+        CONCAT_WS( '-', bc.community_name, bu.unit_name, br.room_name ) AS decorateName,
+        (SELECT COUNT(*) from xccj_community.bus_worker bw where bw.decorate_id = bdc.decorate_id) AS countPeople
+        FROM
+        xccj_community.bus_decorate bdc
+        LEFT JOIN xccj_community.bus_room br ON bdc.room_id = br.room_id
+        LEFT JOIN xccj_community.bus_community bc ON bdc.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_unit bu ON bdc.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_building bd ON bd.building_id = bdc.building_id
+        where bdc.del_flag ='0'
+        <if test="communityId != null and communityId != ''">AND bdc.community_id = #{communityId}</if>
+        <if test="ownerId != null and ownerId != ''">AND bdc.owner_id = #{ownerId}</if>
+        <if test="decorateId != null and decorateId != ''">AND bdc.decorate_id = #{decorateId}</if>
+
+        ORDER BY IF(ISNULL(bdc.audit_time),0,1),bdc.audit_time desc
+    </select>
+
+    <!--查询装修人员信息-->
+    <select id="findFitmentEr" resultType="com.wr.api.owner.entity.vo.serve.FitmentVo">
+        SELECT staff_name,avatar,staff_phone,card_no FROM xccj_community.bus_staff
+        where work_post='2' and del_flag='0' and dimission_time is null and audit_status = '1'
+        <if test="communityId != null and communityId != ''">
+            AND community_id = #{communityId}
+        </if>
+    </select>
+
+    <!--详情-->
+    <select id="FitmentInfo" resultType="com.wr.api.owner.entity.vo.serve.FitmentVo">
+        SELECT
+        br.room_name,
+        bc.community_name,
+        bu.unit_name,
+        bdc.*,
+        (
+        CASE
+        WHEN bdc.audit_status = '0' THEN
+        '审核中'
+        WHEN bdc.audit_status = '1' THEN
+        '驳回'
+        WHEN bdc.audit_status = '2' THEN
+        '通过(进行中)'
+        WHEN bdc.audit_status = '3' THEN
+        '延期待确认'
+        WHEN bdc.audit_status = '4' THEN
+        '已延期'
+        WHEN bdc.audit_status = '5' THEN
+        '已完成' ELSE '未知'
+        END
+        ) audit_status,
+        bo.owner_name,
+        bo.owner_phone,
+        bd.building_name,
+        CONCAT_WS( '-', bc.community_name, bu.unit_name, br.room_name ) AS decorateName
+        FROM
+        xccj_community.bus_decorate bdc
+        LEFT JOIN xccj_community.bus_room br ON bdc.room_id = br.room_id
+        LEFT JOIN xccj_community.bus_community bc ON bdc.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_unit bu ON bdc.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_owner bo ON bdc.owner_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_building bd ON bd.building_id = bdc.building_id
+        where bdc.del_flag ='0'
+       AND bdc.decorate_id = #{decorateId}
+    </select>
+
+    <!-- 查询我得房产-->
+    <select id="getMyAllRoom" resultType="com.wr.api.owner.entity.vo.serve.MyRoomsVo">
+        SELECT
+	br.community_id,
+	br.building_id,
+	br.unit_id,
+	br.room_id,
+	br.room_name,
+	bc.community_name,
+	bu.unit_name,
+	bd.building_name
+FROM
+	xccj_community.bus_room br
+	LEFT JOIN xccj_community.bus_community bc on br.community_id = bc.community_id
+	LEFT JOIN xccj_community.bus_building bd ON bd.building_id = br.building_id
+	LEFT JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+	 where br.owner_id=#{ownerId} and br.community_id=#{communityId}
+    </select>
+    <!--获取物业手机号-->
+    <select id="getPhoneEs" resultType="java.lang.String">
+        select hotline from
+        xccj_community.bus_community bd
+               left join   xccj_community.bus_estate be on bd.estate_id = be.estate_id
+                 where bd.community_id =#{communityId}
+    </select>
+    <select id="getEndTime" resultType="com.wr.api.owner.entity.dto.FitmentDTO">
+        select decorate_id,plan_end from xccj_community.bus_decorate where del_flag='0'  and audit_status='2'
+    </select>
+    <!--修改状态-->
+    <update id="updateEndStatus">
+        update xccj_community.bus_decorate set audit_status='5' where decorate_id=#{decorateId}
+    </update>
+</mapper>
+

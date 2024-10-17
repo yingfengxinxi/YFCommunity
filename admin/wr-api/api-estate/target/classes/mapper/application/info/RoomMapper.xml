@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.info.RoomMapper">
+    <update id="updateByRoomIdRoomStatus">
+        update xccj_community.bus_room br
+        set room_status=#{roomStatus}
+        where room_id = #{roomId}
+    </update>
+    <select id="getBuildingCount" resultType="int">
+        SELECT count(*)
+        FROM xccj_community.bus_building bb
+        WHERE bb.del_flag = '0'
+          AND bb.community_id = #{communityId}
+    </select>
+
+    <select id="getBuildingList" resultType="com.wr.api.estate.entity.vo.application.info.RoomVo">
+        SELECT bb.building_id,
+               bb.building_name
+        FROM xccj_community.bus_building bb
+        WHERE bb.del_flag = '0'
+          AND bb.community_id = #{communityId}
+        order by bb.building_id
+    </select>
+
+    <select id="getRoomList" resultType="com.wr.api.estate.entity.vo.application.info.RoomVo">
+        SELECT br.room_id,
+               br.room_name,
+               room_status
+        FROM xccj_community.bus_room br
+        WHERE br.del_flag = '0'
+          AND br.building_id = #{buildingId}
+        order by br.room_id
+    </select>
+
+    <select id="getOwner" resultType="com.wr.api.estate.entity.vo.application.info.OwnerVo">
+        SELECT
+            bo.owner_name,
+            br.owner_id AS "ownerId",
+            bo.gender,
+            bo.owner_phone,
+            '业主' AS personType
+        FROM
+            xccj_community.bus_room br
+                LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.owner_id
+        WHERE
+            br.del_flag = '0'
+          AND br.room_id = #{roomId}
+    </select>
+
+    <select id="getTenantList" resultType="com.wr.api.estate.entity.vo.application.info.BuildingInfoVo">
+        SELECT bt.tenant_name     AS "name",
+               bt.tenant_phone    AS "phone",
+               bt.card_type       AS "cardType",
+               bt.card_no         AS "cardNo",
+               bt.gender          AS "sex",
+               bt.politics_status AS "politicsStatus",
+               bt.self_intro      AS "selfIntro",
+               '租客信息'         AS personType
+        FROM xccj_community.bus_tenant bt
+        WHERE bt.del_flag = '0'
+          AND bt.audit_status = '1'
+          AND bt.room_id = #{roomId}
+          AND bt.community_id = #{communityId}
+    </select>
+
+    <!--    根据房号查询业主信息-->
+    <select id="getOwnerInfo" resultType="com.wr.api.estate.entity.vo.application.info.BuildingInfoVo">
+        SELECT
+            bo.owner_name AS "name",
+            bo.owner_phone AS "phone",
+            bo.card_type AS "cardType",
+            bo.card_no AS "cardNo",
+            bo.gender AS "sex",
+            bo.owner_relation AS "ownerRelation",
+            br.delivery_time AS "deliveryTime",
+            bo.politics_status AS "politicsStatus",
+            bo.self_intro AS "selfIntro",
+            '业主信息' AS personType
+        FROM
+            xccj_community.bus_owner bo
+                LEFT JOIN xccj_community.bus_room br ON bo.owner_id = br.owner_id
+        WHERE
+            bo.del_flag = '0'
+          AND bo.audit_status = '1'
+          AND br.room_id = #{roomId}
+          AND bo.community_id = #{communityId}
+    </select>
+
+    <select id="getStatusCount" resultType="com.wr.api.estate.entity.vo.application.info.RoomVo">
+        select IFNULL(SUM(CASE WHEN room_status = '0' THEN 1 ELSE 0 END), 0) zerocount,
+               IFNULL(SUM(CASE WHEN room_status = '1' THEN 1 ELSE 0 END), 0) onecount,
+               IFNULL(SUM(CASE WHEN room_status = '2' THEN 1 ELSE 0 END), 0) twocount,
+               IFNULL(SUM(CASE WHEN room_status = '3' THEN 1 ELSE 0 END), 0) threecount,
+               IFNULL(SUM(CASE WHEN room_status = '4' THEN 1 ELSE 0 END), 0) fourcount,
+               IFNULL(SUM(CASE WHEN room_status = '5' THEN 1 ELSE 0 END), 0) fivecount
+        from xccj_community.bus_room br
+        WHERE br.del_flag = '0'
+          AND building_id = #{buildingId}
+    </select>
+    <!--    未使用-->
+    <select id="getFamilyList" resultType="java.util.Map">
+        SELECT owner_name  AS        `ownerName`,
+               gender,
+               owner_phone AS        `ownerPhone`,
+               (CASE
+                    WHEN owner_relation = '1' THEN '配偶'
+                    WHEN owner_relation = '2' THEN '父母'
+                    WHEN owner_relation = '3' THEN '子女'
+                    WHEN owner_relation = '4' THEN '其他'
+                    ELSE '租客' END) `ownerRelation`
+        FROM xccj_community.bus_owner
+        WHERE del_flag = '0'
+          AND owner_relation != '0' AND room_id = #{roomId}
+        ORDER BY owner_relation
+    </select>
+
+    <select id="getRoomIdRoomStatus" resultType="String">
+        select room_status
+        from xccj_community.bus_room br
+        WHERE br.del_flag = '0'
+          AND br.room_id = #{roomId}
+    </select>
+    <select id="getByRoomIdDeliveryTime" resultType="Date">
+        select DATE_FORMAT(delivery_time, '%Y-%m-%d') as "deliveryTime"
+        from xccj_community.bus_room br
+        where room_id = #{roomId}
+    </select>
+</mapper>

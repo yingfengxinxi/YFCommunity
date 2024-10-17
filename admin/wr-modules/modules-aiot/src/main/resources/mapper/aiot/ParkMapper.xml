@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.ParkMapper">
+    <sql id="parkColumns">
+        dbp.park_id, dbp.index_code, dbp.parent_index_code, dbp.park_name,
+        dbp.create_time, dbp.update_time, dbp.manufacturer, dbp.renewal_by,
+        dbp.renewal_time, dbp.update_by, dbp.operate_time, dbp.community_id,
+        dbp.park_type, dbp.address, dbp.pay_code, dbp.del_flag
+    </sql>
+
+    <select id="selectParkList" resultType="com.wr.remote.aiot.Park">
+        SELECT
+            <include refid="parkColumns"/>
+        FROM xccj_device.bus_park dbp
+        WHERE dbp.del_flag = '0' AND dbp.community_id = #{communityId}
+        <if test="parkName != null and parkName != ''">
+            AND dbp.park_name LIKE concat('%', #{parkName}, '%')
+        </if>
+        <if test="indexCode != null and indexCode != ''">
+            AND dbp.index_code LIKE concat('%', #{indexCode}, '%')
+        </if>
+        ORDER BY dbp.operate_time DESC
+    </select>
+
+    <insert id="insertOrUpdate">
+        INSERT INTO xccj_device.bus_park (
+            index_code, parent_index_code, park_name, create_time, update_time,
+            manufacturer, renewal_by, renewal_time, community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="dataList" separator=",">
+            (
+                #{item.parkIndexCode}, #{item.parentParkIndexCode}, #{item.parkName}, #{item.createTime},
+                #{item.updateTime}, #{manufacturer}, #{renewalBy}, sysdate(), #{communityId}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            index_code = values(index_code), parent_index_code = values(parent_index_code), park_name = values(park_name),
+            create_time = values(create_time), update_time = values(update_time), manufacturer = values(manufacturer),
+            renewal_by = values(renewal_by), renewal_time = values(renewal_time), community_id = values(community_id)
+    </insert>
+
+    <select id="selectParkById" resultType="com.wr.remote.aiot.Park">
+        SELECT
+            cbc.community_name AS "communityName",
+            <include refid="parkColumns"/>
+        FROM xccj_device.bus_park dbp
+            LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dbp.community_id
+        WHERE dbp.del_flag = '0' AND dbp.park_id = #{parkId}
+    </select>
+
+    <update id="updatePark">
+        UPDATE xccj_device.bus_park SET
+            park_type = #{parkType}, address = #{address},
+            update_by = #{updateBy}, operate_time = sysdate()
+        WHERE park_id = #{parkId}
+    </update>
+
+    <select id="selectIdsOfNotQrCode" resultType="java.lang.Long">
+        SELECT park_id FROM xccj_device.bus_park
+        WHERE del_flag = '0' AND (pay_code IS NULL OR pay_code = '')
+    </select>
+
+    <update id="batchUpdatePayQr">
+        INSERT INTO xccj_device.bus_park ( park_id, pay_code ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.parkId}, #{item.payCode} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        park_id = values(park_id), pay_code = values(pay_code)
+    </update>
+
+</mapper>

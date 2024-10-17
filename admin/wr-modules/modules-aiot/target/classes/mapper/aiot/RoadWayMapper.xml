@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.RoadWayMapper">
+
+    <insert id="insertOrUpdate">
+        INSERT INTO xccj_device.bus_roadway(
+            index_code,roadway_name,roadway_type, entrance_index_code,create_time, update_time
+        ) VALUES
+        <foreach item="item" index="index" collection="dataList" separator=",">
+            (
+                #{item.roadwayIndexCode},#{item.roadwayName},#{item.roadwayType},
+                #{item.entranceIndexCode},#{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            index_code = values(index_code), roadway_name = values(roadway_name), roadway_type = values(roadway_type),
+            entrance_index_code = values(entrance_index_code), create_time = values(create_time), update_time = values(update_time)
+    </insert>
+
+    <select id="selectRoadwayByEntrance" resultType="com.wr.remote.aiot.Roadway">
+        SELECT
+            roadway_id, index_code, roadway_name, roadway_type, entrance_index_code, create_time, update_time
+        FROM xccj_device.bus_roadway
+        WHERE del_flag = '0' AND entrance_index_code = #{entranceIndexCode}
+    </select>
+
+</mapper>

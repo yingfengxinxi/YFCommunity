@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.OrderCommonMapper">
+    <!-- 查询工单协助人员 -->
+    <select id="listAssists" resultType="com.wr.api.estate.entity.vo.order.OrderAssistsVO">
+        SELECT staff.staff_id,
+               staff.staff_name,
+               staff.staff_phone,
+               dict.dict_label  AS staffPost,
+               audit.audit_time AS assistTime
+        FROM xccj_work.bus_order_audit audit
+                 LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+                 LEFT JOIN xccj_community.bus_staff staff ON staff.staff_id = assist.staff_id
+                 LEFT JOIN xccj_estate_sys.sys_dict_data dict
+                           ON dict.dict_type = 'work_post' AND dict.dict_value = staff.work_post
+        WHERE audit.order_type = #{orderType}
+          AND audit.audit_type = '1'
+          AND audit.audit_status = '1'
+          AND audit.order_id = #{orderId}
+    </select>
+
+    <!-- 查询协助审核中的数量 -->
+    <select id="countInAudit" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM xccj_work.bus_order_audit
+        WHERE order_type = #{orderType}
+          AND audit_type = '1'
+          AND audit_status = '0'
+          AND del_flag = '0'
+          AND order_id = #{orderId}
+    </select>
+
+    <!-- 获取转交人信息 -->
+    <select id="getTransfer" resultType="com.wr.api.estate.entity.vo.order.OrderTransferVO">
+        SELECT staff.staff_name,
+               staff.staff_phone,
+               dict.dict_label      AS staffPost,
+               transfer.accept_type AS acceptStatus
+        FROM xccj_work.bus_order_transfer transfer
+                 LEFT JOIN xccj_community.bus_staff staff ON staff.staff_id = transfer.target_id
+                 LEFT JOIN xccj_estate_sys.sys_dict_data dict
+                           ON dict.dict_type = 'work_post' AND dict.dict_value = staff.work_post
+        WHERE transfer.order_id = #{orderId}
+          AND transfer.order_type = #{orderType}
+        ORDER BY transfer.transfer_id DESC
+        LIMIT 1
+    </select>
+
+    <!-- 新增执行情况 -->
+    <insert id="insertOrderRecord" parameterType="com.wr.remote.work.inspect.OrderRecord">
+        <!--@mbg.generated-->
+        insert into xccj_work.bus_order_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="dataType != null">
+                data_type,
+            </if>
+            <if test="orderResult != null">
+                order_result,
+            </if>
+            <if test="userName != null">
+                user_name,
+            </if>
+            <if test="relevant != null">
+                relevant,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="dataType != null">
+                #{dataType,jdbcType=CHAR},
+            </if>
+            <if test="orderResult != null">
+                #{orderResult,jdbcType=VARCHAR},
+            </if>
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="relevant != null">
+                #{relevant,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <!-- 查询工单最新执行情况 -->
+    <select id="latestOrderRecord" resultType="com.wr.remote.work.inspect.OrderRecord">
+        SELECT order_type,
+               order_id,
+               data_type,
+               order_result,
+               user_name,
+               relevant,
+               create_time
+        FROM xccj_work.bus_order_record
+        WHERE order_type = #{orderType}
+          AND order_id = #{orderId}
+          AND data_type = '1'
+          AND order_result = '签到'
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 签到次数 -->
+    <select id="signCount" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_work.bus_order_record
+        WHERE order_type = #{orderType}
+          AND order_id = #{orderId}
+          AND data_type = '1'
+          AND order_result = '签到'
+    </select>
+
+    <!-- 新增转交记录 -->
+    <insert id="insertOrderTransfer" keyColumn="transfer_id" keyProperty="transferId"
+            parameterType="com.wr.remote.work.inspect.OrderTransfer" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_work.bus_order_transfer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="auditId != null">
+                audit_id,
+            </if>
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="sourceId != null">
+                source_id,
+            </if>
+            <if test="targetId != null">
+                target_id,
+            </if>
+            <if test="acceptType != null">
+                accept_type,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+            create_time,submit_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="auditId != null">
+                #{auditId,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="sourceId != null">
+                #{sourceId,jdbcType=BIGINT},
+            </if>
+            <if test="targetId != null">
+                #{targetId,jdbcType=BIGINT},
+            </if>
+            <if test="acceptType != null">
+                #{acceptType,jdbcType=CHAR},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+            NOW(),NOW()
+        </trim>
+    </insert>
+
+    <!-- 新增审核 -->
+    <insert id="insertOrderAudit" keyColumn="audit_id" keyProperty="auditId"
+            parameterType="com.wr.remote.work.inspect.OrderAudit" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_work.bus_order_audit
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="auditType != null">
+                audit_type,
+            </if>
+
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="auditStatus != null">
+                audit_status,
+            </if>
+            <if test="auditTime != null">
+                audit_time,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="auditType != null">
+                #{auditType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="auditStatus != null">
+                #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+            NOW()
+        </trim>
+    </insert>
+
+    <!-- 批量新增协助人 -->
+    <insert id="insertOrderAssistBatch">
+        INSERT INTO xccj_work.bus_order_assist(audit_id, staff_id) VALUES
+        <foreach collection="staffIds" item="staffId" separator=",">
+            (#{auditId},#{staffId})
+        </foreach>
+    </insert>
+
+    <!-- 新增工单异常 -->
+    <insert id="insertAbnormal" useGeneratedKeys="true" keyProperty="abnormalId">
+        INSERT INTO xccj_work.bus_abnormal (order_type,
+                                            order_id,
+                                            abnormal_info,
+                                            create_time,
+                                            del_flag)
+        VALUES (#{orderType}, #{orderId}, #{abnormalInfo}, NOW(), '0')
+    </insert>
+
+    <!-- 批量新增异常图片 -->
+    <insert id="insertAbnormalImagesBatch">
+        INSERT INTO xccj_work.bus_abnormal_img(abnormal_id,
+        image_url,
+        del_flag)
+        VALUES
+        <foreach collection="images" item="image" separator=",">
+            (#{abnormalId}, #{image}, '0')
+        </foreach>
+    </insert>
+
+    <!-- 查询工单空闲 繁忙 的人员 -->
+    <select id="listLeisureStaffs" resultType="com.wr.api.estate.entity.vo.order.OrderStaffVO">
+        SELECT DISTINCT bs.staff_id, CONCAT(bs.staff_name, IF(vuo.staff_id IS NULL, '（空闲）', '（繁忙）')) as staffName,bs.staff_phone
+        FROM xccj_community.bus_staff bs
+                 LEFT JOIN xccj_work.bus_allot_post bap ON bs.work_post = bap.user_post
+                 LEFT JOIN xccj_work.bus_allot ba ON bap.allot_id = ba.allot_id AND ba.community_id = bs.community_id
+                 left JOIN xccj_work.view_unfinish_order vuo ON vuo.staff_id = bs.staff_id
+        WHERE bs.del_flag = '0'
+          AND bs.dimission_time IS NULL
+          AND ba.allot_type = #{orderType}
+          AND ba.del_flag = '0'
+          AND bs.community_id = #{communityId}
+          AND bs.staff_id != #{staffId}
+    </select>
+
+    <!-- 查询协助人数限制 -->
+    <select id="helpNumber" resultType="java.lang.Integer">
+        SELECT assist_num FROM xccj_work.bus_allot WHERE allot_type = #{orderType} AND del_flag = '0' AND community_id = #{communityId}
+    </select>
+
+    <!-- 查询工单权限 -->
+    <select id="selectOrderPermission" resultType="java.lang.Integer">
+        SELECT
+            allot.allot_type
+        FROM
+            xccj_work.bus_allot allot
+                LEFT JOIN xccj_work.bus_allot_post allotPost ON allot.allot_id = allotPost.allot_id
+        WHERE
+            allotPost.user_post = #{workPost}
+          AND allot.community_id = #{communityId}
+          AND allot.del_flag = '0'
+    </select>
+</mapper>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.personnelfilemanage.InterviewMapper">
+
+
+    <select id="query" resultType="com.wr.remote.domain.vo.InterviewVo">
+        SELECT
+        bv.id AS "visitorId",
+        bv.visitor_name AS "visitorName",
+        bv.visitor_phone AS "visitorPhone",
+        CONCAT( bc.community_name, bb.building_name, bu.unit_name, br.room_name ) AS "address",
+        bv.with_num AS "withNum",
+        bv.begin_time AS "beginTime",
+        bv.end_time AS "endTime",
+        bv.own_name AS "ownerName",
+        bv.own_phone AS "ownerPhone",
+        bv.visitor_num as "visitorNum"
+        FROM
+        xccj_community.bus_interview bv
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bv.room_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = br.building_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bv.community_id
+        WHERE
+        bv.community_id=#{communityId}
+        <if test="visitorName!=null and visitorName!=''">
+            and bv.visitor_name like CONCAT('%',#{visitorName},'%')
+        </if>
+        <if test="visitorPhone!=null and visitorPhone!=''">
+            and bv.visitor_phone like  CONCAT('%',#{visitorPhone},'%')
+        </if>
+        <if test="ownerName!=null and ownerName!=''">
+            and bv.own_name like  CONCAT('%',#{ownerName},'%')
+        </if>
+        <if test="ownerPhone!=null and ownerPhone!=''">
+            and bv.own_phone like CONCAT('%',#{ownerPhone},'%')
+        </if>
+        order by bv.create_time desc
+    </select>
+
+    <!--根据通行表id查询详情-->
+    <select id="getVisitorById" resultType="com.wr.remote.domain.vo.InterviewVo">
+        SELECT
+            bl.id AS "visitorId",
+            bl.visitor_name AS "visitorName",
+            bl.visitor_phone AS "visitorPhone",
+            bl.with_num AS "withNum",
+            bl.plant_no AS "plantNo",
+            bl.begin_time AS "beginTime",
+            bl.end_time AS "endTime",
+            CONCAT( com.community_name, bui.building_name, uni.unit_name, oom.room_name ) AS "address",
+            bl.own_name AS "ownerName",
+            bl.own_phone AS "ownerPhone"
+        FROM
+            xccj_community.bus_interview AS bl
+                LEFT JOIN xccj_community.bus_room AS oom ON bl.room_id = oom.room_id
+                LEFT JOIN xccj_community.bus_community AS com ON oom.community_id = com.community_id
+                LEFT JOIN xccj_community.bus_building AS bui ON oom.building_id = bui.building_id
+                LEFT JOIN xccj_community.bus_unit AS uni ON oom.unit_id = uni.unit_id
+        WHERE
+            bl.id =#{visitorId}
+    </select>
+
+
+    <insert id="insert">
+        INSERT INTO `xccj_community`.`bus_interview` (`id`,
+                                                      `community_id`,
+                                                      `account_id`,
+                                                      `visitor_name`,
+                                                      `visitor_phone`,
+                                                      `create_by`,
+                                                      `create_time`,
+                                                      `update_by`,
+                                                      `update_time`,
+                                                      `del_flag`,
+                                                      `plant_car`,
+                                                      `plant_no`,
+                                                      `with_num`,
+                                                      `begin_time`,
+                                                      `end_time`,
+                                                      `room_id`,
+                                                      `owner_id`,
+                                                      `own_phone`,
+                                                      `own_name`)
+        VALUES (#{id},
+                #{communityId},
+                #{accountId},
+                #{visitorName},
+                #{visitorPhone},
+                #{createBy},
+                NOW(),
+                #{updateBy},
+                NOW(),
+                '0',
+                #{plantCar},
+                #{plantNo},
+                #{withNum},
+                #{beginTime},
+                #{endTime},
+                #{roomId},
+                #{ownerId},
+                #{ownerPhone},
+                #{ownerName});
+    </insert>
+</mapper>

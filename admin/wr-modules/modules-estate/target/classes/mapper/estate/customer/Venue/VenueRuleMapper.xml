@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.Venue.VenueRuleMapper">
+
+    <resultMap type="com.wr.estate.entity.VenueRuleEntity" id="VenueRuleResult">
+        <result property="ruleId" column="rule_id"/>
+        <result property="estateId" column="estate_id"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="gapHour" column="gap_hour"/>
+        <result property="createOrder" column="create_order"/>
+        <result property="statement" column="statement"/>
+        <result property="useRule" column="use_rule"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectVenueRuleVo">
+        select rule_id,
+               estate_id,
+               start_time,
+               end_time,
+               gap_hour,
+               create_order,
+               statement,
+               use_rule,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        from xccj_community.bus_venue_rule
+    </sql>
+
+    <select id="selectVenueRuleList" parameterType="com.wr.estate.entity.VenueRuleEntity" resultMap="VenueRuleResult">
+        <include refid="selectVenueRuleVo"/>
+        <where>
+            <if test="estateId != null ">and estate_id = #{estateId}</if>
+            <if test="startTime != null  and startTime != ''">and start_time = #{startTime}</if>
+            <if test="endTime != null  and endTime != ''">and end_time = #{endTime}</if>
+            <if test="gapHour != null ">and gap_hour = #{gapHour}</if>
+            <if test="createOrder != null  and createOrder != ''">and create_order = #{createOrder}</if>
+            <if test="statement != null  and statement != ''">and statement = #{statement}</if>
+            <if test="useRule != null  and useRule != ''">and use_rule = #{useRule}</if>
+        </where>
+    </select>
+
+    <select id="selectVenueRuleByRuleId" parameterType="Long" resultMap="VenueRuleResult">
+        <include refid="selectVenueRuleVo"/>
+        where rule_id = #{ruleId}
+    </select>
+
+    <insert id="insertVenueRule" parameterType="com.wr.estate.entity.VenueRuleEntity" useGeneratedKeys="true"
+            keyProperty="ruleId">
+        insert into xccj_community.bus_venue_rule
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">estate_id,</if>
+            <if test="startTime != null and startTime != ''">start_time,</if>
+            <if test="endTime != null and endTime != ''">end_time,</if>
+            <if test="gapHour != null">gap_hour,</if>
+            <if test="createOrder != null and createOrder != ''">create_order,</if>
+            <if test="statement != null and statement != ''">statement,</if>
+            <if test="useRule != null and useRule != ''">use_rule,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">#{estateId},</if>
+            <if test="startTime != null and startTime != ''">#{startTime},</if>
+            <if test="endTime != null and endTime != ''">#{endTime},</if>
+            <if test="gapHour != null">#{gapHour},</if>
+            <if test="createOrder != null and createOrder != ''">#{createOrder},</if>
+            <if test="statement != null and statement != ''">#{statement},</if>
+            <if test="useRule != null and useRule != ''">#{useRule},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateVenueRule" parameterType="com.wr.estate.entity.VenueRuleEntity">
+        update xccj_community.bus_venue_rule
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="estateId != null">estate_id = #{estateId},</if>
+            <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+            <if test="endTime != null and endTime != ''">end_time = #{endTime},</if>
+            <if test="gapHour != null">gap_hour = #{gapHour},</if>
+            <if test="createOrder != null and createOrder != ''">create_order = #{createOrder},</if>
+            <if test="statement != null and statement != ''">statement = #{statement},</if>
+            <if test="useRule != null and useRule != ''">use_rule = #{useRule},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = now()
+        </trim>
+        where rule_id = #{ruleId}
+    </update>
+
+    <select id="selectVenueRule" resultType="com.wr.estate.entity.VenueRuleEntity">
+        SELECT rule_id,
+               estate_id,
+               start_time,
+               end_time,
+               gap_hour,
+               create_order,
+               `statement`,
+               use_rule,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        FROM xccj_community.bus_venue_rule WHERE del_flag = '0' AND estate_id =#{estateId}
+    </select>
+
+
+    <!--    <delete id="deleteVenueRuleByRuleId" parameterType="Long">-->
+    <!--        delete from xccj_community.bus_venue_rule where rule_id = #{ruleId}-->
+    <!--    </delete>-->
+
+    <!--    <delete id="deleteVenueRuleByRuleIds" parameterType="String">-->
+    <!--        delete from xccj_community.bus_venue_rule where rule_id in-->
+    <!--        <foreach item="ruleId" collection="array" open="(" separator="," close=")">-->
+    <!--            #{ruleId}-->
+    <!--        </foreach>-->
+    <!--    </delete>-->
+</mapper>

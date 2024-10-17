@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.info.VehicleMapper">
+    <select id="getList" resultType="com.wr.api.estate.entity.vo.application.info.VehicleVo">
+        SELECT
+            bv.plate_no,ba.account_name,ba.login_name,ba.account_type,bv.account_id,bv.vehicle_id
+        FROM xccj_community.bus_vehicle bv
+        LEFT JOIN xccj_community.bus_account ba ON bv.account_id = ba.account_id
+        WHERE bv.del_flag = '0' AND bv.audit_status = '1' AND bv.community_id = #{communityId}
+        <if test="plateNo != null"> AND bv.plate_no like concat ('%',#{plateNo},'%')</if>
+    </select>
+
+    <select id="getDetail" resultType="com.wr.api.estate.entity.vo.application.info.VehicleVo">
+        SELECT bv.plate_no,bv.vehicle_brand,bv.vehicle_type,bv.vehicle_color,
+               bc.carport_no,bc.rental_type,bc.carport_status
+        FROM xccj_community.bus_vehicle bv
+        LEFT JOIN xccj_community.bus_carport bc ON bv.vehicle_id = bc.vehicle_id
+        WHERE bv.del_flag='0' AND bv.vehicle_id = #{vehicleId}
+    </select>
+
+    <select id="getVehicleDetail" resultType="com.wr.api.estate.entity.vo.application.info.VehicleVo">
+        SELECT bv.vehicle_id    as "vehicleId",
+               bv.plate_no      as "plateNo",
+               bv.vehicle_color as "vehicleColor",
+               bv.vehicle_type  as "vehicleType",
+               bv.vehicle_brand as "vehicleBrand"
+        FROM xccj_community.bus_vehicle bv
+        WHERE bv.audit_status = '1'
+        <if test="communityId !=null">
+            AND bv.community_id = #{communityId}
+        </if>
+        <if test="accountId !=null">
+            AND bv.account_id = #{accountId}
+        </if>
+        <if test="vehicleId !=null">
+            AND bv.vehicle_id=#{vehicleId}
+        </if>
+        ORDER BY bv.audit_time DESC
+    </select>
+    <select id="getVehicleIdCarportInfo" resultType="com.wr.api.estate.entity.vo.application.info.CarportVo">
+        SELECT bc.carport_no     AS "carportNo",
+               bc.carport_nature AS "carportNature",
+               bc.rental_type    AS "rentalType",
+               bc.carport_fee    AS "carportFee",
+               bc.rental_start   AS "rentalStart",
+               bc.rental_end     AS "rentalEnd"
+        FROM xccj_community.bus_carport bc
+        WHERE bc.vehicle_id = #{vehicleId}
+          and bc.all_status!='0'
+        ORDER BY
+            bc.create_time DESC
+    </select>
+
+    <select id="getDriverInfo" resultType="com.wr.api.estate.entity.vo.application.info.VehicleVo">
+        <if test="accountType == 0">
+            SELECT bo.owner_name AS driverName,bo.gender,bo.owner_phone AS phone,br.room_name
+            FROM xccj_community.bus_owner bo
+            LEFT JOIN xccj_community.bus_room br ON bo.room_id = br.room_id
+            WHERE bo.del_flag = '0' AND bo.account_id = #{accountId}
+        </if>
+        <if test="accountType == 1">
+            SELECT bt.tenant_name AS driverName,bt.gender,bt.tenant_phone AS phone,br.room_name
+            FROM xccj_community.bus_tenant bt
+            LEFT JOIN xccj_community.bus_room br ON bt.room_id = br.room_id
+            WHERE bt.del_flag = '0' AND bt.account_id = #{accountId}
+        </if>
+    </select>
+
+    <select id="getVehicleCount" resultType="int">
+        SELECT
+            count(*)
+        FROM xccj_community.bus_vehicle bv
+        WHERE bv.del_flag = '0' AND bv.audit_status = '1' AND bv.community_id = #{communityId}
+    </select>
+
+
+</mapper>

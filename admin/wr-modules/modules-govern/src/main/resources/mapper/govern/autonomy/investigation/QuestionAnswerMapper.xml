@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.investigation.QuestionAnswerMapper">
+    <select id="findByQuestionId" parameterType="long"
+            resultType="com.wr.remote.govern.autonomy.investigation.QuestionAnswer">
+        select answer_id, account_id, table_type, table_id, question_id, user_answer, del_flag
+        from xccj_govern.bus_ques_answer
+        where question_id = #{questionId}
+          and del_flag = '0'
+    </select>
+
+    <select id="findListAccoutByQuestionId" parameterType="long"
+            resultType="map">
+        SELECT DISTINCT
+            wer.account_id accountId,
+            wer.table_id tableId,
+            wer.table_type tableType,
+            acc.login_name loginName,
+            acc.account_name accountName,
+            acc.account_nick accountNick
+        FROM
+            xccj_govern.bus_ques_answer wer
+                LEFT JOIN xccj_community.bus_account acc ON wer.account_id = acc.account_id
+        WHERE
+            wer.table_id = #{tableId}
+            AND wer.table_type = '1'
+            AND wer.del_flag = '0'
+        ORDER BY
+            wer.account_id
+    </select>
+
+    <select id="findListAnswerByQuestionId" parameterType="map"
+            resultType="com.wr.remote.govern.autonomy.investigation.QuestionAnswer">
+        select answer_id, account_id, table_type, table_id, question_id, user_answer, del_flag
+        from xccj_govern.bus_ques_answer
+        where question_id = #{questionId} AND account_id = #{accountId}
+          and del_flag = '0'
+    </select>
+</mapper>

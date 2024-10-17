@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<groupId>com.wr</groupId>
+		<artifactId>wr-common</artifactId>
+		<version>3.6.0</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>common-payment</artifactId>
+	<description>支付工具模块</description>
+
+	<dependencies>
+		<!-- wr Common Customize -->
+		<dependency>
+			<groupId>com.wr</groupId>
+			<artifactId>common-customize</artifactId>
+		</dependency>
+
+		<!-- 支付宝支付 -->
+		<dependency>
+			<groupId>com.alipay.sdk</groupId>
+			<artifactId>alipay-sdk-java</artifactId>
+			<version>4.34.47.ALL</version>
+		</dependency>
+
+		<!-- 微信支付 -->
+		<dependency>
+			<groupId>com.github.wechatpay-apiv3</groupId>
+			<artifactId>wechatpay-apache-httpclient</artifactId>
+			<version>0.4.8</version>
+		</dependency>
+		<!--<dependency>
+			<groupId>com.github.wechatpay-apiv3</groupId>
+			<artifactId>wechatpay-java</artifactId>
+			<version>0.2.1</version>
+		</dependency>-->
+
+	</dependencies>
+
+</project>

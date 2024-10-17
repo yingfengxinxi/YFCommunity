@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.ParkMapper">
+    <resultMap id="ParkPayMap" type="com.wr.estate.entity.ParkPayEntity">
+        <result property="communityId" column="community_id"/>
+        <result property="communityName" column="community_name"/>
+        <result property="switchType" column="switch_type"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap id="ParkDurationMap" type="com.wr.remote.estate.financial.ParkDurationEntity">
+        <result property="durationId" column="duration_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="communityName" column="community_name"/>
+        <result property="minHour" column="min_hour"/>
+        <result property="maxHour" column="max_hour"/>
+        <result property="hourFee" column="hour_fee"/>
+    </resultMap>
+
+    <sql id="ParkPay">
+        select bpp.community_id,
+               bc.community_name,
+               bpp.switch_type,
+               bpp.create_by,
+               bpp.create_time,
+               bpp.update_by,
+               bpp.update_time
+        from xccj_community.bus_park_pay bpp
+                 left join xccj_community.bus_community bc on bpp.community_id = bc.community_id
+    </sql>
+
+    <sql id="ParkDuration">
+        select bpd.duration_id,
+               bpd.community_id,
+               bc.community_name,
+               bpd.hour_fee,
+               bpd.max_hour,
+               bpd.min_hour
+        from xccj_community.bus_park_duration bpd
+                 left join xccj_community.bus_community bc on bc.community_id = bpd.community_id
+    </sql>
+
+
+    <select id="selectParkPay" resultMap="ParkPayMap" parameterType="com.wr.estate.entity.ParkPayEntity">
+        <include refid="ParkPay"/>
+        <where>
+            bc.del_flag = 0
+            <if test="switchType!=null">
+                bpp.switch_type = #{switchType}
+            </if>
+            <if test="null != estateId">
+               AND bpp.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectParkDuration" resultMap="ParkDurationMap" parameterType="com.wr.remote.estate.financial.ParkDurationEntity">
+        <include refid="ParkDuration"/>
+        <where>
+            <if test="communityId !=null">
+                bpd.community_id = #{communityId}
+            </if>
+            <if test="durationId !=null">
+                bpd.duration_id = #{durationId}
+            </if>
+        </where>
+    </select>
+
+    <!--    获取该小区是否开启停车收费-->
+    <select id="getSwitchType" resultType="string">
+        select switch_type
+        from xccj_community.bus_park_pay
+        where community_id = #{communityId}
+    </select>
+
+    <!-- 验证小区是否添加收费规则  -->
+    <select id="getParkCountByCommunityId" resultType="int">
+        select count(*)
+        from xccj_community.bus_park_pay
+        where community_id = #{communityId}
+    </select>
+
+    <!--    新增小区计费开关-->
+    <insert id="addParkPay" parameterType="com.wr.estate.entity.ParkPayEntity">
+        insert into xccj_community.bus_park_pay (`community_id`, `create_by`, `create_time`,switch_type)
+        values (#{communityId}, #{createBy}, now(),#{switchType});
+    </insert>
+
+    <!--    更新小区停车计费-->
+    <update id="updateParkPay" parameterType="com.wr.estate.entity.ParkPayEntity">
+        update xccj_community.bus_park_pay
+        set `switch_type` = #{switchType},
+            `update_by`   = #{updateBy},
+            `update_time` = now()
+        where community_id = #{communityId}
+    </update>
+
+    <!--    计费规则最大不能超过六个-->
+    <select id="parkDurationCount" resultType="int">
+        select count(*)
+        from xccj_community.bus_park_duration bpd
+        where bpd.community_id = #{communityId}
+    </select>
+
+    <insert id="addParkDuration" parameterType="com.wr.remote.estate.financial.ParkDurationEntity">
+        insert into xccj_community.bus_park_duration (`community_id`, `min_hour`, `max_hour`, `hour_fee`)
+        values (#{communityId}, #{minHour}, #{maxHour}, #{hourFee});
+    </insert>
+
+    <select id="getpd" resultMap="ParkDurationMap">
+        SELECT bpd.duration_id,
+               bpd.community_id,
+               bpd.min_hour,
+               bpd.max_hour,
+               bpd.hour_fee
+        FROM xccj_community.bus_park_duration bpd
+        where community_id = #{communityId}
+        ORDER BY min_hour asc
+    </select>
+
+    <delete id="delpd">
+        DELETE
+        FROM xccj_community.bus_park_duration
+        WHERE community_id = #{communityId}
+    </delete>
+
+    <insert id="addParkDuration1" parameterType="com.wr.remote.estate.financial.ParkDurationEntity">
+        insert into xccj_community.bus_park_duration (`community_id`, `min_hour`, `max_hour`, `hour_fee`)
+        values
+        <foreach collection="list" item="index" separator=",">
+            (#{index.communityId,jdbcType=BIGINT}, #{index.minHour,jdbcType=INTEGER}, #{index.maxHour,jdbcType=INTEGER},
+            #{index.hourFee,jdbcType=DECIMAL})
+        </foreach>
+    </insert>
+
+    <select id="getcid" resultType="long">
+        select community_id
+        from xccj_community.bus_park_duration
+        where duration_id = #{durationId}
+    </select>
+
+    <select id="getMax" resultMap="ParkDurationMap">
+        SELECT MIN(min_hour) as min_hour, MAX(max_hour) as max_hour
+        FROM xccj_community.bus_park_duration
+        WHERE community_id = #{communityId}
+    </select>
+
+    <!--    修改费用-->
+    <update id="xgfy">
+        update xccj_community.bus_park_duration
+        set hour_fee = #{hourFee}
+        where duration_id = #{durationId}
+    </update>
+
+</mapper>

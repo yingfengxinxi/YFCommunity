@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.PatrolOrderMapper">
+<!--    <resultMap type="com.wr.remote.work.patrol.Patrol" id="PatrolResult">-->
+<!--        <result property="patrolId" column="patrol_id"/>-->
+<!--        <result property="communityId" column="community_id"/>-->
+<!--        <result property="patrolNo" column="patrol_no"/>-->
+<!--        <result property="patrolName" column="patrol_name"/>-->
+<!--        <result property="tourId" column="tour_id"/>-->
+<!--        <result property="pointId" column="point_id"/>-->
+<!--        <result property="dataSource" column="data_source"/>-->
+<!--        <result property="planId" column="plan_id"/>-->
+<!--        <result property="orderNo" column="order_no"/>-->
+<!--        <result property="allotWay" column="allot_way"/>-->
+<!--        <result property="patrolNum" column="patrol_num"/>-->
+<!--        <result property="gapTime" column="gap_time"/>-->
+<!--        <result property="startTime" column="start_time"/>-->
+<!--        <result property="endTime" column="end_time"/>-->
+<!--        <result property="staffId" column="staff_id"/>-->
+<!--        <result property="assistNum" column="assist_num"/>-->
+<!--        <result property="transferStatus" column="transfer_status"/>-->
+<!--        <result property="allotStatus" column="allot_status"/>-->
+<!--        <result property="acceptStatus" column="accept_status"/>-->
+<!--        <result property="executeStatus" column="execute_status"/>-->
+<!--        <result property="executeId" column="execute_id"/>-->
+<!--        <result property="executeTime" column="execute_time"/>-->
+<!--        <result property="finishTime" column="finish_time"/>-->
+<!--        <result property="imageUrl" column="image_url"/>-->
+<!--        <result property="remark" column="remark"/>-->
+<!--        <result property="createBy" column="create_by"/>-->
+<!--        <result property="createTime" column="create_time"/>-->
+<!--        <result property="updateBy" column="update_by"/>-->
+<!--        <result property="updateTime" column="update_time"/>-->
+<!--        <result property="delFlag" column="del_flag"/>-->
+<!--    </resultMap>-->
+
+<!--    <resultMap id="detailMap" type="com.wr.api.estate.entity.vo.order.PatrolOrderDetailVO">-->
+<!--        <result column="orderNo" property="orderNo"/>-->
+<!--        <result column="orderName" property="orderName"/>-->
+<!--        <result column="startTime" property="startTime"/>-->
+<!--        <result column="endTime" property="endTime"/>-->
+<!--        <result column="finishRemark" property="finishRemark"/>-->
+<!--        <result column="orderTypeName" property="orderTypeName"/>-->
+<!--        <result column="patrolType" property="patrolType"/>-->
+<!--        <result column="pointName" property="pointName"/>-->
+<!--        <result column="pointAddress" property="pointAddress"/>-->
+<!--        <result column="orderStatus" property="orderStatus"/>-->
+<!--        <result column="orderSource" property="orderSource"/>-->
+<!--        <result column="execute_time" property="executeTime"/>-->
+<!--        <result column="finishTime" property="finishTime"/>-->
+<!--        <result column="finishImageUrl" property="finishImageUrl"/>-->
+<!--        <result column="otherOrderNo" property="otherOrderNo"/>-->
+<!--        <result column="hasSigIn" property="hasSigIn"/>-->
+<!--        <collection property="abnormalImages" ofType="java.lang.String">-->
+<!--            <result column="abnormalImage"/>-->
+<!--        </collection>-->
+<!--    </resultMap>-->
+
+<!--    <sql id="selectPatrolVo">-->
+<!--        select patrol_id,-->
+<!--               community_id,-->
+<!--               patrol_no,-->
+<!--               patrol_name,-->
+<!--               tour_id,-->
+<!--               point_id,-->
+<!--               data_source,-->
+<!--               plan_id,-->
+<!--               order_no,-->
+<!--               allot_way,-->
+<!--               patrol_num,-->
+<!--               gap_time,-->
+<!--               start_time,-->
+<!--               end_time,-->
+<!--               staff_id,-->
+<!--               assist_num,-->
+<!--               transfer_status,-->
+<!--               allot_status,-->
+<!--               accept_status,-->
+<!--               execute_status,-->
+<!--               execute_id,-->
+<!--               execute_time,-->
+<!--               finish_time,-->
+<!--               image_url,-->
+<!--               remark,-->
+<!--               create_by,-->
+<!--               create_time,-->
+<!--               update_by,-->
+<!--               update_time,-->
+<!--               del_flag-->
+<!--        from xccj_work.bus_patrol-->
+<!--    </sql>-->
+
+<!--    &lt;!&ndash; 巡查工单移动端列表查询 &ndash;&gt;-->
+<!--    <select id="listPatrolOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">-->
+<!--        SELECT-->
+<!--        DISTINCT-->
+<!--        bp.patrol_id AS orderId,-->
+<!--        bp.patrol_no AS orderNo,-->
+<!--        bp.patrol_name AS orderName,-->
+<!--        bp.start_time AS startTime,-->
+<!--        bp.end_time AS endTime,-->
+<!--        point.point_name AS address,-->
+<!--        bt.tour_name AS orderTypeName,-->
+<!--        0 AS orderType,-->
+<!--        IF(bp.allot_way = '2' AND bp.staff_id = 0, 1, 0) AS hasGrab,-->
+<!--        CASE-->
+<!--        WHEN bp.transfer_status = '1' THEN 4-->
+<!--        WHEN bp.allot_status = '0' THEN 1-->
+<!--        WHEN bp.accept_status = '0' THEN 2-->
+<!--        WHEN bp.execute_status = '0' THEN 3-->
+<!--        WHEN bp.execute_status = '2' THEN 6-->
+<!--        WHEN bp.execute_status = '3' THEN 8-->
+<!--        WHEN bp.execute_status = '1' AND NOW()>bp.end_time THEN 7-->
+<!--        ELSE 5 END AS orderStatus,-->
+<!--        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist-->
+<!--        FROM xccj_work.bus_patrol bp-->
+<!--        LEFT JOIN xccj_work.bus_tour bt ON bt.tour_id = bp.tour_id AND bt.tour_type = '0'-->
+<!--        LEFT JOIN xccj_work.bus_point point ON bp.point_id = point.point_id-->
+<!--        LEFT JOIN xccj_work.bus_order_audit audit ON bp.patrol_id = audit.order_id AND audit.order_type = '0' AND-->
+<!--        audit.audit_status = '1' AND audit.audit_type = '1'-->
+<!--        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id-->
+<!--        WHERE bp.del_flag = '0'-->
+<!--        <if test="userType != '10'.toString()">-->
+<!--            AND (bp.staff_id = #{staffId} OR (bp.allot_way = '2' AND bp.allot_status = '0' AND bp.accept_status = '0') OR-->
+<!--            assist.staff_id = #{staffId})-->
+<!--        </if>-->
+<!--        AND bp.community_id = #{communityId}-->
+<!--        <if test="orderStatus == 1">-->
+<!--            AND bp.allot_status = 0-->
+<!--        </if>-->
+<!--        <if test="orderStatus == 2">-->
+<!--            AND bp.accept_status = 0-->
+<!--        </if>-->
+<!--        <if test="orderStatus == 3">-->
+<!--            AND bp.execute_status = 0-->
+<!--        </if>-->
+<!--        <if test="orderStatus == 4">-->
+<!--            AND bp.transfer_status = 1-->
+<!--        </if>-->
+<!--        <if test="orderStatus == 5">-->
+<!--            AND bp.execute_status = 1-->
+<!--        </if>-->
+<!--        <if test="orderStatus == 6">-->
+<!--            AND bp.execute_status = 2-->
+<!--        </if>-->
+<!--        ORDER BY (bp.allot_way = '2' AND bp.accept_status = '0') DESC, bp.patrol_id DESC-->
+<!--    </select>-->
+
+<!--    &lt;!&ndash; 巡查工单详情移动端查询 &ndash;&gt;-->
+<!--    <select id="detailPatrolOrder" resultMap="detailMap">-->
+<!--        SELECT bp.patrol_no                     AS orderNo,-->
+<!--               bp.patrol_name                   AS orderName,-->
+<!--               bp.start_time                    AS startTime,-->
+<!--               bp.end_time                      AS endTime,-->
+<!--               point.point_name                 AS pointName,-->
+<!--               point.point_site                 AS pointAddress,-->
+<!--               bt.tour_name                     AS patrolType,-->
+<!--               '巡查工单'                       AS orderTypeName,-->
+<!--               bp.execute_time,-->
+<!--               bp.finish_time AS finishTime,-->
+<!--               bp.staff_id,-->
+<!--               bp.image_url                     AS finishImageUrl,-->
+<!--               CASE bp.data_source-->
+<!--                   WHEN '0' THEN '计划生成'-->
+<!--                   WHEN '1' THEN '后台添加'-->
+<!--                   WHEN '2' THEN '其他工单' END AS orderSource,-->
+<!--               bp.order_no                      AS otherOrderNo,-->
+<!--               bai.image_url                    AS abnormalImage,-->
+<!--               IF(record.create_time is null,0,1) AS hasSigIn,-->
+<!--               CASE-->
+<!--                   WHEN bp.transfer_status = '1' THEN 4-->
+<!--                   WHEN bp.allot_status = '0' THEN 1-->
+<!--                   WHEN bp.accept_status = '0' THEN 2-->
+<!--                   WHEN bp.execute_status = '0' THEN 3-->
+<!--                   WHEN bp.execute_status = '2' THEN 6-->
+<!--                   WHEN bp.execute_status = '3' THEN 8-->
+<!--                   WHEN bp.execute_status = '1' AND bp.end_time > NOW() THEN 7-->
+<!--                   ELSE 5 END                   AS orderStatus,-->
+<!--               bp.remark                        AS finishRemark-->
+<!--        FROM xccj_work.bus_patrol bp-->
+<!--                LEFT JOIN xccj_work.bus_order_record record ON bp.patrol_id = record.order_id-->
+<!--                AND order_type = '0'-->
+<!--                AND record.order_result = '签到'-->
+<!--                 LEFT JOIN xccj_work.bus_abnormal ba-->
+<!--                           ON bp.patrol_id = ba.order_id AND ba.order_type = '0' AND ba.del_flag = '0'-->
+<!--                 LEFT JOIN xccj_work.bus_abnormal_img bai ON ba.abnormal_id = bai.abnormal_id AND bai.del_flag = '0'-->
+<!--                 LEFT JOIN xccj_work.bus_tour bt ON bt.tour_id = bp.tour_id AND bt.tour_type = '0'-->
+<!--                 LEFT JOIN xccj_work.bus_point point ON bp.point_id = point.point_id-->
+<!--        WHERE bp.patrol_id = #{orderId}-->
+<!--    </select>-->
+
+<!--    &lt;!&ndash; 抢单 &ndash;&gt;-->
+<!--    <update id="robOrder">-->
+<!--        UPDATE xccj_work.bus_patrol-->
+<!--        SET allot_status  = '1',-->
+<!--            accept_status = '1',-->
+<!--            staff_id      = #{staffId}-->
+<!--        WHERE allot_status = '0'-->
+<!--          AND accept_status = '0'-->
+<!--          AND allot_way = '2'-->
+<!--          AND patrol_id = #{orderId}-->
+<!--    </update>-->
+
+<!--    &lt;!&ndash; 接单 &ndash;&gt;-->
+<!--    <update id="receiveOrder">-->
+<!--        UPDATE xccj_work.bus_patrol-->
+<!--        SET accept_status = '1'-->
+<!--        WHERE allot_status = '1'-->
+<!--          AND accept_status = '0'-->
+<!--          AND patrol_id = #{orderId}-->
+<!--          AND staff_id = #{staffId}-->
+<!--    </update>-->
+
+<!--    &lt;!&ndash; 开始执行 &ndash;&gt;-->
+<!--    <update id="startPerform">-->
+<!--        UPDATE xccj_work.bus_patrol-->
+<!--        SET execute_status = '1',-->
+<!--            execute_time   = NOW()-->
+<!--        WHERE patrol_id = #{orderId}-->
+<!--          AND allot_status = '1'-->
+<!--          AND accept_status = '1'-->
+<!--          AND execute_status = '0'-->
+<!--          AND staff_id = #{staffId}-->
+<!--    </update>-->
+
+<!--    &lt;!&ndash; 完成工单 &ndash;&gt;-->
+<!--    <update id="finish">-->
+<!--        UPDATE xccj_work.bus_patrol-->
+<!--        SET execute_status = IF(NOW() > end_time, 3, 2),-->
+<!--            finish_time    = NOW(),-->
+<!--            image_url      = #{finishImageUrl},-->
+<!--            remark         = #{remark},-->
+<!--            execute_id     = #{staffId}-->
+<!--        WHERE patrol_id = #{orderId}-->
+<!--    </update>-->
+
+<!--    &lt;!&ndash; 转交工单 &ndash;&gt;-->
+<!--    <update id="transfer">-->
+<!--        UPDATE xccj_work.bus_patrol-->
+<!--        SET transfer_status = '1'-->
+<!--        WHERE patrol_id = #{orderId}-->
+<!--          AND execute_status IN ('1', '0')-->
+<!--          AND transfer_status = '0'-->
+<!--          AND staff_id = #{staffId}-->
+<!--    </update>-->
+
+<!--    &lt;!&ndash; 根据工单id查询巡查工单信息 &ndash;&gt;-->
+<!--    <select id="selectPatrolByPatrolId" parameterType="Long" resultMap="PatrolResult">-->
+<!--        <include refid="selectPatrolVo"/>-->
+<!--        where patrol_id = #{patrolId}-->
+<!--    </select>-->
+</mapper>

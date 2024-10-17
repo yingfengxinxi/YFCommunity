@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.VisualMapper">
+    <sql id="visualColumns">
+        dbv.visual_id, dbv.index_code, dbv.visual_name, dbv.visual_ip, dbv.visual_port, dbv.resource_type,
+        dbv.long_num, dbv.device_key, dbv.device_type, dbv.device_model, dbv.treaty_type, dbv.install_location,
+        dbv.net_zone_id, dbv.data_version, dbv.sub_model, dbv.card_capacity, dbv.finger_capacity, dbv.face_capacity,
+        dbv.capability, dbv.dev_serial_num, dbv.vis_identifying_code, dbv.create_time, dbv.update_time,
+        dbv.online, dbv.manufacturer, dbv.renewal_by, dbv.renewal_time, dbv.update_by, dbv.operate_time,
+        dbv.community_id, dbv.building_id, dbv.unit_id, dbv.address, dbv.device_qr, dbv.del_flag
+    </sql>
+    <delete id="delete">
+        delete
+        from xccj_device.bus_visual
+        where DATE_FORMAT(renewal_time, "%Y-%m-%d") != DATE_FORMAT(NOW(), "%Y-%m-%d")
+    </delete>
+
+    <select id="selectVisualList" resultType="com.wr.remote.aiot.Visual">
+        SELECT
+        cbb.building_name, cbu.unit_name,
+        <include refid="visualColumns"/>
+        FROM xccj_device.bus_visual dbv
+        LEFT JOIN xccj_community.bus_building cbb ON cbb.building_id = dbv.building_id
+        LEFT JOIN xccj_community.bus_unit cbu ON cbu.unit_id = dbv.unit_id
+        WHERE dbv.del_flag = '0' AND dbv.community_id = #{communityId}
+        <if test="visualName != null and visualName != ''">
+            AND dbv.visual_name LIKE concat('%', #{visualName}, '%')
+        </if>
+        <if test="buildingId != null ">
+            AND dbv.building_id=#{buildingId}
+        </if>
+        <if test="unitId!=null">
+            AND dbv.unit_id=#{unitId}
+        </if>
+        <if test="indexCode != null and indexCode != ''">
+            AND dbv.index_code LIKE concat('%', #{indexCode}, '%')
+        </if>
+        <if test="resourceType != null and resourceType != ''">
+            AND dbv.resource_type LIKE concat('%', #{resourceType}, '%')
+        </if>
+        <if test="online != null ">
+            AND dbv.online = #{online}
+        </if>
+        ORDER BY
+        dbv.visual_name ASC
+    </select>
+
+    <!--UPDATE xccj_device.bus_visual SET `online` = #{online} WHERE visual_id = #{visualId}-->
+    <update id="updateVisualOnline">
+        INSERT INTO xccj_device.bus_visual (index_code, `online`) VALUES
+        <foreach item="item" index="index" collection="visualList" separator=",">
+            ( #{item.indexCode}, #{item.online} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        index_code = values(index_code), online = values(online)
+    </update>
+
+    <insert id="insert">
+        INSERT INTO xccj_device.bus_visual (
+        index_code,
+        visual_name,
+        visual_ip,
+        visual_port,
+        resource_type,
+        long_num,
+        device_key,
+        device_type,
+        device_model,
+        treaty_type,
+        install_location,
+        net_zone_id,
+        data_version,
+        sub_model,
+        card_capacity,
+        finger_capacity,
+        face_capacity,
+        capability,
+        dev_serial_num,
+        vis_identifying_code,
+        create_time,
+        update_time,
+        online,
+        manufacturer,
+        renewal_by,
+        renewal_time,
+        update_by,
+        operate_time,
+        community_id,
+        region_index_code,
+        region_path,
+        device_code,
+        vis_main_manager,
+        description
+
+        ) VALUES(
+            #{indexCode},
+            #{visualName},
+            #{visualIp},
+            #{visualPort},
+            #{resourceType},
+            #{longNum},
+            #{deviceKey},
+            #{deviceType},
+            #{deviceModel},
+            #{treatyType},
+            #{installLocation},
+            #{netZoneId},
+            #{dataVersion},
+            #{subModel},
+            #{cardCapacity},
+            #{fingerCapacity},
+            #{faceCapacity},
+            #{capability},
+            #{devSerialNum},
+            #{visIdentifyingCode},
+            #{createTime},
+            #{updateTime},
+            #{online},
+            #{manufacturer},
+            #{renewalBy},
+            #{renewalTime},
+            #{updateBy},
+            #{operateTime},
+            #{communityId},
+            #{regionIndexCode},
+            #{regionPath},
+            #{deviceCode},
+            #{visMainManager},
+            #{description}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE xccj_device.bus_visual
+        SET visual_name=#{visualName},
+            visual_ip=#{visualIp},
+            visual_port=#{visualPort},
+            resource_type=#{resourceType},
+            long_num=#{longNum},
+            device_key=#{deviceKey},
+            device_type=#{deviceType},
+            device_model=#{deviceModel},
+            treaty_type=#{treatyType},
+            install_location=#{installLocation},
+            net_zone_id=#{netZoneId},
+            data_version=#{dataVersion},
+            sub_model=#{subModel},
+            card_capacity=#{cardCapacity},
+            finger_capacity=#{fingerCapacity},
+            face_capacity=#{faceCapacity},
+            capability=#{capability},
+            dev_serial_num=#{devSerialNum},
+            vis_identifying_code=#{visIdentifyingCode},
+            create_time=#{createTime},
+            update_time=#{updateTime},
+            `online`=#{online},
+            manufacturer=#{manufacturer},
+            renewal_by=#{renewalBy},
+            renewal_time=#{renewalTime},
+            update_by=#{renewalBy},
+            operate_time=#{operateTime},
+            region_index_code=#{regionIndexCode},
+            region_path=#{regionPath},
+            device_code=#{deviceCode},
+            vis_main_manager=#{visMainManager},
+            description=#{description}
+        where visual_id = #{visualId}
+    </update>
+
+    <select id="getByIndexCodeInfo" resultType="com.wr.remote.aiot.Visual">
+        SELECT
+        <include refid="visualColumns"/>
+        FROM xccj_device.bus_visual dbv
+        WHERE dbv.del_flag = '0' AND dbv.index_code = #{indexCode}
+    </select>
+
+    <insert id="insertOrUpdate">
+        INSERT INTO xccj_device.bus_visual (
+        index_code, visual_name, visual_ip, visual_port, resource_type, long_num, device_key, device_type, device_model,
+        treaty_type, install_location, net_zone_id, data_version, sub_model, card_capacity, finger_capacity,
+        face_capacity,
+        capability, dev_serial_num, vis_identifying_code, create_time, update_time, manufacturer, renewal_by,
+        renewal_time, update_by, community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="dataList" separator=",">
+            (
+            #{item.indexCode}, #{item.name}, #{item.ip}, #{item.port}, #{item.resourceType}, #{item.longNum},
+            #{item.deviceKey},
+            #{item.deviceType}, #{item.deviceModel}, #{item.treatyType}, #{item.installLocation}, #{item.netZoneId},
+            #{item.data_version},
+            #{item.subModel}, #{item.cardCapacity}, #{item.fingerCapacity}, #{item.faceCapacity}, #{item.capability},
+            #{item.devSerialNum},
+            #{item.visIdentifyingCode}, #{item.createTime}, #{item.updateTime}, #{manufacturer}, #{renewalBy},
+            sysdate(), '', #{communityId}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        index_code = values(index_code), visual_name = values(visual_name), visual_ip = values(visual_ip),
+        visual_port = values(visual_port), resource_type = values(resource_type), long_num = values(long_num),
+        device_key = values(device_key), device_type = values(device_type), device_model = values(device_model),
+        treaty_type = values(treaty_type), install_location = values(install_location), net_zone_id =
+        values(net_zone_id),
+        data_version = values(data_version), sub_model = values(sub_model), card_capacity = values(card_capacity),
+        finger_capacity = values(finger_capacity), face_capacity = values(face_capacity), capability =
+        values(capability),
+        dev_serial_num = values(dev_serial_num), vis_identifying_code = values(vis_identifying_code), create_time =
+        values(create_time),
+        update_time = values(update_time), manufacturer = values(manufacturer), renewal_by = values(renewal_by),
+        renewal_time = values(renewal_time), update_by = values(update_by), community_id = values(community_id)
+    </insert>
+
+    <select id="selectVisualById" resultType="com.wr.remote.aiot.Visual">
+        SELECT
+        cbc.community_name AS "communityName",cbb.building_name, cbu.unit_name,
+        <include refid="visualColumns"/>
+        FROM xccj_device.bus_visual dbv
+        LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dbv.community_id
+        LEFT JOIN xccj_community.bus_building cbb ON cbb.building_id = dbv.building_id
+        LEFT JOIN xccj_community.bus_unit cbu ON cbu.unit_id = dbv.unit_id
+        WHERE dbv.del_flag = '0' AND dbv.visual_id = #{visualId}
+    </select>
+
+    <update id="updateVisual">
+        UPDATE xccj_device.bus_visual SET
+        address = #{address}, update_by = #{updateBy}, operate_time = sysdate()
+        <if test="buildingId != null">
+            ,building_id = #{buildingId}
+        </if>
+        <if test="unitId != null">
+            ,unit_id = #{unitId}
+        </if>
+        WHERE visual_id = #{visualId}
+    </update>
+
+    <select id="selectIdsOfNotQrCode" resultType="com.wr.remote.aiot.Visual">
+        SELECT visual_id, index_code, visual_name
+        FROM xccj_device.bus_visual
+        WHERE del_flag = '0'
+          AND (device_qr IS NULL OR device_qr = '')
+    </select>
+
+    <update id="batchUpdateDeviceQr">
+        INSERT INTO xccj_device.bus_visual ( visual_id, device_qr ) VALUES
+        <foreach item="item" index="index" collection="visualList" separator=",">
+            ( #{item.visualId}, #{item.deviceQr} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        visual_id = values(visual_id), device_qr = values(device_qr)
+    </update>
+
+    <!-- 根据ids查询设备信息 -->
+    <select id="selectVisualByIds" resultType="com.wr.remote.aiot.Visual">
+        SELECT visual_id,index_code,visual_name FROM xccj_device.bus_visual
+        <where>
+            <foreach collection="list" item="id" open="AND visual_id IN(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.work.parkmatter.ParkAuditMapper">
+    <update id="changeState">
+        update xccj_work.bus_park_audit
+        set audit_status=#{state},
+        audit_time=now(),
+        <if test="remark != '' and remark != null ">
+            reject_reason=#{remark},
+        </if>
+        audit_by=#{by}
+        where audit_id=#{auditId}
+    </update>
+    <update id="remove">
+        update xccj_work.bus_park_audit
+        set del_flag='1'
+        where audit_id = #{id}
+    </update>
+    <select id="search" resultType="java.util.LinkedHashMap">
+        SELECT bpa.audit_id,bpa.community_id,bpa.audit_name,bo.owner_name,bpa.audit_status, bpa.remark
+        from xccj_work.bus_park_audit bpa,xccj_community.bus_owner bo
+
+        WHERE bpa.del_flag='0' and bpa.owner_id=bo.owner_id and bpa.community_id=#{community_id}
+        <if test="auditName != '' and auditName != null ">
+            and bpa.audit_name like concat('%',#{auditName},'%')
+        </if>
+        <if test="ownerName != '' and ownerName != null ">
+            and bo.owner_name like concat('%',#{ownerName},'%')
+        </if>
+        <if test="state != '' and state != null ">
+            and bpa.audit_status=#{state}
+        </if>
+        order by bpa.audit_id desc
+    </select>
+    <select id="detail" resultType="java.util.LinkedHashMap">
+        SELECT bpa.audit_id,
+               bpa.audit_name,
+               bo.owner_name,
+               xbc.community_name,
+               xbpr.repair_name,
+               bpa.address,
+               bpa.remark,
+               bo.owner_phone,
+               bo.card_no,
+               bpa.audit_status,
+               bpa.audit_time,
+               bpa.reject_reason,
+               audit_by
+        from xccj_work.bus_park_audit bpa
+           , xccj_community.bus_owner bo
+           , xccj_community.bus_community xbc
+           , xccj_work.bus_park_repair xbpr
+        WHERE bpa.del_flag = '0'
+          and bpa.owner_id = bo.owner_id
+          and bpa.community_id = xbc.community_id
+          and bpa.repair_id = xbpr.repair_id
+          and bpa.audit_id = #{auditId}
+    </select>
+</mapper>

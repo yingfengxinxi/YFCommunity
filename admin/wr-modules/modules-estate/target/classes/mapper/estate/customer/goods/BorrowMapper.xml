@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.goods.BorrowMapper">
+
+    <!--查询列表-->
+    <select id="selectBorrowList" resultType="com.wr.remote.estate.customer.goods.vo.BorrowVo" >
+        SELECT
+            bb.community_id,
+            bb.borrow_id,
+            bg.goods_id,
+            bg.goods_no,
+            bg.goods_name,
+            bg.address,
+            bc.classify_name,
+            ba.account_name,
+            bb.apply_time,
+            bb.return_time,
+            bb.audit_status
+        FROM
+            xccj_community.bus_borrow bb
+            LEFT JOIN xccj_community.bus_goods bg ON bb.goods_id = bg.goods_id
+            LEFT JOIN xccj_community.bus_classify bc ON bc.classify_id = bg.classify_id
+            LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bb.account_id
+        WHERE bb.del_flag = '0'
+        <if test="communityId != null"> AND bg.community_id = #{communityId} </if>
+        <if test="goodsNo != null and goodsNo != ''"> AND bg.goods_no = #{goodsNo} </if>
+        <if test="goodsName != null and goodsName != ''"> AND bg.goods_name LIKE CONCAT('%',#{goodsName},'%') </if>
+        <if test="auditStatus != null and auditStatus != ''"> AND bb.audit_status = #{auditStatus}</if>
+        <if test="classifyId != null"> AND bg.classify_id = #{classifyId} </if>
+        ORDER BY bb.borrow_id DESC
+    </select>
+
+    <!--根据id查询-->
+    <select id="getBorrowById" resultType="com.wr.remote.estate.customer.goods.vo.GoodsVo">
+        SELECT
+            xbg.goods_id,xbg.goods_no,xbg.goods_id,xbg.goods_name,xbg.goods_price,xbg.goods_url,xbg.address,xcl.classify_name,
+            xbb.borrow_id,xbb.apply_time,xbb.return_time,xbb.actually_time,
+            xbb.audit_status,xbb.audit_time,xbb.reject_reason,xbb.audit_by,
+            xbc.community_name,xbd.building_name,xbu.unit_name,xbr.room_name,
+            xbb.account_id,xbo.owner_id,xbo.owner_name,INSERT(xbo.owner_phone, 4, 4,'****') AS ownerPhone
+        FROM xccj_community.bus_borrow xbb
+                 LEFT JOIN xccj_community.bus_goods xbg ON xbb.goods_id = xbg.goods_id
+                 LEFT JOIN xccj_community.bus_classify xcl ON xcl.classify_id = xbg.classify_id
+                 LEFT JOIN xccj_community.bus_account xba ON xbb.account_id = xba.account_id
+                 LEFT JOIN xccj_community.bus_owner xbo ON xba.account_id = xbo.account_id
+                 LEFT JOIN xccj_community.bus_community xbc ON xbo.community_id = xbc.community_id
+                 LEFT JOIN xccj_community.bus_building xbd ON xbo.building_id = xbd.building_id
+                 LEFT JOIN xccj_community.bus_unit xbu ON xbo.unit_id = xbu.unit_id
+                 LEFT JOIN xccj_community.bus_room xbr ON xbo.room_id = xbr.room_id
+        WHERE xbb.del_flag = '0' AND xbb.borrow_id = #{borrowId}
+    </select>
+
+    <!--通过主键修改数据-->
+    <update id="updateBorrow" parameterType="com.wr.remote.estate.customer.goods.vo.BorrowVo">
+        UPDATE xccj_community.bus_borrow
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="codeUrl != null and codeUrl != ''">code_url = #{codeUrl},</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason = #{rejectReason},</if>
+            <if test="auditBy != null and auditBy != ''">audit_by = #{auditBy},</if>
+        </set>
+        WHERE borrow_id = #{borrowId}
+    </update>
+
+    <!--借用天数-->
+    <select id="getBorrowDay" resultType="com.wr.remote.estate.customer.goods.vo.BorrowVo">
+        SELECT * FROM xccj_community.bus_borrow WHERE goods_id = #{goodsId} AND audit_status = '2' order by audit_time desc limit 1
+    </select>
+
+    <select id="getBorrowCount" resultType="int">
+        SELECT count(1) FROM xccj_community.bus_borrow WHERE goods_id = #{goodsId} AND audit_status = '2'
+        <if test="accountId != null"> AND account_id = #{accountId}</if>
+    </select>
+
+</mapper>
+

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.mapper.BannerMapper">
+  <resultMap type="com.wr.system.domain.Banner" id="BannerResult">
+    <id property="estateId" column="estate_id"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="bannerId" column="banner_id"/>
+    <result property="orderNum" column="order_num"/>
+    <result property="bannerUrl" column="banner_url"/>
+      <result property="pageUrl" column="page_url"/>
+      <result property="pageUrlType" column="page_url_type"/>
+  </resultMap>
+
+  <!--分页列表-->
+  <select id="selectListByestateId" parameterType="com.wr.system.domain.Banner"
+          resultMap="BannerResult">
+      SELECT banner_id,
+      estate_id,
+      order_num,
+      banner_url,
+      page_url,
+      page_url_type,
+      `type`,
+      create_by,
+      create_time,
+      update_by,
+      update_time
+      FROM xccj_community.bus_banner
+      where del_flag = '0'
+      <if test="null != estateId">
+          and estate_id = #{estateId}
+      </if>
+      <if test="null != type and '' != type">
+          and type = #{type}
+      </if>
+      order by order_num asc
+  </select>
+
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.notice.NoticeMapper">
+
+    <!--公告列表-->
+<select id="getList" resultType="com.wr.api.owner.entity.home.notice.Notice" parameterType="com.wr.api.owner.entity.home.notice.Notice">
+    select
+    ice.notice_id,
+    ice.notice_title,
+    ice.content,
+    ice.create_by,
+    ice.create_time,
+    ice.community_id,
+    ate.estate_name,
+    ice.brief_introduction,
+    ice.read_num
+    from xccj_community.bus_notice as ice
+    left join xccj_community.bus_estate as ate on ate.estate_id=ice.estate_id
+    where ice.del_flag = '0'
+    AND ice.notice_status = '0'
+    <if test="communityId != null">
+        and ice.community_id =#{communityId}
+    </if>
+    order by ice.create_time desc
+    </select>
+
+<select id="selectOneNoticeById" resultType="com.wr.api.owner.entity.home.notice.Notice" parameterType="Long">
+    select
+        ice.notice_id,
+        ice.notice_title,
+        ice.brief_introduction,
+        ice.content,
+        ice.create_by,
+        ice.create_time,
+        ice.read_num
+    from xccj_community.bus_notice as ice
+    where ice.del_flag='0'
+    <if test="noticeId != null">
+        and ice.notice_id =#{noticeId}
+    </if>
+    </select>
+    <!--最新公告-->
+<select id="selectNews" resultType="com.wr.api.owner.entity.home.notice.Notice" parameterType="com.wr.api.owner.entity.home.notice.Notice">
+    select
+        ice.notice_id,
+        ice.notice_title,
+        ice.content,
+        ice.create_by,
+        ice.create_time,
+        ice.read_num
+    from xccj_community.bus_notice as ice
+             left join xccj_community.bus_notice_community bnc on ice.notice_id = bnc.notice_id
+    where ice.del_flag = '0'
+    <if test="communityId != null">
+        and bnc.community_id =#{communityId}
+    </if>
+    order by ice.create_time desc
+    limit 0,1
+    </select>
+
+    <!--新增阅读数-->
+    <update id="updateReadNum" parameterType="Long">
+        UPDATE xccj_community.bus_notice as ice
+        SET ice.read_num = read_num+1
+        WHERE ice.notice_id=#{noticeId}
+    </update>
+
+</mapper>

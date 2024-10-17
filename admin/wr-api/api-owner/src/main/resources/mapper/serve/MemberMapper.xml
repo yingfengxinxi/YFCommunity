@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.MemberMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.ApiMember">
+        <id column="member_id" jdbcType="BIGINT" property="memberId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="building_id" jdbcType="BIGINT" property="buildingId"/>
+        <result column="unit_id" jdbcType="BIGINT" property="unitId"/>
+        <result column="room_id" jdbcType="BIGINT" property="roomId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="join_time" jdbcType="TIMESTAMP" property="joinTime"/>
+        <result column="party_id" jdbcType="BIGINT" property="partyId"/>
+        <result column="prove_url" jdbcType="VARCHAR" property="proveUrl"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="member_duty" jdbcType="VARCHAR" property="memberDuty"/>
+        <result column="party_fee" jdbcType="DECIMAL" property="partyFee"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        member_id,
+        community_id,
+        building_id,
+        unit_id,
+        room_id,
+        account_id,
+        join_time,
+        party_id,
+        prove_url,
+        audit_status,
+        audit_time,
+        reject_reason,
+        member_duty,
+        party_fee,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_member
+        where member_id = #{memberId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_govern.bus_member
+        set del_flag = '1'
+        where member_id = #{memberId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="member_id" keyProperty="memberId"
+            parameterType="com.wr.api.owner.entity.serve.ApiMember" useGeneratedKeys="true">
+        insert into xccj_govern.bus_member
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="buildingId != null">
+                building_id,
+            </if>
+            <if test="unitId != null">
+                unit_id,
+            </if>
+            <if test="roomId != null">
+                room_id,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="joinTime != null">
+                join_time,
+            </if>
+            <if test="partyId != null">
+                party_id,
+            </if>
+            <if test="proveUrl != null">
+                prove_url,
+            </if>
+            <if test="auditStatus != null">
+                audit_status,
+            </if>
+            <if test="auditTime != null">
+                audit_time,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="memberDuty != null">
+                member_duty,
+            </if>
+            <if test="partyFee != null">
+                party_fee,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="buildingId != null">
+                #{buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="unitId != null">
+                #{unitId,jdbcType=BIGINT},
+            </if>
+            <if test="roomId != null">
+                #{roomId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="joinTime != null">
+                #{joinTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="partyId != null">
+                #{partyId,jdbcType=BIGINT},
+            </if>
+            <if test="proveUrl != null">
+                #{proveUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="auditStatus != null">
+                #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="memberDuty != null">
+                #{memberDuty,jdbcType=VARCHAR},
+            </if>
+            <if test="partyFee != null">
+                #{partyFee,jdbcType=DECIMAL},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.ApiMember">
+        update xccj_govern.bus_member
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="buildingId != null">
+                building_id = #{buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="unitId != null">
+                unit_id = #{unitId,jdbcType=BIGINT},
+            </if>
+            <if test="roomId != null">
+                room_id = #{roomId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="joinTime != null">
+                join_time = #{joinTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="partyId != null">
+                party_id = #{partyId,jdbcType=BIGINT},
+            </if>
+            <if test="proveUrl != null">
+                prove_url = #{proveUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="auditStatus != null">
+                audit_status = #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                audit_time = #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="memberDuty != null">
+                member_duty = #{memberDuty,jdbcType=VARCHAR},
+            </if>
+            <if test="partyFee != null">
+                party_fee = #{partyFee,jdbcType=DECIMAL},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where member_id = #{memberId,jdbcType=BIGINT}
+    </update>
+</mapper>

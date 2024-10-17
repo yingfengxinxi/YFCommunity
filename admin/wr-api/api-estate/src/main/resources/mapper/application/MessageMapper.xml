@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.MessageMapper">
+
+    <select id="searchByCommunityId" resultType="com.wr.api.estate.entity.vo.application.MessageVO">
+        SELECT bm.skip_url as "activePicture",
+               bm.msg_title as "msgTitle",
+               su.nick_name AS "createBy",
+               bm.create_time as "createTime",
+               bm.message_id as "messageId",
+               bm.top as "top"
+        FROM xccj_govern.bus_message bm
+                 LEFT JOIN xccj_estate_sys.sys_user su ON su.user_name = bm.create_by
+        WHERE bm.del_flag = '0'
+          AND bm.community_id = #{communityId}
+        ORDER BY bm.top DESC,
+                 bm.sort_number ASC,
+                 bm.create_time DESC
+    </select>
+    <select id="detailByMessageId" resultType="com.wr.api.estate.entity.vo.application.MessageVO">
+        SELECT bm.skip_url AS "activePicture",
+               bm.msg_title      AS "msgTitle",
+               su.nick_name      AS "createBy",
+               bm.create_time    AS "createTime",
+               bm.message_id     AS "messageId",
+               bm.top            AS "top",
+               bm.content        as "content",
+               bm.look_number    as "lookNumber"
+        FROM xccj_govern.bus_message bm
+                 LEFT JOIN xccj_estate_sys.sys_user su ON su.user_name = bm.create_by
+        WHERE bm.del_flag = '0'
+            AND bm.message_id=#{messageId,jdbcType=BIGINT}
+    </select>
+
+    <update id="updateLookNumber">
+        update xccj_govern.bus_message set look_number=(look_number+1) WHERE message_id=#{messageId,jdbcType=BIGINT}
+    </update>
+</mapper>

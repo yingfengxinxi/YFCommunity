@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.MajordomoMapper">
+
+    <select id="getMajordomo" resultType="com.wr.api.owner.entity.vo.serve.MajordomoVO">
+        SELECT bs.avatar,
+               bs.staff_name,
+               bs.staff_phone,
+               bb.building_name
+        FROM xccj_community.bus_staff bs
+                 LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bs.building_id
+        WHERE bs.del_flag = '0'
+          AND bs.audit_status = '1'
+          AND FIND_IN_SET(#{buildingId} , bs.building_id )
+          AND bs.community_id = #{communityId}
+    </select>
+</mapper>

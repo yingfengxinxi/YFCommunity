@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.vote.VoteItemMapper">
+
+    <resultMap type="com.wr.remote.govern.autonomy.vote.VoteItem" id="Item">
+        <result property="itemId" column="item_id"/>
+        <result property="itemName" column="item_name"/>
+        <result property="voteId" column="vote_id"/>
+        <result property="voteNum" column="vote_num"/>
+    </resultMap>
+
+    <insert id="insertBusVoteItem" parameterType="com.wr.remote.govern.autonomy.vote.VoteItem" useGeneratedKeys="true"
+            keyProperty="itemId">
+        insert into xccj_govern.bus_vote_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--<if test="selectValue != null and selectValue != ''">select_value,</if>-->
+            <if test="voteId != null">vote_id,</if>
+            <if test="itemName != null and itemName != ''">item_name,</if>
+            <if test="voteNum != null and voteNum != ''">vote_num,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <!-- <if test="selectValue != null and selectValue != ''">#{selectValue},</if>-->
+            <if test="voteId != null">#{voteId},</if>
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+            <if test="voteNum != null and voteNum != ''">#{voteNum},</if>
+        </trim>
+    </insert>
+
+
+    <select id="selectBusVoteItem" parameterType="long" resultType="com.wr.remote.govern.autonomy.vote.VoteItem">
+        SELECT item_id, item_name, vote_id, vote_num
+        FROM xccj_govern.bus_vote_item
+        WHERE vote_id = #{voteId}
+          AND del_flag = '0'
+    </select>
+    <select id="getVoteRecord" resultType="com.wr.remote.govern.autonomy.vote.VoteRecord">
+        select bvr.vote_id,bvi.item_name,bo.owner_name,bo.owner_phone,bvr.vote_time
+        from
+        xccj_govern.bus_vote_record bvr
+        LEFT JOIN xccj_govern.bus_vote_item bvi ON bvi.item_id = bvr.item_id and bvi.del_flag = '0'
+        LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = bvr.owner_id and bo.del_flag = '0'
+        <where>
+            <if test="null != voteId">
+                bvr.vote_id = #{voteId}
+            </if>
+        </where>
+    </select>
+    <update id="updateBusVoteItem" parameterType="com.wr.remote.govern.autonomy.vote.VoteItem">
+        update xccj_govern.bus_vote_item
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="voteId != null">vote_id = #{voteId},</if>
+            <if test="itemName != null and itemName !=''">item_name = #{itemName},</if>
+            <if test="voteNum != null and voteNum != ''">vote_num=#{voteNum},</if>
+        </trim>
+        where item_id = #{itemId}
+    </update>
+
+
+</mapper>

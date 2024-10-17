@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.GoodsOutMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.ApiGoodsOut">
+        <id column="out_id" jdbcType="BIGINT" property="outId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="out_title" jdbcType="VARCHAR" property="outTitle"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="submit_time" jdbcType="TIMESTAMP" property="submitTime"/>
+        <result column="out_time" jdbcType="TIMESTAMP" property="outTime"/>
+        <result column="out_status" jdbcType="CHAR" property="outStatus"/>
+        <result column="passage_id" jdbcType="BIGINT" property="passageId"/>
+        <result column="staff_id" jdbcType="BIGINT" property="staffId"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        out_id,
+        community_id,
+        out_title,
+        account_id,
+        submit_time,
+        out_time,
+        out_status,
+        passage_id,
+        staff_id,
+        remark,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM xccj_community.bus_goods_out
+        WHERE out_id = #{outId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        UPDATE xccj_community.bus_goods_out
+        <set>
+            del_flag = '1',
+        </set>
+        WHERE out_id = #{outId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="out_id" keyProperty="outId"
+            parameterType="com.wr.api.owner.entity.vo.serve.ApiGoodsOutVo" useGeneratedKeys="true">
+        INSERT INTO xccj_community.bus_goods_out
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="outTitle != null">
+                out_title,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="submitTime != null">
+                submit_time,
+            </if>
+            <if test="outTime != null">
+                out_time,
+            </if>
+            <if test="outStatus != null">
+                out_status,
+            </if>
+            <if test="passageId != null">
+                passage_id,
+            </if>
+            <if test="staffId != null">
+                staff_id,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="outTitle != null">
+                #{outTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="submitTime != null">
+                #{submitTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outTime != null">
+                #{outTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outStatus != null">
+                #{outStatus,jdbcType=CHAR},
+            </if>
+            <if test="passageId != null">
+                #{passageId,jdbcType=BIGINT},
+            </if>
+            <if test="staffId != null">
+                #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.ApiGoodsOut">
+        <!--@mbg.generated-->
+        UPDATE xccj_community.bus_goods_out
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="outTitle != null">
+                out_title = #{outTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="submitTime != null">
+                submit_time = #{submitTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outTime != null">
+                out_time = #{outTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="outStatus != null">
+                out_status = #{outStatus,jdbcType=CHAR},
+            </if>
+            <if test="passageId != null">
+                passage_id = #{passageId,jdbcType=BIGINT},
+            </if>
+            <if test="staffId != null">
+                staff_id = #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where out_id = #{outId,jdbcType=BIGINT}
+    </update>
+
+    <select id="passageList" resultType="com.wr.remote.estate.manage.Passage">
+        SELECT passage_id, passage_name
+        FROM xccj_community.bus_passage
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+        ORDER BY passage_name
+    </select>
+
+    <resultMap id="BaseResultMaps" type="com.wr.api.owner.entity.vo.serve.ApiGoodsOutVo">
+        <id column="out_id" jdbcType="BIGINT" property="outId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="out_title" jdbcType="VARCHAR" property="outTitle"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="submit_time" jdbcType="TIMESTAMP" property="submitTime"/>
+        <result column="out_time" jdbcType="TIMESTAMP" property="outTime"/>
+        <result column="out_status" jdbcType="CHAR" property="outStatus"/>
+        <result column="passage_id" jdbcType="BIGINT" property="passageId"/>
+        <result column="staff_id" jdbcType="BIGINT" property="staffId"/>
+        <collection property="imageArr" ofType="com.wr.remote.estate.Image">
+            <result property="imageId" column="image_id"/>
+            <result property="imageUrl" column="imageUrl"/>
+        </collection>
+    </resultMap>
+
+    <select id="listPage" resultType="com.wr.api.owner.entity.vo.serve.ApiGoodsOutVo">
+        SELECT bgo.out_title, bgo.out_status, bgo.submit_time, bgo.out_id, bi.image_url AS imageUrl, bi.image_id
+        FROM xccj_community.bus_goods_out AS bgo
+                 LEFT JOIN xccj_community.bus_image AS bi
+                           ON bi.table_id = bgo.out_id AND bi.image_type = '0' AND bi.del_flag = '0'
+        WHERE bgo.account_id = #{accountId}
+          AND bgo.del_flag = '0'
+        GROUP BY bgo.out_id
+        ORDER BY bgo.out_status, bgo.submit_time DESC
+    </select>
+
+    <select id="selectImageUrl" resultType="com.wr.remote.estate.Image">
+        SELECT *
+        FROM xccj_community.bus_image
+        WHERE table_id = #{outId}
+          AND image_type = '0'
+          AND del_flag = '0'
+    </select>
+
+    <select id="detail" resultType="com.wr.api.owner.entity.vo.serve.ApiGoodsOutVo">
+        SELECT bgo.out_title,
+               bgo.remark,
+               bgo.out_status,
+               bgo.out_id,
+               bgo.out_time    AS outTime,
+               ba.account_name AS accountName,
+               ba.login_name   AS loginName,
+               bp.passage_name AS passageName
+        FROM xccj_community.bus_goods_out AS bgo
+                 LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bgo.account_id
+                 LEFT JOIN xccj_community.bus_passage AS bp ON bp.passage_id = bgo.passage_id
+        WHERE bgo.out_id = #{outId}
+          AND bgo.del_flag = '0'
+    </select>
+</mapper>

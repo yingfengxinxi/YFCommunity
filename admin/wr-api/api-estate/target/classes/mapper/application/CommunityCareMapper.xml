@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.CommunityCareMapper">
+
+    <sql id="columns">
+        bcc.id,
+        bcc.community_id,
+        bcc.activity_name,
+        bcc.active_picture,
+        bcc.community_care_id,
+        bcc.event_release_time as "eventReleaseTime",
+        bcc.active_list_content,
+        bcc.status,
+        bcc.sort,
+        bcc.create_by,
+        bcc.create_time,
+        bcc.update_by,
+        bcc.update_time,
+        bcc.del_flag
+    </sql>
+
+    <select id="getList" resultType="com.wr.api.estate.entity.application.serve.CommunityCareVo">
+        select
+        <include refid="columns"></include>
+        from xccj_community.bus_community_care bcc
+        where bcc.del_flag='0' and bcc.status='1'
+        and community_id=#{communityId}
+        <if test="communityCareId !=null">
+            and bcc.community_care_id=#{communityCareId}
+        </if>
+        <if test="activityName !=null and activityName !=''">
+            and bcc.activity_name like CONCAT('%',#{activityName},'%')
+        </if>
+        order by bcc.sort asc,bcc.create_time desc
+    </select>
+
+
+    <select id="getById" resultType="com.wr.api.estate.entity.application.serve.CommunityCareVo">
+        select
+        <include refid="columns"></include>,
+        bcc.content,
+        su.nick_name as "eventReleaseBy"
+        from xccj_community.bus_community_care bcc
+        LEFT JOIN xccj_estate_sys.sys_user su ON bcc.event_release_by = su.user_id
+        where bcc.del_flag='0'
+        and bcc.id=#{id}
+    </select>
+
+    <select id="getTypeList" resultType="com.wr.api.estate.entity.application.serve.CommunityCareTypeVo">
+        select
+        id,
+        name,
+        backgroup_color as "backgroupColor"
+        from xccj_community.bus_community_care_type bcct
+        where bcct.del_flag='0'
+        order by bcct.sort asc, bcct.create_time desc
+    </select>
+
+</mapper>

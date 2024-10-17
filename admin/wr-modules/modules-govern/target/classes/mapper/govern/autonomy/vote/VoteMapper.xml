@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.vote.VoteMapper">
+
+	<resultMap type="com.wr.remote.govern.autonomy.vote.Vote" id="BusEstateResult">
+		<id     property="voteId"     column="vote_id"     />
+		<result property="estateId"   column="estate_id"   />
+		<result property="voteName"   column="vote_name"   />
+		<result property="voteStatus"  column="vote_status"   />
+		<result property="dataSource"   column="data_source"   />
+		<result property="startTime"   column="start_time"   />
+		<result property="endTime" column="end_time" />
+		<result property="content" column="content" />
+		<result property="createBy"   column="create_by"   />
+		<result property="createTime" column="create_time" />
+		<result property="updateBy"   column="update_by"   />
+		<result property="updateTime" column="update_time" />
+		<result property="delFlag" column="del_flag" />
+		<result property="hasFinish" column="hasFinish" />
+		<result property="buildingNames" column="buildingNames" />
+		<result property="unitNames" column="unitNames" />
+	</resultMap>
+
+	<sql id="selectBusEstateVo">
+        SELECT d.*
+        FROM (SELECT bh.vote_id,
+                     (SELECT group_concat(bc.community_name) AS community_name
+                      FROM xccj_govern.bus_vote bh1
+                               LEFT JOIN xccj_govern.bus_vote_community bhc ON bh1.vote_id = bhc.vote_id
+                               LEFT JOIN xccj_community.bus_community bc
+                                         ON find_in_set(bc.community_id, bhc.community_id)
+                      WHERE bh1.vote_id = bh.vote_id)                                              AS estateName,
+                     (SELECT group_concat(bc.community_id) AS community_id
+                      FROM xccj_govern.bus_vote bh1
+                               LEFT JOIN xccj_govern.bus_vote_community bhc ON bh1.vote_id = bhc.vote_id
+                               LEFT JOIN xccj_community.bus_community bc
+                                         ON find_in_set(bc.community_id, bhc.community_id)
+                      WHERE bh1.vote_id = bh.vote_id)                                              AS community_id,
+                     bh.estate_id,
+                     vote_name,
+                     vote_status,
+                     data_source,
+                     bh.start_time,
+                     bh.end_time,
+                     bh.content,
+                     bh.del_flag,
+                     bh.create_by,
+                     bh.create_time,
+                     bh.update_by,
+                     bh.update_time,
+                     IF(bh.vote_status = '0' AND NOW() >= bh.end_time AND bh.has_notice = 0, 1, 0) AS hasFinish,
+					 IFNULL(GROUP_CONCAT(building.building_name), '-') AS buildingNames,
+					 IFNULL(GROUP_CONCAT(unit.unit_name), '-') AS unitNames
+              FROM xccj_govern.bus_vote bh
+                       LEFT JOIN xccj_govern.bus_vote_building voteBuilding ON bh.vote_id = voteBuilding.vote_id
+                       LEFT JOIN xccj_community.bus_building building ON building.building_id = voteBuilding.building_id
+                       LEFT JOIN xccj_govern.bus_vote_unit voteUnit ON bh.vote_id = voteUnit.vote_id
+                       LEFT JOIN xccj_community.bus_unit unit ON unit.unit_id = voteUnit.unit_id
+              GROUP BY bh.vote_id) d
+    </sql>
+
+	<select id="selectBusEstateList" parameterType="com.wr.remote.govern.autonomy.vote.Vote" resultMap="BusEstateResult">
+		<include refid="selectBusEstateVo"/>
+		<where>
+			d.del_flag = '0'
+			<if test="voteName != null and voteName !=''">
+				and vote_name like concat('%', #{voteName}, '%')
+			</if>
+			<if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+				AND date_format(d.start_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+			</if>
+			<if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+				AND date_format(d.start_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+			</if>
+			<if test="communityId != null">
+				and d.community_id like concat('%', #{communityId}, '%')
+			</if>
+			<if test="estateId != null">
+				AND d.estate_id = #{estateId}
+			</if>
+		</where>
+		order by d.create_time desc
+	</select>
+
+
+	<select id="selectBusEstateById" parameterType="Long" resultMap="BusEstateResult">
+		<include refid="selectBusEstateVo"/>
+		where vote_id = #{voteId}
+	</select>
+
+	<insert id="insertBusEstate" parameterType="com.wr.remote.govern.autonomy.vote.Vote" useGeneratedKeys="true" keyProperty="voteId">
+		insert into xccj_govern.bus_vote(
+		<if test="voteId != null and voteId != 0">vote_id,</if>
+		<if test="estateId != null and estateId != 0">estate_id,</if>
+		<if test="voteName != null and voteName !=''">vote_name,</if>
+		<if test="voteStatus != null and voteStatus !=''">vote_status,</if>
+		<if test="dataSource != null and dataSource !=''">data_source,</if>
+		<if test="startTime != null">start_time,</if>
+		<if test="endTime != null">end_time,</if>
+		<if test="content != null and content != ''">content,</if>
+		<if test="createBy != null and createBy != ''">create_by,</if>
+		create_time
+		)values(
+		<if test="voteId != null and voteId != 0">#{voteId},</if>
+		<if test="estateId != null and estateId != 0">#{estateId},</if>
+		<if test="voteName != null and voteName !=''">#{voteName},</if>
+		<if test="voteStatus != null and voteStatus !=''">#{voteStatus},</if>
+		<if test="dataSource != null and dataSource !=''">#{dataSource},</if>
+		<if test="startTime != null">#{startTime},</if>
+		<if test="endTime != null">#{endTime},</if>
+		<if test="content != null and content != ''">#{content},</if>
+		<if test="createBy != null and createBy != ''">#{createBy},</if>
+		sysdate()
+		)
+	</insert>
+
+
+	<delete id="deleteBusEstateById" parameterType="java.lang.Long">
+		update xccj_govern.bus_vote set del_flag = '1'    WHERE vote_id IN
+		<foreach item="voteId" collection="array" open="(" separator="," close=")">
+			#{voteId}
+		</foreach>
+	</delete>
+
+	<!-- 同意统计 -->
+	<select id="consentCount" resultType="java.lang.Integer">
+		SELECT count(*) FROM xccj_govern.bus_vote_record record LEFT JOIN xccj_govern.bus_vote_item item ON record.item_id = item.item_id
+		WHERE item.item_name = '同意' AND record.vote_id = #{voteId}
+	</select>
+
+	<!-- 不同意统计 -->
+	<select id="unConsentCount" resultType="java.lang.Integer">
+		SELECT count(*) FROM xccj_govern.bus_vote_record record LEFT JOIN xccj_govern.bus_vote_item item ON record.item_id = item.item_id
+		WHERE item.item_name = '不同意' AND record.vote_id = #{voteId}
+	</select>
+
+	<!-- 小区ids -->
+	<select id="selectCommunityIds" resultType="java.lang.Long">
+		SELECT community_id FROM xccj_govern.bus_vote_community WHERE vote_id = #{voteId}
+	</select>
+
+	<!-- 已发布通知 -->
+	<update id="updateHasNotice">
+		UPDATE xccj_govern.bus_vote SET has_notice = 1 WHERE vote_id = #{voteId}
+	</update>
+
+</mapper>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.EstateCashMapper">
+    <resultMap type="com.wr.remote.estate.financial.EstateCash" id="estateCashTypeResult">
+        <id property="communityId" column="community_id"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <!--根据小区查楼栋list-->
+    <select id="selectbuildingList" resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+        bb.building_name AS buildingName,
+        IFNULL( SUM( IF ( br.owner_id > 0, 1, 0 ) ), 0 ) AS ownerCount,
+        IFNULL( SUM( br.total_area ), 0 ) AS totalArea,
+        bpf.fee_type AS feeType,
+        bpf.fee_amount AS feeAmount,
+        IFNULL(
+        IF
+        (
+        bpf.fee_type = 0,
+        bpf.fee_amount * SUM( IF ( br.owner_id > 0, br.total_area, 0 ) ),
+        bpf.fee_amount * SUM( IF ( br.owner_id > 0, 1, 0 ))),
+        0
+        ) AS shouldPay,
+        IFNULL( SUM( bpl.pay_amount ), 0 ) AS reallyPay,
+        #{payYear} AS payYear,
+        SUM(
+        IF
+        ( bpl.log_id IS NULL AND br.owner_id > 0, 1, 0 )) AS noPay,
+        bb.building_id,
+        bb.community_id
+        FROM
+        xccj_community.bus_building bb
+        LEFT JOIN xccj_community.bus_room br ON bb.building_id = br.building_id
+        AND br.del_flag = '0'
+        LEFT JOIN xccj_community.bus_property_log bpl ON bpl.room_id = br.room_id
+        AND bpl.del_flag = '0' AND bpl.pay_year = #{payYear}
+        <if test="feeType != null">
+            AND bpl.fee_type = #{feeType}
+        </if>
+        LEFT JOIN xccj_community.bus_property_fee bpf ON bb.community_id = bpf.community_id
+        AND bpf.fee_status = '0'
+        WHERE
+        bb.del_flag = '0'
+        <if test="communityId != null">
+            AND bb.community_id = #{communityId}
+        </if>
+        <if test="buildingName != null and buildingName != ''">
+            and bb.building_name = #{buildingName}
+        </if>
+        GROUP BY
+        bb.building_id
+    </select>
+    <!--根据楼栋查询户主数量-->
+    <select id="selectOwnerCount" resultType="int">
+        SELECT count(*)
+        FROM xccj_community.bus_owner
+        WHERE community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND owner_relation = 0
+          AND del_flag = 0
+    </select>
+    <!--根据楼栋查询楼栋面积-->
+    <select id="selectBuildArea" resultType="BigDecimal">
+        SELECT SUM(total_area)
+        FROM xccj_community.bus_room
+        WHERE community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND del_flag = 0
+    </select>
+    <!--根据小区ID查询物业费收费标准-->
+    <select id="selectStandardById" resultMap="estateCashTypeResult">
+        SELECT fee_type,
+               fee_amount
+        FROM xccj_community.bus_property_fee
+        WHERE community_id = #{communityId}
+          AND fee_status = 0
+    </select>
+    <!--根据楼栋年限查询已交费用-->
+    <select id="selectPayed" resultType="BigDecimal">
+        SELECT SUM(pay_amount)
+        FROM xccj_community.bus_property_log
+        WHERE community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND pay_year = #{payYear}
+          AND del_flag = 0
+    </select>
+    <!--根据楼栋查询已交费户主数量-->
+    <select id="selectPayedCount" resultType="int">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_property_log
+        WHERE community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND pay_year = #{payYear}
+          AND del_flag = 0
+    </select>
+    <!--根据楼栋查询户主缴费情况list-->
+    <select id="selectbuildingOwnerList" parameterType="com.wr.remote.estate.financial.EstateCash"
+            resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+        bpl.*,
+        bo.owner_name,
+        bb.building_name,
+        bu.unit_name,
+        br.room_name
+        FROM
+        xccj_community.bus_property_log bpl
+        LEFT JOIN xccj_community.bus_owner bo ON bpl.room_id = bo.room_id
+        AND bpl.community_id = bo.community_id
+        AND bpl.building_id = bo.building_id
+        AND bpl.unit_id = bo.unit_id
+        LEFT JOIN xccj_community.bus_building bb ON bpl.community_id = bb.community_id AND bpl.building_id =
+        bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bpl.community_id = bu.community_id AND bpl.building_id = bu.building_id
+        and bpl.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bpl.community_id = br.community_id AND bpl.building_id = br.building_id
+        and bpl.room_id = br.room_id
+        WHERE
+        bpl.community_id = #{communityId}
+        AND bpl.building_id = #{buildingId}
+        AND bpl.pay_year = #{payYear}
+        AND bo.owner_relation = 0
+        AND bpl.del_flag = 0
+        <if test="unitName != null">and bu.unit_name like concat('%', #{unitName}, '%')</if>
+        <if test="roomId != null">and bpl.room_id like concat('%', #{roomId}, '%')</if>
+        <if test="payStatus != null and payStatus == 0">and bpl.pay_amount = 0</if>
+        <if test="payStatus != null and payStatus == 1">and bpl.pay_amount != 0</if>
+        <if test="ownerName != null  and ownerName != ''">and bo.owner_name like concat('%', #{ownerName}, '%')</if>
+    </select>
+    <!--根据小区roomID查询业主详情-->
+    <select id="selectPayInfoById" parameterType="com.wr.remote.estate.financial.EstateCash"
+            resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+        bpl.*,
+        bc.community_name,
+        bb.building_name,
+        bu.unit_name,
+        br.room_name,
+        br.room_attribute as "room_type",
+        boo.owner_name
+
+        FROM
+        xccj_community.bus_property_log bpl
+        LEFT JOIN xccj_community.bus_community bc ON bpl.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bpl.building_id = bb.building_id
+        AND bpl.community_id = bb.community_id
+        LEFT JOIN xccj_community.bus_unit bu ON bpl.unit_id = bu.unit_id AND bpl.building_id = bu.building_id
+        AND bpl.community_id = bu.community_id
+        LEFT JOIN xccj_community.bus_room br ON bpl.room_id = br.room_id AND bpl.unit_id = br.unit_id AND
+        bpl.building_id = br.building_id
+        AND bpl.community_id = br.community_id
+        LEFT JOIN xccj_community.bus_owner boo ON br.owner_id =boo.owner_id
+        WHERE bpl.community_id = #{communityId}
+        AND bpl.building_id = #{buildingId}
+        AND bpl.room_id = #{roomId}
+        AND bpl.pay_year = #{payYear}
+        AND bpl.del_flag = 0
+        <if test="unitId != null">and bu.unit_id = #{unitId}</if>
+        <if test="ownerName != null  and ownerName != ''">and bo.owner_name like concat('%', #{ownerName}, '%')</if>
+        <if test="payStatus != null and buildingName != '1'">and bpl.pay_amount is not null</if>
+        <if test="payStatus != null and buildingName != '0'">and bpl.pay_amount is null</if>
+    </select>
+    <!--查询户主缴费历年list-->
+    <select id="selectOwnerPayList" parameterType="com.wr.remote.estate.financial.EstateCash"
+            resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT *
+        FROM xccj_community.bus_property_log
+        WHERE room_id = #{roomId}
+          AND building_id = #{buildingId}
+          AND community_id = #{communityId}
+          AND unit_id = #{unitId}
+          AND del_flag = 0
+    </select>
+</mapper>

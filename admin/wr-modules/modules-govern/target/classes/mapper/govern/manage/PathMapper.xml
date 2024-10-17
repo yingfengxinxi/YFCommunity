@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.manage.PathMapper">
+
+    <sql id="Base_Column_List">
+        log_id, user_name, user_phone, id_card, user_type, community_id, community_name,
+    room_name, device_type, device_name, index_code, io_type, health_level, discern_time, pic_url,
+    del_flag
+    </sql>
+
+    <sql id="Base_Vehicle_List">
+        log_id, user_type, user_name, user_phone, id_card_no, plate_no, plate_type, plate_color,
+    vehicle_type, vehicle_color, community_id, community_name, park_type, park_index,
+    park_name, gate_index, gate_name, roadway_index, roadway_name, inout_type, inout_time,
+    inout_open, pay_status, del_flag
+    </sql>
+
+    <select id="selectUserLogList" resultType="com.wr.remote.govern.manage.vo.UserLogVO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM
+        ${tableName}
+        WHERE del_flag='0'
+        <if test="queryTime!=null">
+            AND DATE_FORMAT(discern_time, '%Y%M%D') = DATE_FORMAT(#{queryTime}, '%Y%M%D')
+        </if>
+        <if test="queryTime == null">
+            AND DATE_FORMAT(discern_time, '%Y%M%D') = DATE_FORMAT(NOW(), '%Y%M%D')
+        </if>
+    </select>
+
+    <select id="selectOwnerInfo" resultType="com.wr.remote.govern.manage.vo.UserLogVO">
+        SELECT
+        o.face_url AS "avatar",
+        o.gender,
+        o.card_type,
+        o.card_no AS "id_card",
+        o.owner_name AS "userName",
+        o.owner_phone AS "phone_number",
+        YEAR(NOW()) - YEAR(STR_TO_DATE(SUBSTRING(o.card_no FROM 7 FOR 4), '%Y')) AS 'age'
+        FROM xccj_community.bus_owner o
+        WHERE o.card_no = #{idCard}
+        <if test="name!=null and name!=''">
+            AND o.owner_name like concat ('%',#{name},'%')
+        </if>
+        AND o.del_flag = '0'
+    </select>
+
+    <select id="selectTenantInfo" resultType="com.wr.remote.govern.manage.vo.UserLogVO">
+        SELECT
+        t.face_url AS "avatar",
+        t.gender,
+        t.card_type,
+        t.card_no AS "id_card",
+        t.tenant_name AS "userName",
+        t.tenant_phone AS "phone_number",
+        YEAR(NOW()) - YEAR(STR_TO_DATE(SUBSTRING(t.card_no FROM 7 FOR 4), '%Y')) AS 'age'
+        FROM xccj_community.bus_tenant t
+        WHERE t.card_no = #{idCard}
+        <if test="name!=null and name!=''">
+            AND t.tenant_name like concat ('%',#{name},'%')
+        </if>
+        AND t.del_flag = '0'
+    </select>
+
+    <select id="getUserLogDetail" resultType="com.wr.remote.govern.manage.vo.UserLogVO">
+        SELECT log_id,
+               community_name,
+               discern_time,
+               io_type,
+               device_name
+        FROM ${currentTableName}
+        WHERE id_card = #{idCard}
+          AND del_flag = '0'
+          AND DATE_FORMAT(discern_time, '%Y-%M-%D') = DATE_FORMAT(NOW(), '%Y-%M-%D')
+    </select>
+
+
+    <select id="selectVehicleList" resultType="com.wr.remote.govern.manage.vo.VehicleLogVO">
+        SELECT
+        log_id,
+        user_type,
+        user_name,
+        gate_name,
+        plate_no,
+        inout_time,
+        inout_open
+        FROM ${tableName}
+        WHERE del_flag = '0'
+        <if test="queryTime!=null and queryTime!=''">
+            AND DATE_FORMAT(inout_time, '%Y-%M-%D') = DATE_FORMAT(#{queryTime}, '%Y-%M-%D')
+        </if>
+        <if test="queryTime==null">
+            AND DATE_FORMAT(inout_time, '%Y-%M-%D') = DATE_FORMAT(NOW(), '%Y-%M-%D')
+        </if>
+        <if test="plateNo!=null and plateNo!=''">
+            AND plate_no like concat (#{plateNo},'%')
+        </if>
+    </select>
+
+    <select id="getVehicleDetail" resultType="com.wr.remote.govern.manage.vo.VehicleLogVO">
+        SELECT
+        <include refid="Base_Vehicle_List"/>
+        FROM ${currentTableName}
+        WHERE plate_no=#{plateNo}
+        AND del_flag = '0'
+        order by inout_time desc
+    </select>
+
+    <select id="getUserLogInfo" resultType="com.wr.remote.govern.manage.vo.UserLogVO">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM ${currentTableName}
+        WHERE log_id = #{logId}
+          AND del_flag = '0'
+    </select>
+</mapper>

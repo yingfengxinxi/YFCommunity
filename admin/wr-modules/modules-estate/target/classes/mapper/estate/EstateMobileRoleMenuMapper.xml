@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.estate.EstateMobileRoleMenuMapper">
+
+    <select id="getByRoleIdList" resultType="com.wr.remote.domain.EstateMobileRoleMenu">
+        select estate_menu_id as "estateMenuId",
+               estate_role_id as "estateRoleId"
+        from xccj_community.bus_estate_mobile_role_menu
+        where estate_role_id = #{estateRoleId}
+    </select>
+
+    <insert id="insert">
+        insert into xccj_community.bus_estate_mobile_role_menu(estate_menu_id,estate_role_id)
+        values (#{estateMenuId},#{estateRoleId})
+    </insert>
+
+    <delete id="deleteByEstateRoleId">
+        delete
+        from xccj_community.bus_estate_mobile_role_menu
+        where estate_role_id = #{estateRoleId}
+    </delete>
+
+    <select id="getByMenuIdRoleCount" resultType="java.lang.Integer">
+        select count(1)
+        from xccj_community.bus_estate_mobile_role_menu
+        where estate_menu_id = #{estateMenuId}
+    </select>
+</mapper>

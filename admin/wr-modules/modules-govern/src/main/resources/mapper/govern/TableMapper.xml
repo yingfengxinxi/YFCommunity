@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.TableMapper">
+
+    <!--检查是否存在表-->
+    <select id="existTable" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM information_schema.TABLES
+        WHERE table_schema = 'xccj_log' AND table_name=#{tableName}
+    </select>
+
+    <!--删除表-->
+    <update id="dropTable">
+        DROP TABLE IF EXISTS ${tableName}
+    </update>
+
+</mapper>

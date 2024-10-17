@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.RentalMapper">
+    <!--我要出租-->
+    <insert id="insertMyRental">
+        insert into xccj_community.bus_rent
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="accountId != null">account_id,</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="doorModel != null and doorModel != ''">door_model,</if>
+            <if test="rentFloor != null and rentFloor != ''">rent_floor,</if>
+            <if test="roomType != null and roomType != ''">room_type,</if>
+            <if test="roomToward != null and roomToward != ''">room_toward,</if>
+            <if test="roomArea != null">room_area,</if>
+            <if test="rentType != null and rentType != ''">rent_type,</if>
+            <if test="rentPrice != null and rentPrice != ''">rent_price,</if>
+            <if test="furnish != null and furnish != ''">furnish,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="roomImg != null and roomImg != ''">room_img,</if>
+            <if test="roomConfig != null and roomConfig != ''">room_config,</if>
+            <if test="roomInfo != null and roomInfo != ''">room_info,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="rentStatus != null and rentStatus != ''">rent_status,</if>
+            <if test="readNum != null and readNum != ''">read_num,</if>
+
+            <if test="ownBuilding != null and ownBuilding != ''">own_building,</if>
+            <if test="ownAttribute != null and ownAttribute != ''">own_attribute,</if>
+            <if test="ownUnit != null and ownUnit != ''">own_unit,</if>
+            <if test="roomNumber != null and roomNumber != ''">room_number,</if>
+            <if test="relationship != null and relationship != ''">relationship,</if>
+            <if test="realEstate != null and realEstate != ''">real_estate,</if>
+            <if test="frontIdCard != null and frontIdCard != ''">front_id_card,</if>
+            <if test="backIdCard != null and backIdCard != ''">back_id_card,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="accountId != null">#{accountId},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="doorModel != null and doorModel != ''">#{doorModel},</if>
+            <if test="rentFloor != null and rentFloor != ''">#{rentFloor},</if>
+            <if test="roomType != null and rentType != ''">#{roomType},</if>
+            <if test="roomToward != null and doorModel != ''">#{roomToward},</if>
+            <if test="roomArea != null">#{roomArea},</if>
+            <if test="rentType != null and rentType != ''">#{rentType},</if>
+            <if test="rentPrice != null and rentPrice != ''">#{rentPrice},</if>
+            <if test="furnish != null and furnish != ''">#{furnish},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="roomImg != null and roomImg != ''">#{roomImg},</if>
+            <if test="roomConfig != null and roomConfig != ''">#{roomConfig},</if>
+            <if test="roomInfo != null and roomInfo != ''">#{roomInfo},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="rentStatus != null and rentStatus != ''">#{rentStatus},</if>
+            <if test="readNum != null and readNum != ''">#{readNum},</if>
+
+            <if test="ownBuilding != null and ownBuilding != ''">#{ownBuilding},</if>
+            <if test="ownAttribute != null and ownAttribute != ''">#{ownAttribute},</if>
+            <if test="ownUnit != null and ownUnit != ''">#{ownUnit},</if>
+            <if test="roomNumber != null and roomNumber != ''">#{roomNumber},</if>
+            <if test="relationship != null and relationship != ''">#{relationship},</if>
+            <if test="realEstate != null and realEstate != ''">#{realEstate},</if>
+            <if test="frontIdCard != null and frontIdCard != ''">#{frontIdCard},</if>
+            <if test="backIdCard != null and backIdCard != ''">#{backIdCard},</if>
+        </trim>
+    </insert>
+    <!-- 修改浏览次数-->
+    <update id="updateReadNum">
+        update  xccj_community.bus_rent set read_num=#{readNum} where rent_id = #{rentId}
+    </update>
+    <update id="outStack">
+        UPDATE `xccj_community`.`bus_rent` SET rent_status = #{rentStatus}
+        WHERE rent_id = #{rentId}
+    </update>
+
+    <!--查询所有在租的出租信息-->
+    <select id="getRentalList" resultType="com.wr.remote.domain.RentalVo">
+        SELECT
+        community_id,
+        account_id,
+        rent_id,
+        rent_type,
+        room_img,
+        room_toward,
+        publish_time,
+        room_info,
+        read_num,
+        door_model,
+        rent_price,
+        room_area,
+        address,
+        contact_phone,
+        contact_name
+        FROM
+        xccj_community.bus_rent
+        WHERE
+        rent_status = '0'
+        <if test="rentId != null and rentId != ''">AND rent_id = #{rentId}</if>
+        <if test="communityId != null and communityId != ''">AND community_id = #{communityId}</if>
+        <if test="accountId != null and accountId != ''">AND account_id = #{accountId}</if>
+        <if test="doorModel != null and doorModel != ''">AND door_model like concat('%',#{doorModel},'%')</if>
+    </select>
+    <!--查询我的出租信息-->
+    <select id="getMyRental" resultType="com.wr.remote.domain.RentalVo">
+        SELECT
+        bo.community_id,
+        bo.account_id,
+        bo.rent_id,
+        bo.rent_type,
+        bo.room_img,
+        bo.room_toward,
+        bo.publish_time,
+        bo.room_info,
+        bo.read_num,
+        bo.door_model,
+        bo.rent_price,
+        bo.room_area,
+        bo.address,
+        bo.rent_status,
+        bo.contact_phone,
+        bo.contact_name,
+        bo.own_building,
+        bo.own_attribute,
+        bo.own_unit,
+        bo.room_number,
+        bo.relationship,
+        bo.real_estate,
+        bo.front_id_card,
+        bo.back_id_card,
+        bo.rent_floor,
+        bc.community_name,
+        bb.building_name,
+        bu.unit_name,
+        br.room_name
+        FROM
+        xccj_community.bus_rent bo
+        LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bo.own_building = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bo.own_unit = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bo.room_number = br.room_id
+        WHERE
+        bo.rent_status != '2'
+        AND bb.del_flag = '0'
+        AND bc.del_flag = '0'
+        AND bu.del_flag = '0'
+        AND br.del_flag = '0'
+        <if test="accountId != null">AND bo.account_id = #{accountId}</if>
+        <if test="rentId != null ">AND bo.rent_id = #{rentId}</if>
+        <if test="communityId != null">AND bo.community_id = #{communityId}</if>
+        <if test="roomNumber != null and roomNumber != ''">AND bo.room_number = #{roomNumber}</if>
+    </select>
+    <select id="getReadNum" resultType="java.lang.Integer">
+        SELECT
+        read_num
+        FROM
+        xccj_community.bus_rent
+        WHERE
+        rent_id = #{rendId}
+    </select>
+
+    <!--获取房屋详情-->
+    <select id="RentalInfo" resultType="com.wr.remote.domain.RentalVo">
+        SELECT
+        bo.community_id,
+        bo.account_id,
+        bo.rent_id,
+        bo.rent_type,
+        bo.room_img,
+        bo.room_toward,
+        bo.publish_time,
+        bo.room_info,
+        bo.read_num,
+        bo.door_model,
+        bo.rent_price,
+        bo.room_area,
+        bo.address,
+        bo.rent_status,
+        bo.contact_phone,
+        bo.contact_name,
+        bo.own_building,
+        bo.own_attribute,
+        bo.own_unit,
+        bo.room_number,
+        bo.relationship,
+        bo.real_estate,
+        bo.front_id_card,
+        bo.back_id_card,
+        bo.rent_floor,
+        bc.community_name,
+        bb.building_name,
+        bu.unit_name,
+        br.room_name
+        FROM
+        xccj_community.bus_rent bo
+        LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bo.own_building = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bo.own_unit = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bo.room_number = br.room_id
+        WHERE
+        bo.rent_id = #{rentId}
+        AND bb.del_flag = '0'
+        AND bc.del_flag = '0'
+        AND bu.del_flag = '0'
+        AND br.del_flag = '0'
+    </select>
+    <select id="getMyAddress" resultType="String">
+        select rent_status
+        from xccj_community.bus_rent
+        where
+            room_number = #{roomNumber}
+        AND community_id = #{communityId}
+    </select>
+
+
+    <!--获取小区树-->
+    <select id="getCommunityTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT DISTINCT(xbc.community_id) AS id , xbc.community_name AS label
+        FROM xccj_community.bus_community xbc
+        LEFT JOIN xccj_community.bus_owner xbo ON xbo.community_id = xbc.community_id
+        WHERE xbo.owner_id = #{ownerId}
+          AND xbo.del_flag = '0'
+         ORDER BY xbc.community_name
+
+    </select>
+
+    <!--获取楼栋树-->
+    <select id="getBuildingTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT DISTINCT br.building_id AS id, bb.building_name AS label
+        FROM xccj_community.bus_room br
+                 LEFT JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+        WHERE br.del_flag = '0' AND br.community_id = #{communityId} and br.owner_id = #{ownerId}
+    </select>
+
+    <!--获取单元树-->
+    <select id="getUnitTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT DISTINCT br.unit_id AS id, bu.unit_name AS label
+        FROM xccj_community.bus_room br
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+        WHERE br.building_id = #{buildingId} and br.owner_id = #{ownerId}
+          AND br.del_flag = '0'
+    </select>
+
+    <!--获取房间树-->
+    <select id="getRoomTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT room_id AS id, room_name AS label
+        FROM xccj_community.bus_room
+        WHERE unit_id = #{unitId}
+        and owner_id=#{ownerId}
+          AND del_flag = '0'
+    </select>
+    <select id="getTotalArea" resultType="java.math.BigDecimal">
+        select total_area from xccj_community.bus_room where
+        room_name=#{roomName} and community_id=#{communityId} and building_id=#{buildingId}
+        and unit_id=#{unitId}
+    </select>
+
+</mapper>
+

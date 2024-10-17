@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.disasterOrder.DisasterAuditMapper">
+    <update id="updateById">
+        update xccj_work.bus_disaster_audit
+        set audit_status = 1,
+            audit_time = NOW(),
+            audit_by = #{auditName}
+        where audit_id = #{auditId}
+    </update>
+    <update id="updateByReject" parameterType="com.wr.remote.work.vo.BusDisasterAuditVo">
+        update xccj_work.bus_disaster_audit
+        set audit_status =2,
+            audit_time = NOW(),
+            audit_by = #{auditBy},
+            reject_reason=#{rejectReason}
+        where audit_id = #{auditId}
+    </update>
+
+    <select id="getList" resultType="com.wr.remote.work.vo.BusDisasterAuditVo"
+            parameterType="com.wr.remote.work.vo.BusDisasterAuditVo">
+        SELECT
+        bo.owner_name,
+        bda.audit_id,
+        bda.audit_name,
+        bo.owner_phone,
+        bo.population,
+        bda.audit_by,
+        bd.disaster_name,
+        bda.audit_time,
+        bda.remark,
+        bda.audit_status,
+        bda.reject_reason,
+        su.user_name,
+        bda.community_id
+        FROM
+        `xccj_work`.`bus_disaster_audit` AS bda
+        LEFT JOIN `xccj_community`.`bus_owner` AS bo ON bda.owner_id = bo.owner_id
+        LEFT JOIN `xccj_work`.`bus_disaster` AS bd on bd.disaster_id=bda.disaster_id
+        LEFT JOIN `xccj_work`.`bus_order_audit` AS boa ON bda.audit_id=boa.audit_id
+        LEFT JOIN xccj_estate_sys.sys_user AS su ON su.user_id =boa.user_id
+        <where>
+            AND bda.del_flag = '0'
+            <if test="communityId != null and communityId != ''">
+                AND bda.community_id = #{communityId}
+            </if>
+            <if test="auditName != null and auditName != ''">
+                AND bda.audit_name like CONCAT('%',#{auditName},'%')
+            </if>
+            <if test="staffName != null and staffName != ''">
+                AND bdo.staff_name like CONCAT('%',#{staffName},'%')
+            </if>
+            <if test="ownerName != null and ownerName != ''">
+                AND bo.owner_name like CONCAT('%',#{ownerName},'%')
+            </if>
+            <if test="auditStatus != null and auditStatus != ''">
+                AND bda.audit_status = #{auditStatus}
+            </if>
+            <if test="auditType != null and auditType != ''">
+                AND boa.audit_type = #{auditType}
+            </if>
+        </where>
+        ORDER BY bda.audit_id DESC
+    </select>
+    <select id="getEmpList" resultType="com.wr.remote.work.vo.BusDisasterAuditVo">
+        SELECT
+        boa.audit_status,
+        boa.audit_time,
+        boa.reject_reason,
+        boa.audit_type,
+        bdo.order_id,
+        bdo.order_no,
+        bdo.order_name,
+        su.user_name,
+        su.phonenumber,
+        test.staff_name,
+        test.staff_phone,
+        test.card_no,
+        test.work_post,
+        test.staff_id,
+        bdo.community_id,
+        boa.order_type,
+        boa.audit_id
+        FROM
+        `xccj_work`.`bus_order_audit` AS boa
+        LEFT JOIN `xccj_work`.`bus_disaster_order` AS bdo ON bdo.order_id = boa.order_id
+        LEFT JOIN xccj_estate_sys.sys_user AS su ON boa.user_id = su.user_id
+        LEFT JOIN (
+        SELECT
+        bs.staff_id,
+        bs.staff_name,
+        bs.card_no,
+        bs.staff_phone,
+        bs.work_post
+        FROM
+        xccj_community.bus_staff AS bs WHERE
+        bs.del_flag = '0'
+        ) AS test ON test.staff_id = bdo.staff_id
+        <where>
+            bdo.del_flag='0' and boa.order_type=#{orderType}
+            <if test="communityId != null and communityId != ''">
+                AND bdo.community_id = #{communityId}
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                AND bdo.order_no like CONCAT('%',#{orderNo},'%')
+            </if>
+            <if test="orderName != null and orderName != ''">
+                AND bdo.order_name like CONCAT('%',#{orderName},'%')
+            </if>
+            <if test="staffName != null and staffName != ''">
+                AND test.staff_name like CONCAT('%',#{staffName},'%')
+            </if>
+            <if test="auditStatus != null and auditStatus != ''">
+                AND boa.audit_status = #{auditStatus}
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                AND bdo.allot_way = #{allotWay}
+            </if>
+            <if test="auditType != null and auditType != ''">
+                AND boa.audit_type = #{auditType}
+            </if>
+        </where>
+        ORDER BY boa.audit_status ASC, boa.audit_id DESC
+    </select>
+    <select id="getDisasterId" resultType="Long">
+        select bda.disaster_id
+        from `xccj_work`.`bus_disaster_audit` AS bda
+        where audit_id = #{auditId} limit 1
+    </select>
+    <select id="queryError" resultType="java.util.LinkedHashMap">
+        SELECT create_time, abnormal_info, image_url, a.abnormal_id
+        from xccj_work.bus_abnormal a,
+             xccj_work.bus_abnormal_img i
+        WHERE order_type = #{type}
+          and a.del_flag = '0'
+          and a.abnormal_id = i.abnormal_id
+          and a.order_id = #{id}
+        order by create_time desc
+    </select>
+    <select id="getImageList" resultType="java.lang.String">
+        SELECT image_url
+        from xccj_work.bus_order_image
+        WHERE del_flag = '0'
+          and image_type = '2'
+          and table_id = #{auditId}
+    </select>
+</mapper>

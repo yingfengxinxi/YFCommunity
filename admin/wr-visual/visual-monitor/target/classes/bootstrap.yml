@@ -1,0 +1,29 @@
+# Tomcat
+server:
+  port: 9500
+
+# Spring
+spring: 
+  application:
+    # 应用名称
+    name: monitor
+  profiles:
+    # 环境配置
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: 172.16.205.131:8848
+        group: DEFAULT_GROUP
+        namespace: 94dd0c34-f7eb-4261-b45e-d8611cc462ad
+      config:
+        # 配置中心地址
+        server-addr: 172.16.205.131:8848
+        group: DEFAULT_GROUP
+        namespace: 94dd0c34-f7eb-4261-b45e-d8611cc462ad
+        # 配置文件格式
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}

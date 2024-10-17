@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.SecondHandMapper">
+
+    <!-- 查询二手交易-->
+    <select id="getAllList" resultType="com.wr.api.owner.entity.dto.SecondHandDTO">
+        SELECT
+        bsh.hand_id,
+        bsh.community_id,
+        bsh.account_id,
+        bsh.hand_title,
+        bsh.hand_brand,
+        bsh.hand_shape,
+        bsh.hand_quality,
+        bsh.hand_price,
+        bsh.hand_remark,
+        bsh.hand_status,
+        bsh.thumbnail,
+        bsh.contact_phone,
+        bsh.publish_time,
+        bsh.shelve_time,
+        ba.account_name
+        FROM
+        xccj_community.bus_second_hand bsh
+        LEFT JOIN xccj_community.bus_account ba ON bsh.account_id = ba.account_id
+        WHERE
+        bsh.del_flag = '0'
+        <if test="handBrand != null and handBrand != ''">AND bsh.hand_brand like CONCAT('%',#{handBrand},'%')</if>
+        <if test="handStatus != null and handStatus != ''">AND bsh.hand_status = #{handStatus}</if>
+        <if test="communityId != null and communityId != ''">AND bsh.community_id = #{communityId}</if>
+        <if test="contactPhone != null and contactPhone != ''">AND bsh.contact_phone = #{contactPhone}</if>
+        <if test="accountId != null and accountId != ''">AND bsh.account_id = #{accountId}</if>
+        ORDER BY
+        publish_time DESC
+    </select>
+    <select id="getInfo" resultType="com.wr.api.owner.entity.vo.serve.SecondHandVo">
+         SELECT
+        bsh.hand_id,
+        bsh.community_id,
+        bsh.account_id,
+        bsh.hand_title,
+        bsh.hand_brand,
+        bsh.hand_shape,
+        bsh.hand_quality,
+        bsh.hand_price,
+        bsh.hand_remark,
+        bsh.hand_status,
+        thumbnail,
+        contact_phone,
+        publish_time,
+        shelve_time,
+        ba.account_name
+        FROM
+        xccj_community.bus_second_hand bsh
+        LEFT JOIN xccj_community.bus_account ba ON bsh.account_id = ba.account_id
+        WHERE
+        bsh.del_flag = '0'
+        and bsh.hand_id=#{handId}
+         ORDER BY
+        publish_time DESC
+    </select>
+
+    <!-- 添加二手交易-->
+    <insert id="insertSecond">
+        insert into `xccj_community`.`bus_second_hand`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="handId != null and handId != ''">hand_id,</if>
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="accountId != null and accountId != ''">account_id,</if>
+            <if test="handTitle != null and handTitle != ''">hand_title,</if>
+            <if test="handBrand != null and handBrand != ''">hand_brand,</if>
+            <if test="handShape != null and handShape != ''">hand_shape,</if>
+            <if test="handQuality != null and handQuality != ''">hand_quality,</if>
+            <if test="handPrice != null and handPrice != ''">hand_price,</if>
+            <if test="handRemark != null and handRemark != ''">hand_remark,</if>
+            <if test="handStatus != null and handStatus != ''">hand_status,</if>
+            <if test="thumbnail != null and thumbnail != ''">thumbnail,</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="shelveTime != null">shelve_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="handId != null and handId != ''">#{handId},</if>
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="accountId != null and accountId != ''">#{accountId},</if>
+            <if test="handTitle != null and handTitle != ''">#{handTitle},</if>
+            <if test="handBrand != null and handBrand != ''">#{handBrand},</if>
+            <if test="handShape != null and handShape != ''">#{handShape},</if>
+            <if test="handQuality != null and handQuality != ''">#{handQuality},</if>
+            <if test="handPrice != null and handPrice != ''">#{handPrice},</if>
+            <if test="handRemark != null and handRemark != ''">#{handRemark},</if>
+            <if test="handStatus != null and handStatus != ''">#{handStatus},</if>
+            <if test="thumbnail != null and thumbnail != ''">#{thumbnail},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="shelveTime != null">#{shelveTime},</if>
+        </trim>
+    </insert>
+
+    <!-- 下架 -->
+    <update id="outStack">
+        UPDATE `xccj_community`.`bus_second_hand` SET hand_status = #{handStatus}
+        WHERE hand_id = #{handId}
+    </update>
+</mapper>
+

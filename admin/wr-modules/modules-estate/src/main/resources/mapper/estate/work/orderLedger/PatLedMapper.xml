@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.orderLedger.PatLedMapper">
+    <select id="listPatLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.PatrolLedVo">
+        SELECT bp.patrol_id,bp.patrol_no,bp.patrol_name,bp.tour_id, bp.point_id,
+            bp.data_source,bp.plan_id,
+        bp.order_no,bp.allot_way,bp.patrol_num,bp.gap_time,bp.start_time,
+        bp.end_time,bp.staff_id,bp.assist_num,bp.execute_status,bp.execute_id,
+        bp.execute_time,bp.finish_time,bp.image_url,bp.remark,bs.staff_name,
+        bt.point_name,br.tour_name
+        FROM xccj_work.bus_patrol AS bp
+        LEFT JOIN xccj_community.bus_staff AS bs ON bs.staff_id = bp.execute_id
+        LEFT JOIN xccj_work.bus_point AS bt ON bp.point_id = bt.point_id
+        LEFT JOIN  xccj_work.bus_tour as br on br.tour_id = bp.tour_id
+        WHERE
+        bp.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            AND bp.community_id = #{communityId}
+        </if>
+        <if test="tourName != null and tourName != ''">
+            AND br.tour_name = #{tourName}
+        </if>
+        <if test="dataSource != null and dataSource != ''">
+            AND bp.data_source = #{dataSource}
+        </if>
+        <if test="allotWay != null and allotWay != ''">
+            AND bp.allot_way = #{allotWay}
+        </if>
+        <if test="staffName != null and staffName != ''">
+            AND bs.staff_name like concat('%', #{staffName}, '%')
+        </if>
+        and bt.point_type != '2'
+        and bp.execute_status = '2' or bp.execute_status = '3'
+    </select>
+    <select id="getPatLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.PatrolLedVo">
+        SELECT DISTINCT bp.patrol_id,bp.patrol_no,bp.patrol_name,bp.data_source,bp.plan_id,
+               bp.order_no,bp.allot_way,bp.patrol_num,bp.gap_time,bp.start_time,
+               bp.end_time,bp.staff_id,bp.assist_num,bp.execute_status,bp.execute_id,bs.staff_name,
+               bp.execute_time,bp.finish_time,bp.image_url,bp.remark,bt.point_name,br.tour_name,
+               if(ba.abnormal_id != '' and ba.abnormal_id != null ,'异常','正常') AS status
+        FROM xccj_work.bus_patrol AS bp
+                 LEFT JOIN xccj_community.bus_staff AS bs ON bs.staff_id = bp.staff_id
+                 LEFT JOIN xccj_work.bus_point AS bt ON bp.point_id = bt.point_id
+                 LEFT JOIN  xccj_work.bus_tour as br on br.tour_id = bp.tour_id
+                 LEFT JOIN xccj_work.bus_abnormal ba ON bp.patrol_id = ba.order_id
+        WHERE bs.del_flag = '0' AND br.tour_status = '0' AND bt.point_status = '0' AND
+            bp.patrol_id = #{patrolId}
+    </select>
+    <select id="getPatStaffList" resultType="com.wr.remote.estate.order.vo.ledgerVo.PatrolLedVo">
+        SELECT bsf.staff_name,
+               bsf.staff_phone,
+               bsf.card_no,
+               bsf.work_post
+        FROM xccj_work.bus_order_audit AS boat
+                 LEFT JOIN xccj_work.bus_order_assist AS boar ON boar.audit_id = boat.audit_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = boar.staff_id
+                 LEFT JOIN xccj_work.bus_patrol AS bp ON bp.patrol_id = boat.order_id
+        WHERE bsf.del_flag = '0' and boat.audit_status='1' and boat.del_flag='0' and boat.audit_type='1'
+          AND boat.order_type = '0'
+          AND bp.patrol_id = #{patrolId}
+    </select>
+
+    <select id="detailList" resultType="com.wr.remote.estate.order.vo.ledgerVo.InspectLedVo">
+        SELECT (CASE
+                    WHEN bid.index_code = test1.index_code THEN test1.dev_type_code
+                    WHEN bid.index_code = test2.index_code THEN test2.door_no
+                    WHEN bid.index_code = test3.index_code THEN test3.device_type
+                    WHEN bid.index_code = test4.index_code THEN test4.chan_num END)     noname,
+               (CASE
+                    WHEN bid.index_code = test1.index_code THEN test1.dev_type_desc
+                    WHEN bid.index_code = test2.index_code THEN test2.channel_type
+                    WHEN bid.index_code = test3.index_code THEN test3.device_model
+                    WHEN bid.index_code = test4.index_code THEN test4.channel_type END) typename,
+               (CASE
+                    WHEN bid.index_code = test1.index_code THEN test1.access_name
+                    WHEN bid.index_code = test2.index_code THEN test2.door_name
+                    WHEN bid.index_code = test3.index_code THEN test3.visual_name
+                    WHEN bid.index_code = test4.index_code THEN test4.camera_name END)  facilityname,
+               (CASE
+                    WHEN bid.index_code = test1.index_code THEN test1.address
+                    WHEN bid.index_code = test2.index_code THEN test2.address
+                    WHEN bid.index_code = test3.index_code THEN test3.address
+                    WHEN bid.index_code = test4.index_code THEN test4.address END) AS   addressname
+        FROM xccj_work.bus_inspect_plan AS bip
+                 LEFT JOIN xccj_work.bus_inspect AS bi ON bi.plan_id = bip.plan_id
+                 INNER JOIN xccj_work.bus_plan_device AS bid ON bid.plan_id = bip.plan_id
+                 LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                            FROM xccj_device.bus_access
+                            WHERE del_flag = '0') AS test1 ON test1.index_code = bid.index_code
+                 LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                            FROM xccj_device.bus_door
+                            WHERE del_flag = '0') AS test2 ON test2.index_code = bid.index_code
+                 LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                            FROM xccj_device.bus_visual
+                            WHERE del_flag = '0') AS test3 ON test3.index_code = bid.index_code
+                 LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                            FROM xccj_device.bus_camera
+                            WHERE del_flag = '0') AS test4 ON test4.index_code = bid.index_code
+        WHERE bip.plan_id = #{planId}
+          AND bi.del_flag = '0'
+          AND bip.del_flag = '0'
+    </select>
+
+    <select id="getTourName" resultType="com.wr.remote.estate.order.vo.ledgerVo.PatrolLedVo">
+
+        SELECT DISTINCT br.tour_name
+        FROM xccj_work.bus_patrol AS bp
+                 LEFT JOIN  xccj_work.bus_tour as br on br.tour_id = bp.tour_id
+        WHERE
+            br.del_flag = '0' AND bp.del_flag = '0'
+          AND br.tour_type = '0' AND bp.community_id = #{communityId}
+    </select>
+</mapper>

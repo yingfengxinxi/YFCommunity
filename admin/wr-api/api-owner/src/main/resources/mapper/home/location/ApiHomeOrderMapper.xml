@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.location.ApiHomeOrderMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.home.location.ApiHomeOrder">
+        <id column="order_id" jdbcType="BIGINT" property="orderId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="order_no" jdbcType="VARCHAR" property="orderNo"/>
+        <result column="order_name" jdbcType="VARCHAR" property="orderName"/>
+        <result column="owner_id" jdbcType="BIGINT" property="ownerId"/>
+        <result column="repair_id" jdbcType="BIGINT" property="repairId"/>
+        <result column="deposit" jdbcType="DECIMAL" property="deposit"/>
+        <result column="plan_start" jdbcType="TIMESTAMP" property="planStart"/>
+        <result column="plan_end" jdbcType="TIMESTAMP" property="planEnd"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="allot_way" jdbcType="CHAR" property="allotWay"/>
+        <result column="staff_id" jdbcType="BIGINT" property="staffId"/>
+        <result column="assist_num" jdbcType="INTEGER" property="assistNum"/>
+        <result column="transfer_status" jdbcType="CHAR" property="transferStatus"/>
+        <result column="allot_status" jdbcType="CHAR" property="allotStatus"/>
+        <result column="accept_status" jdbcType="CHAR" property="acceptStatus"/>
+        <result column="execute_status" jdbcType="CHAR" property="executeStatus"/>
+        <result column="assess_result" jdbcType="CHAR" property="assessResult"/>
+        <result column="execute_id" jdbcType="BIGINT" property="executeId"/>
+        <result column="execute_time" jdbcType="TIMESTAMP" property="executeTime"/>
+        <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime"/>
+        <result column="appoint_status" jdbcType="CHAR" property="appointStatus"/>
+        <result column="pay_amount" jdbcType="DECIMAL" property="payAmount"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="appraise_status" jdbcType="CHAR" property="appraiseStatus"/>
+        <result column="appraise_star" jdbcType="INTEGER" property="appraiseStar"/>
+        <result column="appraise_remark" jdbcType="VARCHAR" property="appraiseRemark"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        order_id,
+        community_id,
+        order_no,
+        order_name,
+        owner_id,
+        repair_id,
+        deposit,
+        plan_start,
+        plan_end,
+        address,
+        allot_way,
+        staff_id,
+        assist_num,
+        transfer_status,
+        allot_status,
+        accept_status,
+        execute_status,
+        assess_result,
+        execute_id,
+        execute_time,
+        finish_time,
+        appoint_status,
+        pay_amount,
+        image_url,
+        remark,
+        appraise_status,
+        appraise_star,
+        appraise_remark,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_work.bus_home_order
+        where order_id = #{orderId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_work.bus_home_order
+        set del_flag = '1'
+        where order_id = #{orderId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="order_id" keyProperty="orderId"
+            parameterType="com.wr.api.owner.entity.home.location.ApiHomeOrder" useGeneratedKeys="true">
+        insert into xccj_work.bus_home_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="orderNo != null">
+                order_no,
+            </if>
+            <if test="orderName != null">
+                order_name,
+            </if>
+            <if test="ownerId != null">
+                owner_id,
+            </if>
+            <if test="repairId != null">
+                repair_id,
+            </if>
+            <if test="deposit != null">
+                deposit,
+            </if>
+            <if test="planStart != null">
+                plan_start,
+            </if>
+            <if test="planEnd != null">
+                plan_end,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="allotWay != null">
+                allot_way,
+            </if>
+            <if test="staffId != null">
+                staff_id,
+            </if>
+            <if test="assistNum != null">
+                assist_num,
+            </if>
+            <if test="transferStatus != null">
+                transfer_status,
+            </if>
+            <if test="allotStatus != null">
+                allot_status,
+            </if>
+            <if test="acceptStatus != null">
+                accept_status,
+            </if>
+            <if test="executeStatus != null">
+                execute_status,
+            </if>
+            <if test="assessResult != null">
+                assess_result,
+            </if>
+            <if test="executeId != null">
+                execute_id,
+            </if>
+            <if test="executeTime != null">
+                execute_time,
+            </if>
+            <if test="finishTime != null">
+                finish_time,
+            </if>
+            <if test="appointStatus != null">
+                appoint_status,
+            </if>
+            <if test="payAmount != null">
+                pay_amount,
+            </if>
+            <if test="imageUrl != null">
+                image_url,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="appraiseStatus != null">
+                appraise_status,
+            </if>
+            <if test="appraiseStar != null">
+                appraise_star,
+            </if>
+            <if test="appraiseRemark != null">
+                appraise_remark,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="orderNo != null">
+                #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="orderName != null">
+                #{orderName,jdbcType=VARCHAR},
+            </if>
+            <if test="ownerId != null">
+                #{ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="repairId != null">
+                #{repairId,jdbcType=BIGINT},
+            </if>
+            <if test="deposit != null">
+                #{deposit,jdbcType=DECIMAL},
+            </if>
+            <if test="planStart != null">
+                #{planStart,jdbcType=TIMESTAMP},
+            </if>
+            <if test="planEnd != null">
+                #{planEnd,jdbcType=TIMESTAMP},
+            </if>
+            <if test="address != null">
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="allotWay != null">
+                #{allotWay,jdbcType=CHAR},
+            </if>
+            <if test="staffId != null">
+                #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="assistNum != null">
+                #{assistNum,jdbcType=INTEGER},
+            </if>
+            <if test="transferStatus != null">
+                #{transferStatus,jdbcType=CHAR},
+            </if>
+            <if test="allotStatus != null">
+                #{allotStatus,jdbcType=CHAR},
+            </if>
+            <if test="acceptStatus != null">
+                #{acceptStatus,jdbcType=CHAR},
+            </if>
+            <if test="executeStatus != null">
+                #{executeStatus,jdbcType=CHAR},
+            </if>
+            <if test="assessResult != null">
+                #{assessResult,jdbcType=CHAR},
+            </if>
+            <if test="executeId != null">
+                #{executeId,jdbcType=BIGINT},
+            </if>
+            <if test="executeTime != null">
+                #{executeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="finishTime != null">
+                #{finishTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="appointStatus != null">
+                #{appointStatus,jdbcType=CHAR},
+            </if>
+            <if test="payAmount != null">
+                #{payAmount,jdbcType=DECIMAL},
+            </if>
+            <if test="imageUrl != null">
+                #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="appraiseStatus != null">
+                #{appraiseStatus,jdbcType=CHAR},
+            </if>
+            <if test="appraiseStar != null">
+                #{appraiseStar,jdbcType=INTEGER},
+            </if>
+            <if test="appraiseRemark != null">
+                #{appraiseRemark,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.home.location.ApiHomeOrder">
+        update xccj_work.bus_home_order
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="orderNo != null">
+                order_no = #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="orderName != null">
+                order_name = #{orderName,jdbcType=VARCHAR},
+            </if>
+            <if test="ownerId != null">
+                owner_id = #{ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="repairId != null">
+                repair_id = #{repairId,jdbcType=BIGINT},
+            </if>
+            <if test="deposit != null">
+                deposit = #{deposit,jdbcType=DECIMAL},
+            </if>
+            <if test="planStart != null">
+                plan_start = #{planStart,jdbcType=TIMESTAMP},
+            </if>
+            <if test="planEnd != null">
+                plan_end = #{planEnd,jdbcType=TIMESTAMP},
+            </if>
+            <if test="address != null">
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="allotWay != null">
+                allot_way = #{allotWay,jdbcType=CHAR},
+            </if>
+            <if test="staffId != null">
+                staff_id = #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="assistNum != null">
+                assist_num = #{assistNum,jdbcType=INTEGER},
+            </if>
+            <if test="transferStatus != null">
+                transfer_status = #{transferStatus,jdbcType=CHAR},
+            </if>
+            <if test="allotStatus != null">
+                allot_status = #{allotStatus,jdbcType=CHAR},
+            </if>
+            <if test="acceptStatus != null">
+                accept_status = #{acceptStatus,jdbcType=CHAR},
+            </if>
+            <if test="executeStatus != null">
+                execute_status = #{executeStatus,jdbcType=CHAR},
+            </if>
+            <if test="assessResult != null">
+                assess_result = #{assessResult,jdbcType=CHAR},
+            </if>
+            <if test="executeId != null">
+                execute_id = #{executeId,jdbcType=BIGINT},
+            </if>
+            <if test="executeTime != null">
+                execute_time = #{executeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="finishTime != null">
+                finish_time = #{finishTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="appointStatus != null">
+                appoint_status = #{appointStatus,jdbcType=CHAR},
+            </if>
+            <if test="payAmount != null">
+                pay_amount = #{payAmount,jdbcType=DECIMAL},
+            </if>
+            <if test="imageUrl != null">
+                image_url = #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="appraiseStatus != null">
+                appraise_status = #{appraiseStatus,jdbcType=CHAR},
+            </if>
+            <if test="appraiseStar != null">
+                appraise_star = #{appraiseStar,jdbcType=INTEGER},
+            </if>
+            <if test="appraiseRemark != null">
+                appraise_remark = #{appraiseRemark,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where order_id = #{orderId,jdbcType=BIGINT}
+    </update>
+
+    <select id="listPage" resultType="com.wr.api.owner.entity.vo.location.ApiHomeOrderVo">
+        SELECT test.image_url         AS imageurlpage,
+               bho.order_id,
+               bho.order_name,
+               bho.appraise_star,
+               bho.create_time        AS createtimes,
+               (       CASE
+                       WHEN bho.allot_status = '0' THEN
+                           1
+                       WHEN bho.execute_status = '0' THEN
+                           2
+                       WHEN bho.execute_status IN ('1', '4') THEN
+                           3
+                       WHEN bho.appraise_status = '0' THEN
+                           4
+                       WHEN bho.appraise_status = '1' THEN
+                           5
+                       END
+                   ) AS homestatus
+        FROM xccj_work.bus_home_order AS bho
+                 LEFT JOIN (SELECT boi.table_id, boi.image_url
+                            FROM xccj_work.bus_order_image AS boi
+                            WHERE boi.image_type = '0'
+                              AND boi.del_flag = '0'
+                            GROUP BY boi.table_id) AS test ON test.table_id = bho.order_id
+        WHERE bho.del_flag = '0'
+          AND bho.owner_id = #{ownerId} and bho.community_id = #{communityId}
+        ORDER BY bho.create_time DESC
+    </select>
+
+    <resultMap id="BaseResultMaps" type="com.wr.api.owner.entity.vo.location.ApiHomeOrderVo">
+        <id column="order_id" jdbcType="BIGINT" property="orderId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="order_no" jdbcType="INTEGER" property="orderNo"/>
+        <result column="appraise_star" jdbcType="VARCHAR" property="appraiseStar"/>
+        <result column="order_name" jdbcType="VARCHAR" property="orderName"/>
+        <result column="plan_start" jdbcType="TIMESTAMP" property="planStart"/>
+        <result column="plan_end" jdbcType="TIMESTAMP" property="planEnd"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="homeStatus" property="homeStatus"/>
+        <result column="owner_name" property="ownerName"/>
+        <result column="owner_phone" property="ownerPhone"/>
+        <result column="repair_name" property="repairName"/>
+        <result column="staffNameOne" property="staffNameOne"/>
+        <result column="staffPhoneOne" property="staffPhoneOne"/>
+        <result column="staffNameTwo" property="staffNameTwo"/>
+        <result column="staffPhoneTwo" property="staffPhoneTwo"/>
+        <result column="complaintRemark" property="complaintRemark"/>
+        <result column="complaintType" property="complaintType"/>
+        <result column="complaintUrl" property="complaintUrl"/>
+        <collection property="imageUrlList" ofType="com.wr.api.owner.entity.home.location.ApiOrderImage">
+            <result column="imageId" property="imageId"/>
+            <result column="imageUrls" property="imageUrl"/>
+        </collection>
+        <collection property="assistList" ofType="com.wr.api.owner.entity.vo.location.ApiOrderAssistVo">
+            <result column="assistPhone" property="assistPhone"/>
+            <result column="assistName" property="assistName"/>
+        </collection>
+    </resultMap>
+    <select id="detail" resultMap="BaseResultMaps" parameterType="com.wr.api.owner.entity.vo.location.ApiHomeOrderVo">
+        SELECT (CASE
+                    WHEN bho.execute_status = '0' AND bho.allot_status = '0' AND bho.accept_status = '0' THEN '0'
+                    WHEN bho.execute_status = '0' AND bho.allot_status = '1' OR bho.accept_status = '1' THEN '1'
+                    WHEN bho.execute_status = '1' AND bho.allot_status = '1' OR bho.accept_status = '1' THEN '2'
+                    WHEN (bho.execute_status = '2' OR bho.execute_status = '3') AND bho.appoint_status = '0' AND
+                         bho.allot_status = '1' OR bho.accept_status = '1' THEN '3'
+                    WHEN bho.appraise_status = '0' AND (bho.execute_status = '2' OR bho.execute_status = '3') AND
+                         bho.appoint_status = '1' AND bho.allot_status = '1' OR bho.accept_status = '1' THEN '4'
+                    WHEN bho.appraise_status = '1' AND (bho.execute_status = '2' OR bho.execute_status = '3') AND
+                         bho.appoint_status = '1' AND bho.allot_status = '1' OR bho.accept_status = '1'
+                        THEN '5' END) AS homeStatus,
+               bo.owner_name,
+               bo.owner_phone,
+               bho.order_id,
+               bho.order_name,
+               bhr.repair_name,
+               bho.address,
+               bho.plan_start,
+               bho.plan_end,
+               bho.remark,
+               bho.order_no,
+               bs.staff_name          AS staffNameOne,
+               bs.staff_phone         AS staffPhoneOne,
+               bs1.staff_name         AS staffNameTwo,
+               bs1.staff_phone        AS staffPhoneTwo,
+               test.image_id          AS imageId,
+               test.image_url         AS imageUrls,
+               test2.remark           AS complaintRemark,
+               test2.complaint_type   AS complaintType,
+               test2.complaint_url    AS complaintUrl,
+               bho.appraise_star,
+               bs2.staff_phone        AS assistPhone,
+               bs2.staff_name         AS assistName
+        FROM xccj_work.bus_home_order AS bho
+                 LEFT JOIN (SELECT boi.table_id, boi.image_url, boi.image_id
+                            FROM xccj_work.bus_order_image AS boi
+                            WHERE boi.image_type = '0') AS test ON test.table_id = bho.order_id
+                 LEFT JOIN xccj_community.bus_owner AS bo ON bo.owner_id = bho.owner_id
+                 LEFT JOIN xccj_work.bus_home_repair AS bhr ON bhr.repair_id = bho.repair_id
+                 LEFT JOIN xccj_community.bus_staff AS bs ON bs.staff_id = bho.staff_id
+                 LEFT JOIN xccj_community.bus_staff AS bs1 ON bs1.staff_id = bho.execute_id
+                 LEFT JOIN (SELECT order_id, complaint_type, remark, complaint_url
+                            FROM xccj_community.bus_complaint
+                            WHERE order_type = '1'
+                              AND del_flag = '0') AS test2
+                           ON test2.order_id = bho.order_id
+                 LEFT JOIN xccj_work.bus_order_audit AS boa
+                           ON boa.order_id = bho.order_id AND audit_type = '1' AND order_type = '5'
+                 LEFT JOIN xccj_work.bus_order_assist AS boat ON boat.audit_id = boa.audit_id
+                 LEFT JOIN xccj_community.bus_staff AS bs2 ON bs2.staff_id = boat.staff_id
+        WHERE bho.order_id = #{orderId}
+    </select>
+
+    <select id="selectRepairList" resultType="com.wr.api.owner.entity.home.location.ApiHomeRepair">
+        SELECT *
+        FROM xccj_work.bus_home_repair
+        WHERE del_flag = '0'
+          AND repair_status = '0'
+          AND estate_id = #{estateId}
+    </select>
+    <select id="getAllotByType" resultType="com.wr.remote.work.distribution.Distribution">
+        select allot_id,
+        community_id,
+        allot_type,
+        allot_way,
+        user_type,
+        assist_num,
+        gap_hour,
+        update_time,
+        update_by
+        from xccj_work.bus_allot
+        <where>
+            AND del_flag = '0'
+            AND community_id = #{communityId}
+            AND allot_type = #{allotType}
+        </where>
+    </select>
+
+    <select id="listLeisureStaffs" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT bs.staff_id,
+               bs.staff_name
+        FROM xccj_community.bus_staff bs
+                 LEFT JOIN xccj_work.bus_allot_post bap ON bs.work_post = bap.user_post
+                 LEFT JOIN xccj_work.bus_allot ba ON bap.allot_id = ba.allot_id and ba.del_flag = '0'
+        WHERE bs.del_flag = '0'
+          AND ba.allot_id = #{allotId}
+          AND bs.community_id = #{communityId}
+          AND bs.staff_id NOT IN (SELECT unifinish.staff_id FROM xccj_work.view_unfinish_order unifinish WHERE unifinish.staff_id != 0)
+    </select>
+
+</mapper>

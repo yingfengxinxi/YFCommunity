@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.Venue.VenueAppointMapper">
+
+    <resultMap type="com.wr.estate.entity.VenueAppoint" id="VenueAppointResult">
+        <result property="appointId"    column="appoint_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="userPhone"    column="user_phone"    />
+        <result property="cardNo"    column="card_no"    />
+        <result property="activityId"    column="activity_id"    />
+        <result property="activityName"    column="activity_name"    />
+        <result property="venueId"    column="venue_id"    />
+        <result property="planStart"    column="plan_start"    />
+        <result property="planEnd"    column="plan_end"    />
+        <result property="deposit"    column="deposit"    />
+        <result property="currentEnd"    column="current_end"    />
+        <result property="appointStatus"    column="appoint_status"    />
+        <result property="payWay"    column="pay_way"    />
+        <result property="payAmount"    column="pay_amount"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="refundWay" column="refund_way"/>
+        <result property="refundAmount" column="refund_amount"/>
+        <result property="venueName" column="venue_name"/>
+        <result property="actName" column="act_name"/>
+        <result property="refundReason" column="refund_reason"/>
+        <result property="hourFee" column="hour_fee"/>
+    </resultMap>
+
+
+
+
+    <resultMap type="com.wr.estate.entity.VenueAppoint" id="VenueAppointResult1">
+        <result property="appointId"    column="appoint_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="userName"    column="user_name"    />
+        <result property="userPhone"    column="user_phone"    />
+        <result property="cardNo"    column="card_no"    />
+        <result property="activityId"    column="activity_id"    />
+        <result property="activityName"    column="activity_name"    />
+        <result property="venueId"    column="venue_id"    />
+        <result property="planStart"    column="plan_start"    />
+        <result property="planEnd"    column="plan_end"    />
+        <result property="deposit"    column="deposit"    />
+        <result property="currentEnd"    column="current_end"    />
+        <result property="appointStatus"    column="appoint_status"    />
+        <result property="payWay"    column="pay_way"    />
+        <result property="payAmount"    column="pay_amount"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="refundWay" column="refund_way"/>
+        <result property="refundAmount" column="refund_amount"/>
+        <result property="venueName" column="venue_name"/>
+        <result property="actName" column="act_name"/>
+        <result property="refundReason" column="refund_reason"/>
+    </resultMap>
+
+
+
+
+    <resultMap type="com.wr.estate.entity.vo.VenueAppointVo" id="VenueAppointVo">
+        <result property="venueId" column="venue_id"/>
+        <result property="venueName" column="venue_name"/>
+        <result property="venueStatus" column="venue_status"/>
+        <result property="address" column="address"/>
+    </resultMap>
+
+    <resultMap type="com.wr.estate.entity.vo.VenueAppointVo1" id="VenueAppointVo1">
+        <result property="appointId" column="appoint_id"/>
+        <result property="planEnd" column="plan_end"/>
+        <result property="planStart" column="plan_start"/>
+        <result property="userName" column="user_name"/>
+        <result property="venueId" column="venue_id"/>
+    </resultMap>
+
+<!--    <sql id="selectVenueAppointVo">-->
+<!--        select appoint_id, community_id, user_name, user_phone, card_no, activity_id, activity_name, venue_id, plan_start, plan_end, deposit, current_end, appoint_status, pay_way, pay_amount, create_by, create_time, update_by, update_time,refund_way,refund_amount, del_flag from xccj_community.bus_venue_appoint-->
+<!--    </sql>-->
+
+    <sql id="selectVenueAppointVo">
+        SELECT
+            bva.appoint_id,
+            bva.community_id,
+            bva.user_name,
+            bva.user_phone,
+            bva.card_no,
+            bva.activity_id,
+            bac.activity_name AS act_name,
+            bva.activity_name,
+            bva.venue_id,
+            bv.venue_name,
+            bva.plan_start,
+            bva.plan_end,
+            bva.deposit,
+            bva.current_end,
+            bva.appoint_status,
+            bva.pay_way,
+            bva.pay_amount,
+            bva.create_by,
+            bva.create_time,
+            bva.update_by,
+            bva.update_time,
+            bva.refund_way,
+            bva.refund_amount,
+            bva.refund_reason,
+            bva.del_flag
+        FROM
+            xccj_community.bus_venue_appoint bva
+                LEFT JOIN xccj_community.bus_venue bv ON bva.venue_id = bv.venue_id
+                LEFT JOIN xccj_community.bus_venue_act bac ON bva.activity_id = bac.activity_id
+    </sql>
+
+    <sql id="selectVenueAppointVo1">
+        SELECT
+            bva.appoint_id,
+            bva.community_id,
+            bva.user_name,
+            bva.user_phone,
+            bva.card_no,
+            bva.activity_id,
+            bac.activity_name AS act_name,
+            bva.activity_name,
+            bva.venue_id,
+            bv.venue_name,
+            bva.plan_start,
+            bva.plan_end,
+            bva.deposit,
+            bva.current_end,
+            bva.appoint_status,
+            bva.pay_way,
+            bva.pay_amount,
+            bva.create_by,
+            bva.create_time,
+            bva.update_by,
+            bva.update_time,
+            bva.refund_way,
+            bva.refund_amount,
+            bva.refund_reason,
+            bva.del_flag
+        FROM
+            xccj_community.bus_venue_appoint bva
+                LEFT JOIN xccj_community.bus_venue bv ON bva.venue_id = bv.venue_id
+                LEFT JOIN xccj_community.bus_venue_act bac ON bva.activity_id = bac.activity_id
+    </sql>
+
+
+    <select id="selectVenueAppointList" parameterType="com.wr.estate.entity.VenueAppoint" resultMap="VenueAppointResult">
+        <include refid="selectVenueAppointVo"/>
+
+        <where>
+            bva.del_flag = 0
+            <if test="userName != null  and userName != ''"> and bva.user_name like concat('%', #{userName}, '%')</if>
+            <if test="userPhone != null  and userPhone != ''"> and bva.user_phone = #{userPhone}</if>
+            <if test="venueId != null "> and bva.venue_id = #{venueId}</if>
+            <if test="communityId != null">and bva.community_id = #{communityId}</if>
+        </where>
+    </select>
+
+    <select id="selectVenueAppointByAppointId" parameterType="Long" resultMap="VenueAppointResult">
+        <include refid="selectVenueAppointVo"/>
+        where bva.appoint_id = #{appointId} and bva.del_flag = 0
+    </select>
+
+
+    <select id="selectVenueAppointByAppointId1" parameterType="Long" resultMap="VenueAppointResult1">
+        <include refid="selectVenueAppointVo1"/>
+        where bva.appoint_id = #{appointId} and bva.del_flag = 0
+    </select>
+
+
+    <insert id="insertVenueAppoint" parameterType="com.wr.estate.entity.VenueAppoint" useGeneratedKeys="true" keyProperty="appointId">
+        insert into xccj_community.bus_venue_appoint
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="userName != null">user_name,</if>
+            <if test="userPhone != null">user_phone,</if>
+            <if test="cardNo != null">card_no,</if>
+            <if test="activityId != null">activity_id,</if>
+            <if test="activityName != null">activity_name,</if>
+            <if test="venueId != null">venue_id,</if>
+            <if test="planStart != null">plan_start,</if>
+            <if test="planEnd != null">plan_end,</if>
+            <if test="deposit != null">deposit,</if>
+            <if test="currentEnd != null">current_end,</if>
+            <if test="appointStatus != null">appoint_status,</if>
+            <if test="payWay != null">pay_way,</if>
+            <if test="payAmount != null">pay_amount,</if>
+            <if test="refundWay != null">refund_way,</if>
+            <if test="refundAmount != null">refund_amount,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="userName != null">#{userName},</if>
+            <if test="userPhone != null">#{userPhone},</if>
+            <if test="cardNo != null">#{cardNo},</if>
+            <if test="activityId != null">#{activityId},</if>
+            <if test="activityName != null">#{activityName},</if>
+            <if test="venueId != null">#{venueId},</if>
+            <if test="planStart != null">#{planStart},</if>
+            <if test="planEnd != null">#{planEnd},</if>
+            <if test="deposit != null">#{deposit},</if>
+            <if test="currentEnd != null">#{currentEnd},</if>
+            <if test="appointStatus != null">#{appointStatus},</if>
+            <if test="payWay != null">#{payWay},</if>
+            <if test="payAmount != null">#{payAmount},</if>
+            <if test="refundWay != null">#{refundWay},</if>
+            <if test="refundAmount != null">#{refundAmount},</if>
+            <if test="createBy != null">#{createBy},</if>
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateVenueAppoint" parameterType="com.wr.estate.entity.VenueAppoint">
+        update xccj_community.bus_venue_appoint
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="userName != null">user_name = #{userName},</if>
+            <if test="userPhone != null">user_phone = #{userPhone},</if>
+            <if test="cardNo != null">card_no = #{cardNo},</if>
+            <if test="activityId != null">activity_id = #{activityId},</if>
+            <if test="activityName != null">activity_name = #{activityName},</if>
+            <if test="venueId != null">venue_id = #{venueId},</if>
+            <if test="planStart != null">plan_start = #{planStart},</if>
+            <if test="planEnd != null">plan_end = #{planEnd},</if>
+            <if test="deposit != null">deposit = #{deposit},</if>
+            current_end = now(),
+            <if test="appointStatus != null">appoint_status = #{appointStatus},</if>
+            <if test="payWay != null">pay_way = #{payWay},</if>
+            <if test="payAmount != null">pay_amount = #{payAmount},</if>
+            <if test="refundWay != null">refund_way = #{refundWay},</if>
+            <if test="refundAmount != null">refund_amount = #{refundAmount},</if>
+            <if test="refundReason !=null">refund_reason = #{refundReason},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = now()
+        </trim>
+        where appoint_id = #{appointId}
+    </update>
+
+    <delete id="deleteVenueAppointByAppointId" parameterType="Long">
+        update xccj_community.bus_venue_appoint set del_flag = 1  where appoint_id = #{appointId}
+    </delete>
+
+    <delete id="deleteVenueAppointByAppointIds" parameterType="String">
+        update xccj_community.bus_venue_appoint set del_flag = 1 where appoint_id in
+        <foreach item="appointId" collection="array" open="(" separator="," close=")">
+            #{appointId}
+        </foreach>
+    </delete>
+
+    <select id="getcount" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            xccj_community.bus_venue_appoint
+        WHERE
+            del_flag = 0 AND venue_id = #{venueId}
+          AND (
+                #{starttime} BETWEEN plan_start
+                    AND plan_end
+                OR ( #{endtime} BETWEEN plan_start AND plan_end )
+            )
+    </select>
+
+    <select id="getg" resultType="int">
+        SELECT bvr.gap_hour FROM xccj_community.bus_venue_rule bvr where bvr.estate_id = #{estateId}
+    </select>
+
+    <select id="jzc" resultMap="VenueAppointResult">
+        SELECT NOW() as current_end, bva.pay_amount, bva.pay_way, bva.plan_start, nue.hour_fee ,bva.plan_end
+        FROM xccj_community.bus_venue_appoint as bva
+                 left join xccj_community.bus_venue as nue on bva.venue_id = nue.venue_id
+        WHERE appoint_id = #{appointId}
+    </select>
+
+    <select id="tlist1" resultMap="VenueAppointVo" parameterType="com.wr.estate.entity.VenueAppoint">
+        SELECT bv.venue_id,bv.venue_name,bv.address,bv.venue_status FROM xccj_community.bus_venue bv
+        <where>
+            bv.del_flag = 0
+        <if test="communityId !=null and communityId !='' ">and bv.community_id=#{communityId}</if>
+        </where>
+    </select>
+
+    <select id="tlist2" resultMap="VenueAppointVo1">
+        SELECT appoint_id,venue_id,user_name,plan_start,plan_end FROM xccj_community.`bus_venue_appoint`
+        where to_days(plan_end) = to_days(now()) and del_flag = 0
+    </select>
+
+
+<!--    今天场馆信息-->
+    <select id="getvenueByvenueId" resultMap="VenueAppointResult">
+        SELECT bv.venue_id,
+               bva.user_name,
+               bva.user_phone,
+               bva.card_no,
+               bva.plan_start,
+               bva.plan_end,
+               bva.activity_id,
+               bva.activity_name,
+               (select activity_name FROM xccj_community.bus_venue_act vac where vac.activity_id = bva.activity_id)as act_name,
+               bva.deposit,
+               bva.pay_amount
+        FROM xccj_community.bus_venue bv
+            LEFT JOIN xccj_community.bus_venue_appoint bva ON bva.venue_id = bv.venue_id
+        WHERE bv.venue_id = #{venueId} and to_days(bva.plan_end) = to_days(now())
+    </select>
+
+<!--    历史场馆信息-->
+    <select id="getvenueByvenueId1" resultMap="VenueAppointResult">
+        SELECT bv.venue_id,
+               bva.user_name,
+               bva.user_phone,
+               bva.card_no,
+               bva.plan_start,
+               bva.plan_end,
+               bva.activity_id,
+               bva.activity_name,
+               bva.deposit,
+               bva.pay_amount,
+               bv.create_time
+        FROM xccj_community.bus_venue bv
+                 LEFT JOIN xccj_community.bus_venue_appoint bva ON bva.venue_id = bv.venue_id
+        WHERE bv.venue_id = #{venueId} and to_days(bva.plan_end) != to_days(now())
+    </select>
+
+
+
+    <sql id="yysq">
+        SELECT
+            bva.appoint_id,
+            bva.community_id,
+            bva.user_name,
+            bva.user_phone,
+            bva.card_no,
+            bva.activity_id,
+            bac.activity_name AS act_name,
+            bva.activity_name,
+            bva.venue_id,
+            bv.venue_name,
+            bva.plan_start,
+            bva.plan_end,
+            bva.deposit,
+            bva.current_end,
+            bva.appoint_status,
+            bva.pay_way,
+            bva.pay_amount,
+            bva.create_by,
+            bva.create_time,
+            bva.update_by,
+            bva.update_time,
+            bva.refund_way,
+            bva.refund_amount,
+            bva.refund_reason,
+            bva.del_flag
+        FROM
+            xccj_community.bus_venue_appoint bva
+                LEFT JOIN xccj_community.bus_venue bv ON bva.venue_id = bv.venue_id
+                LEFT JOIN xccj_community.bus_venue_act bac ON bva.activity_id = bac.activity_id
+    </sql>
+<!--    预约终止申请-->
+    <select id="venueaz" resultMap="VenueAppointResult" parameterType="com.wr.estate.entity.VenueAppoint">
+        <include refid="yysq"/>
+        <where>
+            bva.del_flag = 0 AND (bva.appoint_status = 2 OR bva.appoint_status =3)
+            <if test="userName != null  and userName != ''"> and bva.user_name like concat('%', #{userName}, '%')</if>
+            <if test="userPhone != null  and userPhone != ''"> and bva.user_phone = #{userPhone}</if>
+            <if test="venueId != null "> and bva.venue_id = #{venueId}</if>
+            <if test="communityId != null  and communityId != 0"> and bva.community_id = #{communityId}</if>
+        </where>
+    </select>
+
+    <select id="venueazById" resultMap="VenueAppointResult" parameterType="com.wr.estate.entity.VenueAppoint">
+        <include refid="yysq"/>
+        <where>
+        bva.del_flag = 0 and appoint_id = #{appointId}
+        </where>
+    </select>
+
+
+    <select id="getEstateId" resultType="long">
+        select estate_id from xccj_community.bus_community where community_id = #{communityId}
+    </select>
+
+
+
+</mapper>

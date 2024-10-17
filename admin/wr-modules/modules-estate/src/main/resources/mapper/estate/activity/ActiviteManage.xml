@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.activity.ActiviteManageMapper">
+    <resultMap type="com.wr.remote.estate.activity.ActiviteManage" id="ActiviteManageResult">
+        <id     property="activityId"       column="activity_id"      />
+        <result property="communityId"    column="community_id"    />
+        <result property="activityName"    column="activity_name"    />
+        <result property="typeId"    column="type_id"    />
+        <result property="address"    column="address"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="closeTime"    column="close_time"    />
+        <result property="actRang"    column="act_rang"    />
+        <result property="actAmount"    column="act_amount"    />
+        <result property="actSupply"    column="act_supply"    />
+        <result property="supplyNum"    column="supply_num"    />
+        <result property="actMean"    column="act_mean"    />
+        <result property="lawReq"    column="law_req"    />
+        <result property="actProcess"    column="act_process"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="actState"    column="act_state"    />
+        <result property="buildingId"    column="building_id"    />
+        <result property="delFlag"    column="del_flag"    />
+
+
+
+    </resultMap>
+
+    <select id="selectList" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+        ba.activity_id,
+        ba.activity_name,
+        ba.act_rang as "actRang",
+        DATE_FORMAT( ba.start_time, '%Y-%m-%d %H:%i:%s' ) as  "start_time",
+        DATE_FORMAT( ba.end_time, '%Y-%m-%d %H:%i:%s' ) as  "end_time",
+        (IF(DATE_FORMAT(now(), '%Y-%m-%d %H:%i:%s' )>DATE_FORMAT( ba.end_time, '%Y-%m-%d %H:%i:%s' ),'2',IF(DATE_FORMAT( now(), '%Y-%m-%d %H:%i:%s' )>DATE_FORMAT( ba.start_time, '%Y-%m-%d %H:%i:%s' ),'0','1'))) as "actState",
+        ba.address,
+        ba.create_by,
+        ba.join_num,
+        ba.create_time,
+        bc.community_name
+        FROM
+        xccj_community.bus_activity ba
+        LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+        WHERE
+        ba.del_flag = 0 and ba.estate_id=#{estateId}
+        <if test="activityName != null  and activityName != ''"> and ba.activity_name like concat('%', #{activityName}, '%')</if>
+        <if test="typeId != null "> and ba.type_id = #{typeId}</if>
+        <if test="communityId != null "> and ba.community_id = #{communityId}</if>
+        <if test="createBy != null and  createBy != ''"> and ba.create_by like concat('%', #{createBy}, '%')</if>
+        <if test="actState != '' and actState != null ">
+            HAVING `actState`=#{actState}
+        </if>
+        <if test="startTime != null "> and DATE_FORMAT(#{startTime}, '%Y-%m-%d') BETWEEN DATE_FORMAT(ba.start_time, '%Y-%m-%d') AND DATE_FORMAT(ba.end_time, '%Y-%m-%d')</if>
+        order by ba.update_time desc
+    </select>
+
+    <!--主页List-->
+    <select id="selectTypeList" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+        bct.type_id,
+        bct.type_name
+        FROM
+        xccj_community.bus_act_type bct
+        LEFT JOIN xccj_community.bus_community bc ON bct.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_estate xcbe ON xcbe.estate_id = bc.estate_id
+        WHERE bct.del_flag = 0 AND bc.del_flag = 0  AND xcbe.del_flag = 0 AND (xcbe.estate_id = #{estateId} OR find_in_set(#{estateId},xcbe.ancestors))
+        <if test="communityId != null "> and bct.community_id = #{communityId}</if>
+    </select>
+
+    <!--新增活动表-->
+    <insert id="insertActivite" useGeneratedKeys="true" keyProperty="activityId" >
+        INSERT INTO xccj_community.bus_activity (
+            estate_id,
+            community_id,
+            activity_name,
+            type_id,
+            address,
+            start_time,
+            end_time,
+            close_time,
+            act_rang,
+            act_amount,
+            create_by,
+            create_time,
+            act_url,
+            del_flag,
+            act_intro
+        )
+        VALUES
+            (#{estateId},#{communityId},#{activityName}, #{typeId}, #{address}, #{startTime}, #{endTime}, #{closeTime}, #{actRang}, #{actAmount}, #{createBy},sysdate(),#{actUrl},'0',#{actIntro})
+    </insert>
+
+    <!--新增楼栋表-->
+    <insert id="insertBuilding" >
+        INSERT INTO xccj_community.bus_act_building (
+            activity_id,
+            building_id
+        )
+        VALUES
+            (#{activityId},#{buildingId})
+    </insert>
+
+    <!--修改功能-->
+    <update id="updateActivity" parameterType="com.wr.remote.estate.activity.ActiviteManage">
+        UPDATE xccj_community.bus_activity SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="activityName != null and activityName!=''">
+            activity_name = #{activityName},
+        </if>
+        <if test="typeId != null ">
+            type_id = #{typeId},
+        </if>
+        <if test="address != null ">
+            address = #{address},
+        </if>
+        <if test="startTime != null ">
+            start_time = #{startTime},
+        </if>
+        <if test="endTime != null ">
+            end_time = #{endTime},
+        </if>
+        <if test="closeTime != null ">
+            close_time = #{closeTime},
+        </if>
+        <if test="actRang != null and actRang!=''">
+            act_rang = #{actRang},
+        </if>
+        <if test="actAmount != null and actAmount!=''">
+            act_amount = #{actAmount},
+        </if>
+        <if test="actIntro != null and actIntro!=''">
+            act_intro = #{actIntro},
+        </if>
+        <if test="actMean != null and actMean!=''">
+            act_mean = #{actMean},
+        </if>
+        <if test="lawReq != null and lawReq!=''">
+            law_req = #{lawReq},
+        </if>
+        <if test="actUrl != null and lawReq!=''">
+            act_url = #{actUrl},
+        </if>
+        <if test="actProcess != null and actProcess!=''">
+            act_process = #{actProcess},
+        </if>
+        update_time = sysdate(),
+        update_by = #{updateBy}
+        <where>
+            activity_id = #{activityId}
+        </where>
+    </update>
+
+    <!--根据id查询-->
+    <select id="getActivityById" resultMap="ActiviteManageResult">
+        SELECT
+            ba.*,
+            bc.community_name,
+            bac.type_name,
+            ( SELECT count(*) FROM xccj_community.bus_activity_owner WHERE activity_id = #{activityId}  ) AS joinNum
+        FROM
+            xccj_community.bus_activity ba
+                LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+                LEFT JOIN xccj_community.bus_act_type bac ON ba.type_id = bac.type_id
+        WHERE
+            ba.activity_id = #{activityId}
+          AND ba.del_flag = 0
+    </select>
+
+    <!--根据小区ID查询楼栋List-->
+    <select id="selectBuildingListById" resultType="com.wr.remote.estate.activity.ActiviteManage" parameterType="list" resultMap="ActiviteManageResult">
+        SELECT
+            building_id,
+            community_id,
+            building_name
+        FROM
+            xccj_community.bus_building
+        WHERE
+            del_flag = 0
+          AND community_id = #{communityId} and building_id in
+
+        <foreach item="item" index="index" collection="buildingIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <!--基本信息人数-->
+    <select id="selectJoinPeople" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+            ( SELECT count(*) FROM xccj_community.bus_activity_owner WHERE activity_id = #{activityId} )AS interPeople,
+            ( SELECT count(*) FROM xccj_community.bus_activity_owner WHERE activity_id = #{activityId} AND sign_up_time IS NOT NULL ) AS signPeople,
+            ( SELECT sign_up_time FROM xccj_community.bus_activity_owner WHERE activity_id = #{activityId} ORDER BY sign_up_time DESC LIMIT 1 ) AS lastTime
+    </select>
+
+    <!--参与人列表-->
+    <select id="selectJoinPeopleList" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+            bao.sign_in_time,
+            bao.sign_up_time,
+            bo.owner_name,
+            bao.owner_remark,
+            bo.owner_phone AS ownerPhone
+        FROM
+            xccj_community.bus_activity_owner bao
+                LEFT JOIN xccj_community.bus_owner bo ON bao.owner_id = bo.owner_id
+        WHERE
+            bao.activity_id = #{activityId}
+        <if test="ownerName != null  and ownerName != ''"> and bo.owner_name like concat('%', #{ownerName}, '%')</if>
+        <if test="ownerPhone != null  and ownerPhone != ''"> and bo.owner_phone like concat('%', #{ownerPhone}, '%')</if>
+        <if test="signState != null and signState != '' and signState == 0"> and bao.sign_up_time is null </if>
+        <if test="signState != null and signState != '' and signState == 1"> and bao.sign_up_time is NOT null</if>
+    </select>
+
+    <!--查询楼栋号List-->
+    <select id="selectBuildingList" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+            bac.activity_id,bac.building_id,bb.building_name
+        FROM
+            xccj_community.bus_act_building bac
+                LEFT JOIN xccj_community.bus_building bb on bac.building_id = bac.building_id
+        WHERE
+            activity_id = #{activityId} AND bb.del_flag = 0
+    </select>
+
+    <!--查询参与活动的楼栋号List-->
+    <select id="selectJoinBuildingList" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+            bab.activity_id,
+            bab.building_id,
+            bb.building_name
+        FROM
+            xccj_community.bus_act_building bab
+                LEFT JOIN xccj_community.bus_building bb ON bab.building_id = bb.building_id
+        WHERE
+            bab.activity_id = #{activityId}
+          AND bb.community_id = #{communityId} AND bb.del_flag = 0
+    </select>
+
+    <!--根据小区跟楼栋号查询业主List-->
+    <select id="selectOwnerList" resultType="int">
+        SELECT
+            count(*)
+        FROM
+            xccj_community.bus_owner
+        WHERE
+                building_id IN ( SELECT building_id FROM xccj_community.bus_act_building WHERE activity_id = #{activityId} )
+          AND del_flag = 0
+    </select>
+
+    <!--新增参与人员表-->
+    <insert id="insertOwner" >
+        INSERT INTO xccj_community.bus_act_owner(
+            activity_id,
+            owner_id
+        )
+        VALUES
+            (#{activityId},#{ownerId})
+    </insert>
+
+    <!--查询物资列表List-->
+    <select id="selectSupplyList" resultType="int">
+        SELECT
+            supply_name
+        FROM
+            xccj_community.bus_act_supply
+        WHERE
+            activity_id = #{activityId}
+    </select>
+
+    <!--根据活动名称查询是否存在-->
+    <select id="selectActivityName" resultType="int">
+        SELECT
+            count(*)
+        FROM
+            xccj_community.bus_activity
+        WHERE
+            activity_name = #{activityName}
+          AND community_id = #{communityId}
+          <if test="activityId !=null">
+              and activity_id=#{activityId}
+          </if>
+          AND del_flag = 0
+    </select>
+    <select id="getBuilding" resultType="java.lang.Long">
+        select building_id from xccj_community.bus_act_building where
+        <if test="activityId != null  and activityId != ''">  activity_id =#{activityId}</if>
+    </select>
+    <select id="getAllBuilding" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+            building_id,
+            community_id,
+            building_name
+        FROM
+            xccj_community.bus_building
+        WHERE
+            del_flag = 0
+          AND community_id = #{communityId}
+    </select>
+    <select id="getAll" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        select building_id from xccj_community.bus_act_building where activity_id=#{activityId}
+    </select>
+
+
+    <!--删除-->
+    <delete id="deleteById">
+        UPDATE xccj_community.bus_activity SET del_flag = '1' WHERE activity_id = #{activityId}
+    </delete>
+
+    <!--根据活动id查询物资关联表-->
+    <select id="getDistributionLists" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        select supply_name supplyName, supply_num supplyNum from xccj_community.bus_act_supply where activity_id = #{activityId}
+    </select>
+
+    <!--删除物资关联表-->
+    <delete id="deleteSupply">
+        delete from xccj_community.bus_act_supply where activity_id = #{activityId}
+    </delete>
+
+    <!--删除活动-楼栋关联表-->
+    <delete id="deleteAct">
+        delete from xccj_community.bus_act_building where activity_id = #{activityId}
+    </delete>
+</mapper>

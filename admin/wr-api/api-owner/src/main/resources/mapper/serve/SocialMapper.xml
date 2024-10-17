@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.SocialMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.domain.vo.ApiSocialVo">
+        <id column="social_id" jdbcType="BIGINT" property="socialId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="social_url" jdbcType="VARCHAR" property="socialUrl"/>
+        <result column="content" jdbcType="LONGVARCHAR" property="content"/>
+        <result column="social_type" jdbcType="CHAR" property="socialType"/>
+        <result column="user_type" jdbcType="CHAR" property="userType"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        social_id,
+        estate_id,
+        social_url,
+        content,
+        social_type,
+        user_type,
+        user_id,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_social
+        where social_id = #{socialId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        <!--@mbg.generated-->
+        delete
+        from xccj_govern.bus_social
+        where social_id = #{socialId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="social_id" keyProperty="socialId"
+            parameterType="com.wr.remote.domain.ApiSocial" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_govern.bus_social
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="socialUrl != null">
+                social_url,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="socialType != null">
+                social_type,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="socialUrl != null">
+                #{socialUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="socialType != null">
+                #{socialType,jdbcType=CHAR},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=CHAR},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <insert id="insertRang" parameterType="com.wr.remote.domain.ApiSocial">
+    INSERT INTO xccj_govern.bus_social_rang (social_id, community_id)
+        VALUES (#{socialId}, #{communityId})
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.remote.domain.ApiSocial">
+        <!--@mbg.generated-->
+        update xccj_govern.bus_social
+        <set>
+            <if test="estateId != null">
+                estate_id = #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="socialUrl != null">
+                social_url = #{socialUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="socialType != null">
+                social_type = #{socialType,jdbcType=CHAR},
+            </if>
+            <if test="userType != null">
+                user_type = #{userType,jdbcType=CHAR},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where social_id = #{socialId,jdbcType=BIGINT}
+    </update>
+
+    <resultMap id="BaseResultMaps" type="com.wr.remote.domain.vo.ApiSocialVo">
+        <id column="social_id" jdbcType="BIGINT" property="socialId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="social_url" jdbcType="VARCHAR" property="socialUrl"/>
+        <result column="content" jdbcType="LONGVARCHAR" property="content"/>
+        <result column="social_type" jdbcType="CHAR" property="socialType"/>
+        <result column="user_type" jdbcType="CHAR" property="userType"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+        <result property="avatarUrl" column="avatarUrl"/>
+        <result property="numberLike" column="numberLike"/>
+        <result property="whetherPraise" column="whetherPraise"/>
+        <collection property="commentList" ofType="com.wr.remote.domain.vo.ApiSocialCommentVo">
+            <result property="avatarUrlContent" column="avatarUrlContent"/>
+            <result property="nickNameContent" column="nickNameContent"/>
+            <result property="numberLikeContent" column="numberLikeContent"/>
+            <result property="contentContent" column="contentContent"/>
+            <result property="createTimeContent" column="createTimeContent"/>
+            <result property="whetherPraiseContent" column="whetherPraiseContent"/>
+            <result property="commentId" column="commentId"/>
+        </collection>
+    </resultMap>
+
+    <select id="listPage" resultType="com.wr.remote.domain.vo.ApiSocialVo">
+        SELECT bs.content,
+               bs.social_id,
+               bs.community_id,
+               bs.create_time,
+               bs.estate_id,
+               bs.social_url,
+               bs.user_type,
+               bs.user_id,
+               (CASE
+                    WHEN bs.user_type = '0' THEN test1.avatar
+                    WHEN bs.user_type = '1' THEN test2.avatar
+                    WHEN bs.user_type = '2' THEN test3.avatar END) AS avatarUrl,
+                (CASE
+                WHEN bs.user_type = '0' THEN test1.user_id
+                WHEN bs.user_type = '1' THEN test2.owner_id
+                WHEN bs.user_type = '2' THEN test3.tenant_id END) AS ownerId,
+                (CASE
+                WHEN bs.user_type = '0' THEN test1.nick_name
+                WHEN bs.user_type = '1' THEN test2.account_nick
+                WHEN bs.user_type = '2' THEN test3.account_nick END) AS accountNick,
+               test4.number                                        AS numberLike,
+               IF(test4.number > 0, '1', '0')                      AS whetherPraise,
+               bs.social_type
+        FROM xccj_govern.bus_social AS bs
+                 LEFT JOIN (SELECT user_id, avatar, nick_name
+                            FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bs.user_id
+                 LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+                            FROM xccj_community.bus_owner AS bo
+                                     LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id) AS test2
+                           ON test2.owner_id = bs.user_id
+                 LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+                            FROM xccj_community.bus_tenant AS bt
+                                     LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bt.account_id) AS test3
+                           ON test3.tenant_id = bs.user_id
+                 LEFT JOIN (SELECT COUNT(*) number, user_id, social_id, user_type
+                            FROM xccj_govern.bus_social_like
+                            GROUP BY social_id) AS test4
+                            ON  test4.social_id = bs.social_id
+        <where>
+            1 = 1
+            AND bs.estate_id = #{estateId}
+            AND bs.community_id = #{communityId}
+            AND bs.del_flag = '0'
+        </where>
+        ORDER BY bs.create_time DESC
+    </select>
+
+
+    <select id="detail" resultMap="BaseResultMaps" parameterType="com.wr.remote.domain.vo.ApiSocialVo">
+        SELECT bs.content,
+               bs.social_id,
+               bs.create_time,
+               bs.estate_id,
+               bs.social_url,
+               (CASE
+                    WHEN bs.user_type = '0' THEN test1.avatar
+                    WHEN bs.user_type = '1' THEN test2.avatar
+                    WHEN bs.user_type = '2' THEN test3.avatar END) AS avatarUrl,
+               bsl.number                                          AS numberLike,
+               IF(bsl.number > 0, '1', '0')                        AS whetherPraise,
+               bsc.avatarurlcontent,
+               bsc.nicknamecontent,
+               bsc.createtimecontent,
+               bsc.contentcontent,
+               bsc.numberlikecontent,
+               bsc.whetherPraiseContent,
+               bsc.commentId
+        <include refid="extractSql"/>
+        WHERE bs.social_id = #{socialId}
+    </select>
+
+    <sql id="extractSql">
+        FROM xccj_govern.bus_social AS bs
+                 LEFT JOIN (SELECT user_id, avatar, nick_name
+                            FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bs.user_id
+                 LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+                            FROM xccj_community.bus_owner AS bo
+                                     LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id) AS test2
+                           ON test2.owner_id = bs.user_id
+                 LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+                            FROM xccj_community.bus_tenant AS bt
+                                     LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bt.account_id) AS test3
+                           ON test3.tenant_id = bs.user_id
+
+                 LEFT JOIN (SELECT COUNT(*) number, user_id, social_id, user_type
+                            FROM xccj_govern.bus_social_like
+                            GROUP BY social_id) AS bsl
+                           ON bsl.user_type = bs.user_type AND bsl.social_id = bs.social_id
+
+                 LEFT JOIN (SELECT bsc.social_id                                              AS socialIdContent,
+                                   bsc.comment_id                                             AS commentId,
+                                   (CASE
+                                        WHEN bsc.user_type = '0' THEN test1.avatar
+                                        WHEN bsc.user_type = '1' THEN test2.avatar
+                                        WHEN bsc.user_type = '2' THEN test3.avatar END)       AS avatarUrlContent,
+                                   (CASE
+                                        WHEN bsc.user_type = '0' THEN test1.nick_name
+                                        WHEN bsc.user_type = '1' THEN test2.account_nick
+                                        WHEN bsc.user_type = '2' THEN test3.account_nick END) AS nickNameContent,
+                                   bsc.create_time                                            AS createTimeContent,
+                                   bsc.content                                                AS contentContent,
+                                   test4.number                                               AS numberLikeContent,
+                                   test5.number                                               AS whetherPraiseContent
+                            FROM xccj_govern.bus_social_comment AS bsc
+                                     LEFT JOIN (SELECT user_id, avatar, nick_name
+                                                FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bsc.user_id
+                                     LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick, ba.account_id
+                                                FROM xccj_community.bus_owner AS bo
+                                                         LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id) AS test2
+                                               ON test2.account_id = bsc.user_id
+                                     LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick, ba.account_id
+                                                FROM xccj_community.bus_tenant AS bt
+                                                         LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bt.account_id) AS test3
+                                               ON test3.account_id = bsc.user_id
+                                     LEFT JOIN (SELECT COUNT(*) number, social_id, user_id, user_type
+                                                FROM xccj_govern.bus_social_like
+                                                GROUP BY social_id) AS test4 ON test4.social_id = bsc.social_id AND
+                                                                                test4.user_type = bsc.user_type AND
+                                                                                bsc.user_id = bsc.user_id
+                                     LEFT JOIN (SELECT COUNT(*) number, user_id, social_id, user_type
+                                                FROM xccj_govern.bus_social_like
+                                                GROUP BY social_id) AS test5
+                                               ON test5.user_id = bsc.user_id AND test5.user_type = bsc.user_type AND
+                                                  test5.social_id = bsc.social_id
+                            ORDER BY bsc.create_time DESC) AS bsc ON bsc.socialIdContent = bs.social_id
+    </sql>
+
+    <select id="selectCommentList" resultType="com.wr.remote.domain.vo.ApiSocialCommentVo">
+        SELECT bsc.social_id,
+               bsc.comment_id,
+               (CASE
+                    WHEN bsc.user_type = '0' THEN test1.avatar
+                    WHEN bsc.user_type = '1' THEN test2.avatar
+                    WHEN bsc.user_type = '2' THEN test3.avatar END)       AS avatarUrlContent,
+               (CASE
+                    WHEN bsc.user_type = '0' THEN test1.nick_name
+                    WHEN bsc.user_type = '1' THEN test2.account_nick
+                    WHEN bsc.user_type = '2' THEN test3.account_nick END) AS nickNameContent,
+               bsc.create_time                                            AS createTimeContent,
+               bsc.content                                                AS contentContent,
+               test4.number                                               AS numberLikeContent,
+               test5.number                                               AS whetherPraiseContent
+        FROM xccj_govern.bus_social_comment AS bsc
+                 LEFT JOIN (SELECT user_id, avatar, nick_name
+                            FROM xccj_estate_sys.sys_user) AS test1
+                           ON test1.user_id = bsc.user_id
+                 LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+                            FROM xccj_community.bus_owner AS bo
+                                     LEFT JOIN xccj_community.bus_account AS ba
+                                               ON ba.account_id = bo.account_id) AS test2
+                           ON test2.owner_id = bsc.user_id
+                 LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+                            FROM xccj_community.bus_tenant AS bt
+                                     LEFT JOIN xccj_community.bus_account AS ba
+                                               ON ba.account_id = bt.account_id) AS test3
+                           ON test3.tenant_id = bsc.user_id
+                 LEFT JOIN (SELECT COUNT(*) number, social_id, user_id, user_type
+                            FROM xccj_govern.bus_social_like
+                            GROUP BY social_id) AS test4
+                           ON test4.social_id = bsc.social_id AND test4.user_type = bsc.user_type AND
+                              bsc.user_id = bsc.user_id
+                 LEFT JOIN (SELECT COUNT(*) number, user_id, social_id, user_type
+                            FROM xccj_govern.bus_social_like
+                            GROUP BY social_id) AS test5
+                           ON test5.user_id = bsc.user_id AND test5.user_type = bsc.user_type AND
+                              test5.social_id = bsc.social_id
+        <where>
+            bsc.social_id = #{socialId} AND bsc.reply_id = '0'
+        </where>
+        ORDER BY bsc.create_time DESC
+    </select>
+
+    <select id="selectNextCommentList" resultType="com.wr.remote.domain.vo.ApiSocialCommentVo">
+        SELECT bsc.social_id,
+        bsc.comment_id,
+        (CASE
+        WHEN bsc.user_type = '0' THEN test1.avatar
+        WHEN bsc.user_type = '1' THEN test2.avatar
+        WHEN bsc.user_type = '2' THEN test3.avatar END)       AS avatarUrlContent,
+        (CASE
+        WHEN bsc.user_type = '0' THEN test1.nick_name
+        WHEN bsc.user_type = '1' THEN test2.account_nick
+        WHEN bsc.user_type = '2' THEN test3.account_nick END) AS nickNameContent,
+        bsc.create_time                                            AS createTimeContent,
+        bsc.content                                                AS contentContent,
+        test4.number                                               AS numberLikeContent,
+        test5.number                                               AS whetherPraiseContent
+        FROM xccj_govern.bus_social_comment AS bsc
+        LEFT JOIN (SELECT user_id, avatar, nick_name
+        FROM xccj_estate_sys.sys_user) AS test1
+        ON test1.user_id = bsc.user_id
+        LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_owner AS bo
+        LEFT JOIN xccj_community.bus_account AS ba
+        ON ba.account_id = bo.account_id) AS test2
+        ON test2.owner_id = bsc.user_id
+        LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_tenant AS bt
+        LEFT JOIN xccj_community.bus_account AS ba
+        ON ba.account_id = bt.account_id) AS test3
+        ON test3.tenant_id = bsc.user_id
+        LEFT JOIN (SELECT COUNT(*) number, social_id, user_id, user_type
+        FROM xccj_govern.bus_social_like
+        GROUP BY social_id) AS test4
+        ON test4.social_id = bsc.social_id AND test4.user_type = bsc.user_type AND
+        bsc.user_id = bsc.user_id
+        LEFT JOIN (SELECT COUNT(*) number, user_id, social_id, user_type
+        FROM xccj_govern.bus_social_like
+        GROUP BY social_id) AS test5
+        ON test5.user_id = bsc.user_id AND test5.user_type = bsc.user_type AND
+        test5.social_id = bsc.social_id
+        <where>
+            bsc.reply_id = #{commentId}
+        </where>
+        ORDER BY bsc.create_time DESC
+    </select>
+
+    <select id="selectCountComment" resultType="Integer">
+        SELECT COUNT(*) FROM xccj_govern.bus_social_comment WHERE social_id= #{socialId} AND del_flag = '0'
+    </select>
+
+    <select id="detilSocial" resultType="com.wr.remote.domain.vo.ApiSocialVo">
+        SELECT bs.content,
+        bs.social_id,
+        bs.community_id,
+        bs.create_time,
+        bs.estate_id,
+        bs.social_url,
+        bs.user_type,
+        bs.user_id,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.avatar
+        WHEN bs.user_type = '1' THEN test2.avatar
+        WHEN bs.user_type = '2' THEN test3.avatar END) AS avatarUrl,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.user_id
+        WHEN bs.user_type = '1' THEN test2.owner_id
+        WHEN bs.user_type = '2' THEN test3.tenant_id END) AS ownerId,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.nick_name
+        WHEN bs.user_type = '1' THEN test2.account_nick
+        WHEN bs.user_type = '2' THEN test3.account_nick END) AS accountNick,
+        test4.number                                        AS numberLike,
+        IF(test4.number > 0, '1', '0')                      AS whetherPraise,
+        bs.social_type
+        FROM xccj_govern.bus_social AS bs
+        LEFT JOIN (SELECT user_id, avatar, nick_name
+        FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bs.user_id
+        LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_owner AS bo
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id) AS test2
+        ON test2.owner_id = bs.user_id
+        LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_tenant AS bt
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bt.account_id) AS test3
+        ON test3.tenant_id = bs.user_id
+        LEFT JOIN (SELECT COUNT(*) number, user_id, social_id, user_type
+        FROM xccj_govern.bus_social_like
+        GROUP BY social_id) AS test4
+        ON  test4.social_id = bs.social_id
+        where
+            bs.social_id = #{socialId}
+    </select>
+</mapper>

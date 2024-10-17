@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.worktable.WorkTableMapper">
+
+    <!--检查是否存在表-->
+    <select id="existTable" resultType="java.lang.Integer">
+        SELECT ifnull(count(*), 0)
+        FROM information_schema.TABLES
+        WHERE table_schema = 'xccj_log'
+          AND table_name = #{tableName}
+    </select>
+    <!--查询今日访客 -->
+    <select id="getDayVisitorNum" resultType="java.lang.Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_interview
+        WHERE
+            del_flag = '0'
+          AND community_id = #{communityId}
+          AND date_format( create_time, '%y%m%d' ) = date_format(
+                NOW(),
+                '%y%m%d')
+    </select>
+    <!--查询今日出行人数 -->
+    <select id="getUserInOutNum" resultType="java.lang.Integer">
+        SELECT
+        count( 1 ) as "count"
+        FROM
+        xccj_device.bus_door_event bde
+        LEFT JOIN xccj_device.bus_door bd ON bd.index_code = bde.door_index_code
+        WHERE
+        DATE_FORMAT( bde.event_time, '%Y-%m-%d' )= DATE_FORMAT( NOW(), '%Y-%m-%d' )
+        AND bd.del_flag = '0'
+        AND bd.community_id =#{communityId} and bde.event_type in
+        <foreach collection="eventTypes" item="eventType" open="(" separator="," close=")">
+            #{eventType}
+        </foreach>
+    </select>
+    <!--查询今日出行车辆数-->
+    <select id="getVehicleNum" resultType="java.lang.Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_device.bus_cross_record
+        WHERE
+            community_id = #{communityId}
+          AND DATE_FORMAT( cross_time, '%Y-%m-%d' )= DATE_FORMAT(
+                NOW(),
+                '%Y-%m-%d')
+    </select>
+
+    <select id="getReportingOrderCount" resultType="Integer">
+        SELECT
+        count( 1 ) AS "count"
+        FROM
+        xccj_community.bus_reporting_warranty
+        WHERE
+        del_flag = '0'
+        AND community_id = #{communityId}
+        AND report_status = #{reportStatus}
+        <if test="executorBy!=null and executorBy !=''">
+            AND (executor_by=#{executorBy} or executor_by='' or executor_by IS NULL)
+        </if>
+        <if test="workPostList !=null and workPostList.size()>0">
+            AND report_type in
+            <foreach collection="workPostList" item="workPost" open="(" separator="," close=")">
+                #{workPost}
+            </foreach>
+        </if>
+        AND date_format( create_time, '%y%m%d' ) = date_format(
+        NOW(),
+        '%y%m%d')
+    </select>
+
+
+    <select id="getCleaningWorkOrderCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_cleaning_work_order cwo
+        WHERE
+            cwo.del_flag = '0'
+          AND cwo.cleaning_status = '0'
+          AND cwo.community_id = #{communityId}
+          AND DATE_FORMAT( cwo.create_time, '%Y-%m' )= DATE_FORMAT(
+                NOW(),
+                '%Y-%m')
+    </select>
+
+    <!--工单统计评论总数评率-->
+    <select id="getAppraiseNum" resultType="java.lang.Integer">
+        SELECT count(1) AS "count"
+        FROM xccj_community.bus_reporting_warranty
+        WHERE del_flag = '0'
+        AND community_id = #{communityId}
+        <if test="evaluate!=null">
+            AND evaluate >= #{evaluate}
+        </if>
+        <if test="executorBy!=null and executorBy !=''">
+            AND (executor_by=#{executorBy} or executor_by='' or executor_by IS NULL)
+        </if>
+        <if test="workPostList !=null and workPostList.size()>0">
+            AND report_type in
+            <foreach collection="workPostList" item="workPost" open="(" separator="," close=")">
+                #{workPost}
+            </foreach>
+        </if>
+        AND evaluate != ''
+        AND evaluate IS NOT NULL
+        AND date_format( create_time, '%y%m%d' ) = date_format(
+        NOW(),
+        '%y%m%d')
+
+    </select>
+
+    <select id="getComplaintSuggestionCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_complaint_suggestion bcs
+        WHERE
+            bcs.del_flag = '0'
+          AND bcs.community_id = #{communityId}
+          AND ( bcs.property_response = '' OR property_response IS NULL )
+          AND DATE_FORMAT( bcs.create_time, '%Y-%m' )= DATE_FORMAT(
+                NOW(),
+                '%Y-%m')
+    </select>
+
+    <select id="getDecorateCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_decorate bd
+        WHERE
+            bd.del_flag = '0'
+          AND bd.renovation_audit_status = '0'
+          AND bd.community_id = #{communityId}
+          AND DATE_FORMAT( bd.create_time, '%Y-%m' )= DATE_FORMAT(
+                NOW(),
+                '%Y-%m')
+    </select>
+
+    <select id="getPatrolWorkOrderCount" resultType="Integer">
+        SELECT count(1) AS "count"
+        FROM xccj_community.bus_patrol_work_order
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+          AND patrol_status = '0'
+          AND date_format(create_time, '%y%m') = date_format(
+                NOW(),
+                '%y%m')
+    </select>
+
+    <select id="getPatrolCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_patrol
+        WHERE
+            del_flag = '0'
+          AND community_id = #{communityId}
+          AND patrol_status = '0'
+          AND date_format( create_time, '%y%m' ) = date_format(
+                NOW(),
+                '%y%m')
+    </select>
+
+    <select id="getInspectionWorkOrderCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_inspection
+        WHERE
+            del_flag = '0'
+          AND community_id = #{communityId}
+          AND inspection_status = '0'
+          AND date_format( create_time, '%y%m' ) = date_format(
+                NOW(),
+                '%y%m')
+    </select>
+
+    <select id="getMeterReadingWorkOrderCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_meter_reading_work_order mrwo
+        WHERE
+            mrwo.del_flag = '0'
+          AND mrwo.meter_reading_status = '0'
+          AND mrwo.community_id = #{communityId}
+          AND DATE_FORMAT( mrwo.meter_reading_time, '%Y-%m' )= DATE_FORMAT(
+                NOW(),
+                '%Y-%m')
+    </select>
+
+    <select id="getCommunityIdMeterReadingTotal" resultType="java.math.BigDecimal">
+        SELECT SUM(mrrwo.`data`) as "data"
+        FROM xccj_community.bus_meter_reading_work_order mrwo
+                 LEFT JOIN xccj_community.bus_meter_reading_record_work_order mrrwo
+                           on mrrwo.meter_reading_work_order_id = mrwo.id
+        WHERE mrwo.del_flag = '0'
+          AND community_id = #{communityId}
+          AND energy_consumption_type = #{energyConsumptionType}
+          AND mrwo.meter_reading_time = #{meterReadingTime}
+    </select>
+
+
+    <!--工单统计  执行状态查询个数-->
+    <select id="getExecuteNum" resultType="java.lang.Integer">
+
+        select cleanNum + decorateNum + deviceNum + disasterNum + homeNum + parkNum + patrolNum + inspectNum +
+        watchmanNum as orderNum
+        from (
+        (select count(*) as cleanNum
+        from xccj_work.bus_clean
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as
+        cleanNum,
+        (select count(*) as decorateNum
+        from xccj_work.bus_decorate_order
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as decorateNum,
+        (select count(*) as deviceNum
+        from xccj_work.bus_device_order
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as deviceNum,
+        (select count(*) as disasterNum
+        from xccj_work.bus_disaster_order
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as disasterNum,
+        (select count(*) as homeNum
+        from xccj_work.bus_home_order
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as homeNum,
+        (select count(*) as parkNum
+        from xccj_work.bus_park_order
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as parkNum,
+        (select count(*) as patrolNum
+        from xccj_work.bus_patrol
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as
+        patrolNum,
+        (select count(*) as inspectNum
+        from xccj_work.bus_inspect
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as inspectNum,
+        (select count(*) as watchmanNum
+        from xccj_work.bus_watchman
+        WHERE del_flag = '0'
+        and community_id = #{communityId} and month(create_time) = month(sysdate())
+        <if test="allotStatus != null">and allot_status = #{allotStatus}</if>
+        <if test="acceptStatus != null">and accept_status = #{acceptStatus}</if>
+        <if test="executeStatus != null">and execute_status = #{executeStatus}</if>
+        ) as watchmanNum
+        )
+
+    </select>
+    <!--待办任务  投诉建议-->
+    <select id="getOrComplaintNum" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        from xccj_community.bus_complaint
+        where del_flag = '0'
+          and complaint_type = '1'
+          and order_type != '0'
+          and community_id = #{communityId}
+    </select>
+    <!--待办任务  待办审核-->
+    <select id="getOrToBeReNum" resultType="java.lang.Integer">
+        select sum(auditNum)
+        from (select count(*) as auditNum
+              from xccj_work.bus_order_audit audit
+                       JOIN xccj_work.bus_patrol patrol on audit.order_id = patrol.patrol_id
+              where audit.del_flag = '0'
+                        and audit.audit_status = '0'
+                        and community_id = #{communityId}
+                        and audit.order_type = '0'
+                        and month (audit.create_time) = month(sysdate())
+
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_watchman watchman on audit.order_id = watchman.watchman_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '1'
+                  and month (audit.create_time) = month (sysdate())
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_inspect inspect on audit.order_id = inspect.inspect_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '2'
+                  and month (audit.create_time) = month (sysdate())
+
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_clean clean on audit.order_id = clean.clean_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '3'
+                  and month (audit.create_time) = month (sysdate())
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_decorate_order decorate on audit.order_id = decorate.order_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '4'
+                  and month (audit.create_time) = month (sysdate())
+
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_home_order home on audit.order_id = home.order_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '5'
+                  and month (audit.create_time) = month (sysdate())
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_device_order device on audit.order_id = device.order_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '6'
+                  and month (audit.create_time) = month (sysdate())
+
+
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_park_order park on audit.order_id = park.order_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '7'
+                  and month (audit.create_time) = month (sysdate())
+        UNION all
+
+        select count(*) as auditNum
+        from xccj_work.bus_order_audit audit
+                 JOIN xccj_work.bus_disaster_order disaster on audit.order_id = disaster.order_id
+        where audit.del_flag = '0'
+                  and audit.audit_status = '0'
+                  and community_id = #{communityId}
+                  and audit.order_type = '8'
+                  and month (audit.create_time) = month (sysdate())
+            ) as a
+
+    </select>
+
+    <select id="getTotalMeterTypeSum" resultType="java.util.Map">
+        select IFNULL(sum(meter.this_consume), 0) as "totalThisConsume"
+        from xccj_community.bus_meter_record meter
+        where meter.del_flag = '0'
+          and meter.community_id = #{communityId}
+          and meter_type = #{meterType}
+          and date_format(meter_time, '%Y-%m') = #{meterTime}
+    </select>
+    <select id="getMeterTypeSum" resultType="java.util.Map">
+        select sum(meter.this_consume) as "thisConsume", building.building_name as "buildingName"
+        from xccj_community.bus_meter_record meter
+                 left join xccj_community.bus_building building on building.building_id = meter.building_id
+        where meter.del_flag = '0'
+          and meter.community_id = #{communityId}
+          and meter_type = #{meterType}
+          and date_format(meter_time, '%y%m') = date_format(#{meterTime}, '%y%m')
+        group by building.building_id
+    </select>
+
+    <!--缴费金额 -->
+    <select id="getAmountPaid" resultType="java.math.BigDecimal">
+        SELECT sum(pay_amount)
+        FROM ${tableName}
+        WHERE del_flag = '0'
+            AND year (
+            pay_time) = #{payTime}
+          and community_id = #{communityId}
+          and pay_type = #{payType}
+          and trade_status in ('0'
+            , '1')
+    </select>
+    <!--缴费金额 -->
+    <select id="getOtherAmountPaid" resultType="java.math.BigDecimal">
+        SELECT sum(pay_amount)
+        FROM ${tableName}
+        WHERE del_flag = '0'
+            AND year (
+            pay_time) = #{payTime}
+          and community_id = #{communityId}
+          and pay_type != #{payType}
+          and trade_status in ('0'
+            , '1')
+    </select>
+    <!--物业缴费金额 -->
+    <select id="getProAmountPaid" resultType="java.math.BigDecimal">
+        SELECT sum(pay_amount)
+        FROM xccj_community.bus_property_log
+        WHERE del_flag = '0'
+          AND pay_year = #{payTime}
+          and community_id = #{communityId}
+    </select>
+
+    <select id="getFoundData" resultType="com.wr.remote.domain.vo.GetFoundDataVo">
+        SELECT pay_type        as "name",
+               SUM(pay_amount) AS "value"
+        FROM xccj_community.bus_pay_billing_record
+        WHERE del_flag = '0'
+          and community_id = #{communityId}
+          AND DATE_FORMAT(pay_time, '%Y-%m') = #{date}
+        GROUP BY pay_type
+    </select>
+</mapper>

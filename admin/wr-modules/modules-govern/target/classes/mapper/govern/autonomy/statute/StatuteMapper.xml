@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.autonomy.statute.StatuteMapper">
+
+<select id="getList" resultType="com.wr.remote.govern.autonomy.statute.Statute" parameterType="com.wr.remote.govern.autonomy.statute.Statute" >
+    SELECT
+        *
+    FROM
+        xccj_govern.bus_statute as sta
+        <where>
+            sta.del_flag='0'
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(sta.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(sta.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            <if test="statuteTitle!=null and statuteTitle!=''">
+                AND sta.statute_title like concat('%', #{statuteTitle}, '%')
+            </if>
+            <if test="estateId != null">
+                AND estate_id = #{estateId}
+            </if>
+            order by sta.create_time desc
+        </where>
+
+
+
+</select>
+
+<insert id="addStatute" parameterType="com.wr.remote.govern.autonomy.statute.Statute" useGeneratedKeys="true"  keyProperty="statuteId">
+    insert into  xccj_govern.bus_statute
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="statuteTitle != null and statuteTitle !=''">statute_title,</if>
+        <if test="coverUrl != null and coverUrl !='' ">cover_url,</if>
+        <if test="content != null and content !='' ">content,</if>
+        <if test="estateId != null ">estate_id,</if>
+        create_by,create_time
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        <if test="statuteTitle != null and statuteTitle !=''">#{statuteTitle},</if>
+        <if test="coverUrl != null and coverUrl !='' ">#{coverUrl},</if>
+        <if test="content != null and content !='' ">#{content},</if>
+        <if test="estateId != null ">#{estateId},</if>
+        #{createBy},sysdate()
+    </trim>
+
+</insert>
+
+    <!--小区内容插入关联表-->
+<insert id="AddStatuteRang">
+    INSERT INTO xccj_govern.bus_statute_rang(
+    statute_id,community_id
+    ) VALUES
+    <foreach item="item" index="index" collection="list" separator=",">
+        (#{item.statuteId},#{item.communityId})
+    </foreach>
+</insert>
+
+
+    <!--根据自治规约id查询当前的信息-->
+    <select id="getStatuteById" parameterType="Long" resultType="com.wr.remote.govern.autonomy.statute.Statute">
+        SELECT
+            *
+        FROM
+            xccj_govern.bus_statute as sta
+        where sta.del_flag='0'
+        and sta.statute_id=#{statuteId}
+    </select>
+
+    <!--根据statute_id查询bus_statute_rang  关联表的详情-->
+    <select id="selectStatuteCommunityById" parameterType="Long" resultType="Long">
+        SELECT ran.community_id
+        FROM xccj_govern.bus_statute_rang as ran
+        where ran.statute_id =#{statuteId}
+    </select>
+
+
+<!--先修改治约-->
+    <update id="updateStatute" parameterType="com.wr.remote.govern.autonomy.statute.Statute">
+        update xccj_govern.bus_statute as sta
+        <set>
+            <if test="statuteTitle != null and statuteTitle != ''">
+                sta.statute_title = #{statuteTitle},
+            </if>
+            <if test="coverUrl != null and coverUrl != ''">
+                sta.cover_url = #{coverUrl},
+            </if>
+            <if test="content != null and content != ''">
+                sta.content = #{content},
+            </if>
+            sta.update_by=#{updateBy},
+            sta.update_time = sysdate()
+        </set>
+        where sta.statute_id = #{statuteId}
+    </update>
+
+
+<!--通过治约id删除关联表中的所有社区id， 返回的是影响行数-->
+    <delete id="delCommunityByStatuteId" parameterType="Long">
+        delete
+        from xccj_govern.bus_statute_rang
+        where statute_id = #{statuteId}
+    </delete>
+
+   <!-- //批量删除规约信息-->
+    <update id="delStatute" parameterType="Long">
+        update xccj_govern.bus_statute
+        set del_flag='1'
+        where statute_id in
+        <foreach collection="array" item="statuteId" open="(" separator="," close=")">
+            #{statuteId}
+        </foreach>
+    </update>
+
+    <!--批量删除关联表规约信息-->
+    <delete id="delCommunityByStatuteIds" parameterType="Long">
+        delete
+        from xccj_govern.bus_statute_rang
+        where statute_id in
+        <foreach collection="array" item="statuteId" open="(" separator="," close=")">
+            #{statuteId}
+        </foreach>
+    </delete>
+
+
+
+</mapper>

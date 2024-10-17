@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.OverviewMapper">
+
+    <select id="selectTotalAmount" resultType="java.math.BigDecimal">
+        SELECT sum(pay_amount) FROM ${tableName} WHERE del_flag = '0' AND pay_type = '0'
+    </select>
+
+    <select id="selectFirstHarfVehicleData" resultType="com.wr.aiot.entity.VehicleData">
+        SELECT
+            day(inout_time) AS "day",  ifnull(count(*),0) AS "inoutTimes"
+        FROM ${tableName}
+        WHERE del_flag = '0' AND park_type = '1'
+          AND day(inout_time) &lt;= #{day} AND inout_type = #{inoutType}
+        GROUP BY day(inout_time)
+    </select>
+
+    <select id="selectSecHarfVehicleData" resultType="com.wr.aiot.entity.VehicleData">
+        SELECT
+            day(inout_time) AS "day", ifnull(count(*),0) AS "inoutTimes"
+        FROM ${tableName}
+        WHERE del_flag = '0' AND park_type = '1'
+          AND day(inout_time) >= #{day} AND inout_type = #{inoutType}
+        GROUP BY day(inout_time)
+    </select>
+
+    <select id="countCarportTotal" resultType="java.lang.Integer">
+        SELECT
+               ifnull(count(*),0)
+        FROM xccj_community.bus_carport
+        WHERE del_flag = '0'
+        AND community_id IN (
+            SELECT cbc.community_id FROM xccj_community.bus_community cbc
+            WHERE cbc.del_flag = '0' AND cbc.estate_id = #{estateId}
+        )
+    </select>
+
+    <select id="countVehicleTotal" resultType="java.lang.Integer">
+        SELECT
+            ifnull(count(*),0)
+        FROM xccj_community.bus_vehicle
+        WHERE del_flag = '0' AND audit_status = '1'
+          AND community_id IN (
+            SELECT cbc.community_id FROM xccj_community.bus_community cbc
+            WHERE cbc.del_flag = '0' AND cbc.estate_id = #{estateId}
+        )
+        <if test="auditTime != null">
+            AND date_format(audit_time,'%y%m%d') = date_format(#{auditTime},'%y%m%d')
+        </if>
+    </select>
+
+    <select id="countVehicleLogToday" resultType="java.lang.Integer">
+        SELECT ifnull(count(*),0) FROM (
+             SELECT
+                 log_id,user_type,plate_no,park_type,inout_type,inout_time,del_flag
+             FROM ${tableName}
+             WHERE del_flag = '0' AND park_type = '1' AND inout_type = 0
+               AND date_format(inout_time,'%y%m%d') = date_format(sysdate(),'%y%m%d')
+             <if test="userType != null">AND user_type = #{userType}</if>
+             GROUP BY plate_no
+        ) t
+    </select>
+
+</mapper>

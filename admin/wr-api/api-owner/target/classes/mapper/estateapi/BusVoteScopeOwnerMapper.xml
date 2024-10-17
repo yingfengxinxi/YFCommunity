@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.vote.BusVoteOwnerMapper">
+
+    <select id="getList" resultType="com.wr.remote.estate.vote.BusVoteOwner">
+        SELECT bvo.id,
+               bo.owner_name  AS "ownerName",
+               sdd.dict_label AS "cardType",
+               bo.card_no     AS "cardNo",
+               bo.owner_phone AS "ownerPhone",
+               bvo.owner_status as "ownerStatus"
+        FROM xccj_community.bus_vote_owner bvo
+                 LEFT JOIN xccj_community.bus_owner bo ON bvo.account_id = bo.account_id
+                 LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_value = bo.card_type
+            AND sdd.dict_type = "sys_certificate"
+        WHERE bvo.del_flag = '0' and bvo.vote_scope_id=#{voteScopeId}
+        order by bvo.create_time desc
+    </select>
+
+    <select id="getVoteListRooms" resultType="com.wr.remote.estate.vote.BusVoteScope">
+        SELECT
+        br.room_id AS id,
+        bb.building_name AS buildingName,
+        bu.unit_name AS unitName,
+        br.room_name AS roomName,
+        br.community_id as "communityId",
+        br.building_id as "buildingId",
+        br.unit_id as "unitId",
+        br.room_id as "roomId",
+        br.house_address as "houseAddress",
+        IFNULL( bo.owner_name, '-' ) AS ownerName,
+        IFNULL( bo.owner_phone, '-' ) AS ownerPhone
+        <if test="flag==0">
+            ,"1" as "delFlag"
+        </if>
+        <if test="flag==1">
+            ,(SELECT count(1) from xccj_community.bus_vote_scope bvc where bvc.room_id=br.room_id and bvc.del_flag='0')
+            as "delFlag"
+        </if>
+
+        FROM
+        xccj_community.bus_room br
+        INNER JOIN xccj_community.bus_owner bo ON br.owner_id = bo.owner_id
+        AND bo.del_flag = '0'
+        INNER JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+        INNER JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+        WHERE br.del_flag = '0'
+        <if test="level == 1">
+            AND br.community_id = #{id}
+        </if>
+        <if test="level == 2">
+            AND br.building_id = #{id}
+        </if>
+        <if test="level == 3">
+            AND br.unit_id = #{id}
+        </if>
+        <if test="level == 4">
+            AND br.room_id = #{id}
+        </if>
+        <if test="ownerName != null and ownerName != ''">
+            AND bo.owner_name LIKE CONCAT('%',#{ownerName},'%')
+        </if>
+        ORDER BY CAST(br.room_name AS SIGNED)
+    </select>
+
+    <select id="findOneOwnerIdByOwner" resultType="Long">
+        SELECT DISTINCT
+            account_id
+        FROM
+            (
+                SELECT
+                    ow.account_id
+                FROM
+                    xccj_community.bus_owner ow
+                        LEFT JOIN xccj_community.bus_owner ows ON ow.owner_id = ows.parent_id
+                WHERE
+                    ow.account_id = #{id}
+                   OR ows.account_id = #{id}
+            ) AS combined
+        WHERE
+            account_id != #{id}
+    </select>
+    
+    <select id="findOneStatusByAccount" resultType="Map" parameterType="Map">
+        SELECT
+            bvo_outer.id
+            bvo_outer.owner_status ownerStatus
+        FROM
+            xccj_community.bus_vote_owner bvo_outer
+                JOIN xccj_community.bus_vote_scope bvs_outer ON bvo_outer.vote_scope_id = bvs_outer.id
+                JOIN (
+                SELECT
+                    bvs.vote_id
+                FROM
+                    xccj_community.bus_vote_scope bvs
+                        JOIN xccj_community.bus_vote_owner bvo ON bvs.id = bvo.vote_scope_id
+                WHERE
+                    bvo.id = #{id}
+                  AND bvo.account_id = #{accountId}
+            ) AS subquery ON bvs_outer.vote_id = subquery.vote_id
+        WHERE
+            bvo_outer.account_id = #{accountId2}
+    </select>
+</mapper>

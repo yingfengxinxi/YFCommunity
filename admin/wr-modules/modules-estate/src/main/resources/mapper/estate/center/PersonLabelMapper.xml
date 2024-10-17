@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.center.PersonLabelMapper">
+
+    <select id="selectPersonLabelList" parameterType="com.wr.remote.estate.center.vo.PersonLabelVo" resultType="com.wr.remote.estate.center.vo.PersonLabelVo">
+        ( SELECT
+        bpl.label_id,
+        bo.owner_name as name,
+        bo.owner_Id as nameId,
+        bo.gender as gender,
+        bo.owner_phone as phone,
+        bo.card_no as cardNo,
+        bpl.person_type as personType,
+        bb.building_name as buildingName,
+        CONCAT( bt.unit_name, '-', br.room_name ) as unitName,
+        bpl.age_label as ageLabel,
+        bpl.identity_label as identityLabel,
+        bpl.healthy_label as healthyLabel,
+        bpl.coronavirus as coronavirus ,
+        bpl.healthy_color as healthyColor,
+        bpl.behavior_label as behaviorLabel,
+        bpl.update_time as  updateTime ,
+        bpl.update_by as updateBy
+        FROM
+        xccj_community.bus_person_label bpl
+        LEFT JOIN xccj_community.bus_owner bo ON bpl.person_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_community bc ON bpl.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bo.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bt ON bo.unit_id = bt.unit_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        <where>
+            bpl.del_flag='0'
+            and
+            bpl.person_type = '1'
+            <if test="communityId != null "> and bpl.community_id = #{communityId}</if>
+            <if test="name != null  and name != ''"> and bo.owner_name like concat('%', #{name}, '%') </if>
+            <if test="phone != null and phone != ''"> and bo.owner_phone like concat('%', #{phone}, '%') </if>
+            <if test="cardNo != null  and cardNo != ''"> and bo.card_no like concat('%', #{cardNo }, '%') </if>
+        </where>
+        )
+        UNION ALL
+        (
+        SELECT
+        bpl.label_id,
+        bt.tenant_name as name,
+        bt.tenant_Id as nameId,
+        bt.gender as gender,
+        bt.tenant_phone as phone,
+        bt.card_no as cardNo,
+        bpl.person_type as personType,
+        bb.building_name as buildingName,
+        CONCAT( bu.unit_name, '-', br.room_name ) as unitName,
+        bpl.age_label as ageLabel,
+        bpl.identity_label as identityLabel,
+        bpl.healthy_label as healthyLabel,
+        bpl.coronavirus as coronavirus,
+        bpl.healthy_color as healthyColor,
+        bpl.behavior_label as behaviorLabel,
+        bpl.update_time as  updateTime ,
+        bpl.update_by as updateBy
+        FROM
+        xccj_community.bus_person_label bpl
+        LEFT JOIN xccj_community.bus_tenant bt ON bpl.person_id = bt.tenant_id
+        LEFT JOIN xccj_community.bus_community bc ON bpl.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bt.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bt.unit_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+        <where>
+            bpl.del_flag='0'
+            and
+            bpl.person_type = '2'
+            <if test="communityId != null "> and bpl.community_id = #{communityId}</if>
+            <if test="name != null  and name != ''"> and bt.tenant_name like concat('%', #{name}, '%') </if>
+            <if test="phone != null and phone != ''"> and bt.tenant_phone like concat('%', #{phone}, '%') </if>
+            <if test="cardNo != null  and cardNo != ''"> and bt.card_no like concat('%', #{cardNo }, '%') </if>
+        </where>
+        )
+    </select>
+
+    <select id="selectNameList" parameterType="com.wr.remote.estate.center.vo.PersonLabelVo" resultType="com.wr.remote.estate.center.vo.PersonLabelVo">
+        <if test="personType == 1" >
+            SELECT
+            bo.owner_name as name,
+            bo.owner_id as nameId
+            FROM
+            xccj_community.bus_owner bo
+            LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bo.community_id and bc.del_flag = '0'
+            where bo.del_flag = '0' and bc.community_id=#{communityId} and bo.audit_status = '1'
+            and
+            bo.owner_id not in
+            (select person_id  FROM xccj_community.bus_person_label where del_flag = '0' and   person_type = '1')
+        </if>
+        <if test="personType == 2" >
+            SELECT
+            bt.tenant_name as name,
+            bt.tenant_id as nameId
+            FROM
+            xccj_community.bus_tenant bt
+            LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bt.community_id and bc.del_flag = '0'
+            where bt.del_flag = '0' and bc.community_id=#{communityId} and bt.audit_status = '1'
+            and
+            bt.tenant_id not in
+            (select person_id  FROM xccj_community.bus_person_label where del_flag = '0' and   person_type = '2')
+        </if>
+
+    </select>
+
+
+    <select id="selectPersonLabelByLabelId" parameterType="Long" resultType="com.wr.remote.estate.center.vo.PersonLabelVo">
+        select bpl.label_id, bpl.community_id , bpl.person_type,
+               bpl.person_id, bpl.age_label, bpl.identity_label, bpl.healthy_label,
+               bpl.coronavirus, bpl.healthy_color, bpl.behavior_label, bpl.create_by, bpl.create_time,
+               bpl.update_by, bpl.update_time, bpl.del_flag from xccj_community.bus_person_label bpl
+        where label_id = #{labelId} and del_flag='0'
+    </select>
+    <!--<select id="selectPersonLabelByLabelId" parameterType="com.wr.remote.business.PersonLabelVo" resultType="com.wr.remote.business.PersonLabelVo">
+        <if test="personType == 1" >
+            select bpl.label_id, bpl.community_id , bpl.person_type,bo.owner_name as name,
+            bpl.person_id, bpl.age_label, bpl.identity_label, bpl.healthy_label,
+            bpl.coronavirus, bpl.healthy_color, bpl.behavior_label, bpl.create_by, bpl.create_time,
+            bpl.update_by, bpl.update_time, bpl.del_flag from xccj_community.bus_person_label bpl
+            LEFT JOIN xccj_community.bus_owner bo ON bpl.person_id = bo.owner_id
+            where bpl.label_id = #{labelId}  and bpl.del_flag='0'
+        </if>
+        <if test="personType == 2" >
+            select bpl.label_id, bpl.community_id , bpl.person_type,bt.tenant_name as name,
+            bpl.person_id, bpl.age_label, bpl.identity_label, bpl.healthy_label,
+            bpl.coronavirus, bpl.healthy_color, bpl.behavior_label, bpl.create_by, bpl.create_time,
+            bpl.update_by, bpl.update_time, bpl.del_flag from xccj_community.bus_person_label bpl
+            LEFT JOIN xccj_community.bus_tenant bt ON bpl.person_id = bt.tenant_id
+            where bpl.label_id = #{labelId} and bpl.del_flag='0'
+        </if>
+
+    </select>-->
+
+    <insert id="insertPersonLabel" parameterType="com.wr.remote.estate.center.vo.PersonLabelVo">
+        insert into xccj_community.bus_person_label
+        (community_id,
+        person_type,
+        person_id,
+        <if test="null != ageLabel and '' != ageLabel">
+        age_label,
+        </if>
+        <if test="null != identityLabel and '' != identityLabel">
+        identity_label,
+        </if>
+        <if test="null != healthyLabel and '' != healthyLabel">
+        healthy_label,
+        </if>
+        <if test="null != coronavirus and '' != coronavirus">
+        coronavirus,
+        </if>
+        <if test="null != healthyColor and '' != healthyColor">
+        healthy_color,
+        </if>
+        <if test="null != behaviorLabel and '' != behaviorLabel">
+        behavior_label,
+        </if>
+        create_by,
+        create_time,
+        update_by,
+        del_flag)
+        values (
+        #{communityId},
+        #{personType},
+        #{nameId},
+        <if test="null != ageLabel and '' != ageLabel">
+        #{ageLabel},
+        </if>
+        <if test="null != identityLabel and '' != identityLabel">
+        #{identityLabel},
+        </if>
+        <if test="null != healthyLabel and '' != healthyLabel">
+        #{healthyLabel},
+        </if>
+        <if test="null != coronavirus and '' != coronavirus">
+        #{coronavirus},
+        </if>
+        <if test="null != healthyColor and '' != healthyColor">
+        #{healthyColor},
+        </if>
+                <if test="null != behaviorLabel and '' != behaviorLabel">
+        #{behaviorLabel},
+                </if>
+        #{createBy,jdbcType=VARCHAR},
+        sysdate(),
+        #{createBy},
+        '0'
+        )
+    </insert>
+
+    <update id="updatePersonLabel" parameterType="com.wr.remote.estate.center.PersonLabel">
+        update xccj_community.bus_person_label
+        SET
+            age_label = #{ageLabel},
+            identity_label = #{identityLabel},
+            healthy_label = #{healthyLabel},
+            coronavirus = #{coronavirus},
+            healthy_color = #{healthyColor},
+            behavior_label = #{behaviorLabel},
+            update_by = #{updateBy},
+            update_time=sysdate()
+        where label_id = #{labelId}
+    </update>
+    <update id="deletePersonLabelByLabelIds">
+        update xccj_community.bus_person_label set del_flag = '1' where label_id in
+        <foreach collection="array" item="labelId" open="(" separator="," close=")">
+            #{labelId}
+        </foreach>
+    </update>
+
+
+    <select id="checkUnique" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM xccj_community.bus_person_label
+        WHERE del_flag = '0'
+          AND person_id = #{nameId}
+        limit 1
+    </select>
+</mapper>

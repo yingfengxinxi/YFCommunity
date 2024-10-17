@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.RemindMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.ApiRemind">
+        <id column="remind_id" jdbcType="BIGINT" property="remindId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="remind_type" jdbcType="CHAR" property="remindType"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="goods_id" jdbcType="BIGINT" property="goodsId"/>
+        <result column="read_status" jdbcType="CHAR" property="readStatus"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        remind_id,
+        community_id,
+        remind_type,
+        account_id,
+        goods_id,
+        read_status,
+        create_by,
+        del_flag
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_remind
+        where remind_id = #{remindId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_community.bus_remind
+        <set>
+            del_flag = '1',
+        </set>
+        where remind_id = #{remindId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="remind_id" keyProperty="remindId"
+            parameterType="com.wr.api.owner.entity.serve.ApiRemind" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_community.bus_remind
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="remindType != null">
+                remind_type,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="goodsId != null">
+                goods_id,
+            </if>
+            <if test="readStatus != null">
+                read_status,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="remindType != null">
+                #{remindType,jdbcType=CHAR},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsId != null">
+                #{goodsId,jdbcType=BIGINT},
+            </if>
+            <if test="readStatus != null">
+                #{readStatus,jdbcType=CHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.ApiRemind">
+        <!--@mbg.generated-->
+        update xccj_community.bus_remind
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="remindType != null">
+                remind_type = #{remindType,jdbcType=CHAR},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsId != null">
+                goods_id = #{goodsId,jdbcType=BIGINT},
+            </if>
+            <if test="readStatus != null">
+                read_status = #{readStatus,jdbcType=CHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where remind_id = #{remindId,jdbcType=BIGINT}
+    </update>
+</mapper>

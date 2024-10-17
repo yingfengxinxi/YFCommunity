@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.info.InvestMapper">
+  <resultMap type="com.wr.remote.estate.info.Invest" id="InvestResult">
+    <id property="estateId" column="estate_id"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="investId" column="invest_id"/>
+    <result property="investTitle" column="invest_title"/>
+    <result property="investStatus" column="invest_status"/>
+    <result property="content" column="content"/>
+    <result property="readNum" column="read_num"/>
+    <result property="estateName" column="estate_name"/>
+
+  </resultMap>
+  <!--带操作用户，操作时间，更新用户，更新时间的sql片段-->
+  <sql id="selectInvestVo" >
+    select
+        bi.community_id,
+        bi.invest_title,
+        bi.content,
+        bi.create_time,
+        bi.create_by,
+        bi.update_by,
+        bi.update_time,
+        bi.invest_status,
+        bi.brief_introduction,
+        bi.read_num,
+        bi.invest_type,
+        bi.invest_id,
+        bi.estate_id,
+        bs.estate_name
+    from xccj_community.bus_invest bi
+    left join xccj_community.bus_estate bs on bs.estate_id = bi.estate_id
+  </sql>
+
+  <!--根据主键获取对象-->
+  <select id="selectInvestById" parameterType="java.lang.Long" resultMap="InvestResult">
+    <include refid="selectInvestVo"/>
+    where invest_id = #{investId}
+  </select>
+
+
+  <!--根据物业id查询物业名称-->
+  <select id="selectEstateNameById" flushCache="true" parameterType="java.lang.Long" resultMap="InvestResult">
+    select
+        estate_name
+    from xccj_community.bus_estate
+    where estate_id = #{estateId}
+  </select>
+
+  <!--分页列表-->
+  <select id="selectList" flushCache="true" parameterType="com.wr.remote.estate.info.Invest"
+          resultMap="InvestResult">
+      <include refid="selectInvestVo"/>
+      <where>
+          bi.del_flag='0'
+          and bi.estate_id = #{estateId}
+          <if test="communityId != null">
+              and community_id=#{communityId}
+          </if>
+          <if test="investTitle != null and investTitle !=''">
+              and invest_title like concat('%', #{investTitle}, '%')
+          </if>
+          <if test="investType != null and investType !=''">
+              and invest_type=#{investType}
+          </if>
+      </where>
+      order by bi.create_time desc
+      ${params.dataScope}
+  </select>
+
+  <!--添加社区头条设置-->
+  <insert id="insertInvest" parameterType="com.wr.remote.estate.info.Invest">
+    insert into xccj_community.bus_invest (
+    community_id,
+    estate_id,
+    content,
+    invest_title,
+    invest_status,
+    brief_introduction,
+    invest_type,
+    create_by,
+    create_time
+    )values(
+    #{communityId},
+    #{estateId},
+    #{content},
+    #{investTitle},
+    '0',
+    #{briefIntroduction},
+    #{investType},
+    #{createBy},
+    sysdate()
+    )
+  </insert>
+
+  <!-- 校验标题唯一性 -->
+  <select id="checkTitleUnique" flushCache="true" resultType="com.wr.remote.estate.info.Invest"
+          parameterType="com.wr.remote.estate.info.Invest">
+    <include refid="selectInvestVo"/>
+    where bi.del_flag = '0'
+    and invest_title = trim(#{investTitle}) and community_id=#{communityId}
+  </select>
+
+  <!-- 校验标题唯一性 -->
+  <select id="checkTitleUnique2" flushCache="true" resultType="com.wr.remote.estate.info.Invest"
+          parameterType="com.wr.remote.estate.info.Invest">
+    <include refid="selectInvestVo"/>
+    where bi.del_flag = '0'
+    and invest_title = trim(#{investTitle}) and invest_id!= #{investId} and community_id=#{communityId}
+  </select>
+
+  <!--  发布公示-->
+  <update id="updateStatus" parameterType="com.wr.remote.estate.info.Invest">
+    update xccj_community.bus_invest
+    <set>
+      invest_status = '0',
+      update_time = sysdate()
+    </set>
+    where invest_id = #{investId}
+  </update>
+
+  <!--  撤回公示-->
+  <update id="updateStatus2" parameterType="com.wr.remote.estate.info.Invest">
+    update xccj_community.bus_invest
+    <set>
+      invest_status = '1'
+    </set>
+    where invest_id = #{investId}
+  </update>
+
+  <!--编辑社区头条设置-->
+  <update id="updateInvest" parameterType="com.wr.remote.estate.info.Invest">
+    update xccj_community.bus_invest
+    <set>
+      <if test="investTitle != null and investTitle != ''">invest_title = #{investTitle},</if>
+      <if test="content != null and content != ''">content = #{content},</if>
+      <if test="investType != null and investType != ''">invest_type=#{investType},</if>
+      <if test="briefIntroduction != null and briefIntroduction != ''">brief_introduction = #{briefIntroduction},</if>
+      <if test="communityId != null">community_id = #{communityId},</if>
+      update_by = #{updateBy}
+    </set>
+    where invest_id = #{investId}
+  </update>
+
+  <!--修改阅读量-->
+  <!--<update id="updateReadNum" parameterType="com.wr.remote.business.info.Invest">
+    update xccj_community.bus_invest
+    <set>
+      bus_invest.read_num = #{readNum}
+    </set>
+    where invest_id = #{investId}
+  </update>-->
+
+
+  <!--删除项目文档设置-->
+  <delete id="deleteInvestByIds" parameterType="java.lang.Long">
+    UPDATE xccj_community.bus_invest
+    SET del_flag = '1'
+    WHERE invest_id IN
+    <foreach item="investId" collection="array" open="(" separator="," close=")">
+      #{investId}
+    </foreach>
+  </delete>
+
+</mapper>

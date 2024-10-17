@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.UserMapper">
+
+    <select id="getAccountByCodeNo" resultType="com.wr.api.device.entity.vo.AccountVO">
+        SELECT
+            ba.account_id AS "accountId", ba.community_id AS "communityId", ba.account_name AS "userName",
+            bo.card_no AS "cardNo", bo.owner_phone AS "userPhone", '1' AS userType,
+            bc.community_name AS "communityName", bb.building_id AS "buildingId", bb.building_name AS "buildingName",
+            bu.unit_id AS "unitId", bu.unit_name AS "unitName", br.room_id AS "roomId", br.room_name AS "roomName"
+        FROM xccj_community.bus_account ba
+            LEFT JOIN xccj_community.bus_owner bo ON ba.account_id = bo.account_id
+            LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bo.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        WHERE ba.del_flag = '0' AND bo.card_no = #{cardNo}
+        UNION
+        SELECT
+            ba.account_id AS "accountId", ba.community_id AS "communityId", ba.account_name AS "userName",
+            bt.card_no AS "cardNo", bt.tenant_phone AS "userPhone", '2' AS userType,
+            bc.community_name AS "communityName", bb.building_id AS "buildingId", bb.building_name AS "buildingName",
+            bu.unit_id AS "unitId", bu.unit_name AS "unitName", br.room_id AS "roomId", br.room_name AS "roomName"
+        FROM xccj_community.bus_account ba
+            LEFT JOIN xccj_community.bus_tenant bt ON ba.account_id = bt.account_id
+            LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bt.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bt.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+        WHERE ba.del_flag = '0' AND bt.card_no = #{cardNo}
+    </select>
+
+    <select id="getAccountByPhone" resultType="com.wr.api.device.entity.vo.AccountVO">
+        SELECT
+            ba.account_id AS "accountId", ba.community_id AS "communityId", ba.account_name AS "userName",
+            bo.card_no AS "cardNo", bo.owner_phone AS "userPhone", '1' AS userType,
+            bc.community_name AS "communityName", bb.building_id AS "buildingId", bb.building_name AS "buildingName",
+            bu.unit_id AS "unitId", bu.unit_name AS "unitName", br.room_id AS "roomId", br.room_name AS "roomName"
+        FROM xccj_community.bus_account ba
+            LEFT JOIN xccj_community.bus_owner bo ON ba.account_id = bo.account_id
+            LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bo.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        WHERE ba.del_flag = '0' AND bo.owner_phone = #{userPhone}
+        UNION
+        SELECT
+            ba.account_id AS "accountId", ba.community_id AS "communityId", ba.account_name AS "userName",
+            bt.card_no AS "cardNo", bt.tenant_phone AS "userPhone", '2' AS userType,
+            bc.community_name AS "communityName", bb.building_id AS "buildingId", bb.building_name AS "buildingName",
+            bu.unit_id AS "unitId", bu.unit_name AS "unitName", br.room_id AS "roomId", br.room_name AS "roomName"
+        FROM xccj_community.bus_account ba
+            LEFT JOIN xccj_community.bus_tenant bt ON ba.account_id = bt.account_id
+            LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bt.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bt.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+        WHERE ba.del_flag = '0' AND bt.tenant_phone = #{userPhone}
+    </select>
+
+    <select id="getAccountById" resultType="com.wr.api.device.entity.vo.AccountVO">
+        SELECT
+            ba.account_id AS "accountId", ba.community_id AS "communityId", ba.account_name AS "userName",
+            bo.card_no AS "cardNo", bo.owner_phone AS "userPhone", '1' AS userType,
+            bc.community_name AS "communityName", bb.building_id AS "buildingId", bb.building_name AS "buildingName",
+            bu.unit_id AS "unitId", bu.unit_name AS "unitName", br.room_id AS "roomId", br.room_name AS "roomName"
+        FROM xccj_community.bus_account ba
+            LEFT JOIN xccj_community.bus_owner bo ON ba.account_id = bo.account_id
+            LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bo.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        WHERE ba.del_flag = '0' AND ba.account_id = #{accountId}
+        UNION
+        SELECT
+            ba.account_id AS "accountId", ba.community_id AS "communityId", ba.account_name AS "userName",
+            bt.card_no AS "cardNo", bt.tenant_phone AS "userPhone", '2' AS userType,
+            bc.community_name AS "communityName", bb.building_id AS "buildingId", bb.building_name AS "buildingName",
+            bu.unit_id AS "unitId", bu.unit_name AS "unitName", br.room_id AS "roomId", br.room_name AS "roomName"
+        FROM xccj_community.bus_account ba
+            LEFT JOIN xccj_community.bus_tenant bt ON ba.account_id = bt.account_id
+            LEFT JOIN xccj_community.bus_community bc ON ba.community_id = bc.community_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bt.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bt.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+        WHERE ba.del_flag = '0' AND ba.account_id = #{accountId}
+    </select>
+
+</mapper>

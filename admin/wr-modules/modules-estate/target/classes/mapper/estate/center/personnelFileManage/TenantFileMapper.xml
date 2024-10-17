@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.personnelfilemanage.TenantFileMapper">
+
+    <insert id="save">
+        INSERT INTO `xccj_community`.`bus_tenant` (
+        `tenant_id`,
+        <if test="communityId!=null">`community_id`,</if>
+        <if test="buildingId!=null">`building_id`,</if>
+        <if test="unitId!=null">`unit_id`,</if>
+        <if test="roomId!=null">`room_id`,</if>
+        <if test="accountId!=null">`account_id`,</if>
+        <if test="ownerId!=null">`owner_id`,</if>
+        <if test="tenantName!=null and tenantName !=''">`tenant_name`,</if>
+        <if test="tenantPhone!=null and tenantPhone !=''">`tenant_phone`,</if>
+        <if test="gender!=null and gender !=''">`gender`,</if>
+        <if test="cardType!=null and cardType !=''">`card_type`,</if>
+        <if test="cardNo!=null and cardNo !=''">`card_no`,</if>
+        <if test="cardFont!=null and cardFont !=''">`card_font`,</if>
+        <if test="cardBack!=null and cardBack !=''">`card_back`,</if>
+        <if test="domicileAddress!=null and domicileAddress !=''">`domicile_address`,</if>
+        <if test="leaseStartTime!=null">`lease_start_time`,</if>
+        <if test="leaseEndTime!=null">`lease_end_time`,</if>
+        <if test="depositPayTime!=null">`deposit_pay_time`,</if>
+        <if test="totalMoney!=null">`total_money`,</if>
+        <if test="deposit!=null">`deposit`,</if>
+        <if test="licenseUrl!=null">`license_url`,</if>
+        <if test="rentContract!=null">`rent_contract`,</if>
+        <if test="other!=null">`other`,</if>
+        <if test="by!=null">`create_by`,</if>
+        create_time,
+        data_source,
+        audit_status,
+        audit_time,
+        del_flag
+        )
+        VALUES
+        (
+        NULL,
+        <if test="communityId!=null">#{communityId},</if>
+        <if test="buildingId!=null">#{buildingId},</if>
+        <if test="unitId!=null">#{unitId},</if>
+        <if test="roomId!=null">#{roomId},</if>
+        <if test="accountId!=null">#{accountId},</if>
+        <if test="ownerId!=null">#{ownerId},</if>
+        <if test="tenantName!=null and tenantName !=''">#{tenantName},</if>
+        <if test="tenantPhone!=null and tenantPhone !=''">#{tenantPhone},</if>
+        <if test="gender!=null and gender !=''">#{gender},</if>
+        <if test="cardType!=null and cardType !=''">#{cardType},</if>
+        <if test="cardNo!=null and cardNo !=''">#{cardNo},</if>
+        <if test="cardFont!=null and cardFont !=''">#{cardFont},</if>
+        <if test="cardBack!=null and cardBack !=''">#{cardBack},</if>
+        <if test="domicileAddress!=null and domicileAddress !=''">#{domicileAddress},</if>
+        <if test="leaseStartTime!=null">#{leaseStartTime},</if>
+        <if test="leaseEndTime!=null">#{leaseEndTime},</if>
+        <if test="depositPayTime!=null">#{depositPayTime},</if>
+        <if test="totalMoney!=null">#{totalMoney},</if>
+        <if test="deposit!=null">#{deposit},</if>
+        <if test="licenseUrl!=null">#{licenseUrl},</if>
+        <if test="rentContract!=null">#{rentContract},</if>
+        <if test="other!=null">#{other},</if>
+        <if test="by!=null">#{by},</if>
+        NOW(),
+        "0",
+        "1",
+        NOW(),
+        "0"
+        );
+    </insert>
+    <update id="update">
+        update xccj_community.bus_tenant
+        <set>
+            <if test="tenantName!=null and tenantName !=''">tenant_name=#{tenantName},</if>
+            <if test="tenantPhone!=null and tenantPhone !=''">tenant_phone=#{tenantPhone},</if>
+            <if test="gender!=null and gender !=''">gender=#{gender},</if>
+            <if test="cardType!=null and cardType !=''">card_type=#{cardType},</if>
+            <if test="cardNo!=null and cardNo !=''">card_no=#{cardNo},</if>
+            <if test="cardFont!=null and cardFont !=''">card_font=#{cardFont},</if>
+            <if test="cardBack!=null and cardBack !=''">card_back=#{cardBack},</if>
+            <if test="domicileAddress!=null and domicileAddress !=''">domicile_address=#{domicileAddress},</if>
+            <if test="leaseStartTime!=null">lease_start_time=#{leaseStartTime},</if>
+            <if test="leaseEndTime!=null">lease_end_time=#{leaseEndTime},</if>
+            <if test="depositPayTime!=null">deposit_pay_time=#{depositPayTime},</if>
+            <if test="totalMoney!=null">total_money=#{totalMoney},</if>
+            <if test="deposit!=null">deposit=#{deposit},</if>
+            <if test="licenseUrl!=null">license_url=#{licenseUrl},</if>
+            <if test="rentContract!=null">rent_contract=#{rentContract},</if>
+            <if test="other!=null">other=#{other},</if>
+            <if test="by!=null">update_by=#{by},</if>
+            update_time=NOW()
+        </set>
+        where tenant_id=#{tenantId}
+    </update>
+    <update id="updateAccountState">
+        UPDATE xccj_community.bus_account set account_type='2'
+        WHERE account_id in (
+        SELECT account_id from xccj_community.bus_tenant where
+        tenant_id
+        in
+        <foreach collection="array" open="(" close=")" separator="," item="i">
+            #{i}
+        </foreach>
+        )
+    </update>
+    <update id="updateContract">
+        UPDATE xccj_community.bus_tenant set
+        lease_start_time=#{contractStart},
+        lease_end_time=#{contractEnd},
+        update_by=#{by},
+        update_time=now()
+        where tenant_id in
+        <foreach collection="ids" open="(" close=")" separator="," item="i">
+            #{i}
+        </foreach>
+    </update>
+
+    <update id="reduceLiveNumOne">
+        UPDATE xccj_community.bus_room SET live_num =
+        CASE
+        WHEN live_num > 0 THEN live_num -1
+        WHEN live_num = 0 THEN 0
+        ELSE live_num
+        END
+        WHERE room_id IN (
+        SELECT room_id FROM xccj_community.bus_tenant WHERE del_flag = '0' AND tenant_id IN
+        <foreach collection="array" open="(" close=")" separator="," item="tenantId">
+            #{tenantId}
+        </foreach>
+        )
+    </update>
+
+    <delete id="deleted">
+        update xccj_community.bus_tenant set del_flag='1'
+        where tenant_id
+        in
+        <foreach collection="array" open="(" close=")" separator="," item="i">
+            #{i}
+        </foreach>
+    </delete>
+    <select id="queryByCommunityId" resultType="com.wr.estate.entity.dto.TenantFileDto">
+        SELECT
+        t.tenant_id AS "tenantId",
+        t.tenant_name AS "tenantName",
+        t.tenant_phone AS "tenantPhone",
+        t.card_no AS "cardNo",
+        b.building_name AS "buildingName",
+        u.unit_name AS "unitName",
+        r.room_name AS "roomName",
+        o.owner_name AS "ownerName",
+        o.owner_phone AS "ownerPhone",
+        r.room_status AS "roomStatus",
+        o.card_no AS "ownerCardNo",
+        t.unit_id AS "unitId",
+        t.building_id AS "buildingId",
+        t.room_id AS "roomId",
+        ct.community_name AS "communityName",
+        t.lease_end_time AS "leaseEndTime",
+        IF
+        ( now()>= t.lease_end_time, '已结束', '进行中' ) AS 'state'
+        FROM
+        xccj_community.bus_tenant t
+        LEFT JOIN xccj_community.bus_building b ON t.building_id = b.building_id
+        LEFT JOIN xccj_community.bus_unit u ON t.unit_id = u.unit_id
+        LEFT JOIN xccj_community.bus_community ct ON t.community_id = ct.community_id
+        LEFT JOIN xccj_community.bus_room r ON t.room_id = r.room_id
+        LEFT JOIN xccj_community.bus_owner o ON t.owner_id = o.owner_id
+        WHERE
+        t.del_flag = '0'
+        AND t.audit_status = '1'
+        <if test="communityId != '' and communityId != null">
+            and t.community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+        <if test="tenantName != '' and tenantName != null">
+            and t.tenant_name like concat('%',#{tenantName},'%')
+        </if>
+        <if test="tenantPhone != '' and tenantPhone != null">
+            and t.tenant_phone like concat('%',#{tenantPhone},'%')
+        </if>
+        order by t.create_time desc
+    </select>
+    <select id="queryContract" resultType="java.util.LinkedHashMap">
+        SELECT contract_no,
+               contract_start,
+               contract_end,
+               if(now() >= contract_end, '已结束', '进行中') as 'state',contract_url,
+               TIMESTAMPDIFF(MONTH,contract_start, contract_end) as 'space'
+        from xccj_community.bus_rent_contract
+        WHERE del_flag = '0'
+          and tenant_id = #{id}
+          and tenant_id = #{id}
+    </select>
+    <select id="queryById" resultType="com.wr.estate.entity.dto.TenantFileDto">
+        select
+        t.community_id AS "communityId",
+        t.building_id AS "buildingId",
+        t.unit_id AS "unitId",
+        t.room_id AS "roomId",
+        t.owner_id AS "ownerId",
+        t.tenant_id AS "tenantId",
+        t.tenant_name AS "tenantName",
+        t.tenant_phone AS "tenantPhone",
+        t.gender AS "gender",
+        t.card_type AS "cardType",
+        t.card_no AS "cardNo",
+        t.card_font AS "cardFont",
+        t.card_back AS "cardBack",
+        t.domicile_address AS "domicileAddress",
+        t.lease_start_time AS "leaseStartTime",
+        t.lease_end_time AS "leaseEndTime",
+        t.deposit_pay_time AS "depositPayTime",
+        t.total_money AS "totalMoney",
+        t.deposit AS "deposit",
+        t.license_url AS "licenseUrl",
+        t.rent_contract AS "rentContract",
+        t.other AS "other"
+        from xccj_community.bus_tenant t where t.tenant_id in
+        <foreach collection="array" item="i" separator="," close=")" open="(">
+            #{i}
+        </foreach>
+    </select>
+
+    <select id="selectTenantByTenantId" resultType="com.wr.remote.estate.manage.contract.Tenant">
+        select *
+        from xccj_community.bus_tenant
+        where del_flag = '0'
+          AND tenant_id = #{tenantId}
+    </select>
+
+    <select id="getContractEndRoomIds" resultType="Long">
+        SELECT DISTINCT br.room_id
+        FROM xccj_community.bus_tenant bt
+                 LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+        WHERE br.room_status IN ('5', '6', '7')
+          AND DATE_FORMAT(bt.lease_end_time, '%Y-%m-%d') &lt;
+              DATE_FORMAT(
+                      NOW(),
+                      '%Y-%m-%d')
+    </select>
+
+    <select id="getById" resultType="com.wr.estate.entity.dto.TenantFileDto">
+        SELECT t.community_id     AS "communityId",
+               t.building_id      AS "buildingId",
+               t.unit_id          AS "unitId",
+               t.room_id          AS "roomId",
+               t.owner_id         AS "ownerId",
+               o.owner_phone      AS "ownerPhone",
+               o.card_no          AS "ownerCardNo",
+               r.house_address    AS "houseAddress",
+               r.room_area        AS "roomArea",
+               t.tenant_id        AS "tenantId",
+               t.tenant_name      AS "tenantName",
+               t.tenant_phone     AS "tenantPhone",
+               t.gender           AS "gender",
+               t.card_type        AS "cardType",
+               t.card_no          AS "cardNo",
+               t.card_font        AS "cardFont",
+               t.card_back        AS "cardBack",
+               t.domicile_address AS "domicileAddress",
+               t.lease_start_time AS "leaseStartTime",
+               t.lease_end_time   AS "leaseEndTime",
+               t.deposit_pay_time AS "depositPayTime",
+               t.total_money      AS "totalMoney",
+               t.deposit          AS "deposit",
+               t.license_url      AS "licenseUrl",
+               t.rent_contract    AS "rentContract",
+               t.other            AS "other"
+        FROM xccj_community.bus_tenant t
+                 LEFT JOIN xccj_community.bus_room r ON t.room_id = r.room_id
+                 LEFT JOIN xccj_community.bus_owner o ON t.owner_id = o.owner_id
+        WHERE t.del_flag = '0'
+          AND t.tenant_id = #{tenantId}
+    </select>
+</mapper>

@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.system.business.mapper.EstateMapper">
+    <sql id="deptColumns">
+        d.dept_id,d.parent_id as deptParentId,d.ancestors as deptAncestors,d.dept_name,d.order_num,d.leader,
+        d.phone,d.email,d.status,d.del_flag,d.create_by,d.create_time, d.update_by,d.update_time
+    </sql>
+
+    <sql id="estateColumns">
+        di.estate_id, di.parent_id, di.ancestors, di.estate_name, di.dept_id, di.estate_code, di.credit_code, di.hotline,
+        di.legal, di.register_status, di.found_date, di.register_capital, di.actual_capital, di.approve_date, di.business_code,
+        di.taxpayer_code, di.firm_type, di.period_begin, di.period_end, di.taxpayer_qualify, di.area_name, di.register_office,
+        di.staff_size, di.insured_num, di.former_name, di.register_address, di.history_server, di.brief, di.business_scope, di.del_flag
+    </sql>
+    <resultMap type="com.wr.system.business.domain.EstateVo" id="SysDeptResult">
+        <id property="deptId" column="dept_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="ancestors" column="ancestors"/>
+        <result property="estateName" column="estate_name"/>
+        <result property="estateId" column="estate_id"/>
+        <result property="estateCode" column="estate_code"/>
+        <result property="creditCode" column="credit_code"/>
+        <result property="hotline" column="hotline"/>
+        <result property="legal" column="legal"/>
+        <result property="registerStatus" column="register_status"/>
+        <result property="foundDate" column="found_date"/>
+        <result property="registerCapital" column="register_capital"/>
+        <result property="actualCapital" column="actual_capital"/>
+        <result property="approveDate" column="approve_date"/>
+        <result property="businessCode" column="business_code"/>
+        <result property="taxpayerCode" column="taxpayer_code"/>
+        <result property="firmType" column="firm_type"/>
+        <result property="periodBegin" column="period_begin"/>
+        <result property="periodEnd" column="period_end"/>
+        <result property="taxpayerQualify" column="taxpayer_qualify"/>
+        <result property="areaName" column="area_name"/>
+        <result property="registerOffice" column="register_office"/>
+        <result property="staffSize" column="staff_size"/>
+        <result property="insuredNum" column="insured_num"/>
+        <result property="formerName" column="former_name"/>
+        <result property="registerAddress" column="register_address"/>
+        <result property="historyServer" column="history_server"/>
+        <result property="brief" column="brief"/>
+        <result property="businessScope" column="business_scope"/>
+        <result property="parentName" column="parentName"/>
+        <result property="delFlag" column="del_flag"/>
+        <association property="sysDept" javaType="com.wr.remote.domain.SysDept">
+            <id property="deptId" column="dept_id"/>
+            <result property="parentId" column="deptParentId"/>
+            <result property="ancestors" column="deptAncestors"/>
+            <result property="deptName" column="dept_name"/>
+            <result property="deptType" column="dept_type"/>
+            <result property="orderNum" column="order_num"/>
+            <result property="leader" column="leader"/>
+            <result property="phone" column="phone"/>
+            <result property="email" column="email"/>
+            <result property="status" column="status"/>
+            <result property="delFlag" column="del_flag"/>
+            <result property="createBy" column="create_by"/>
+            <result property="createTime" column="create_time"/>
+            <result property="updateBy" column="update_by"/>
+            <result property="updateTime" column="update_time"/>
+        </association>
+    </resultMap>
+    <!--查列-->
+    <select id="selectEstateVoList" resultType="com.wr.system.business.domain.EstateVo">
+        SELECT
+            d.dept_id AS "sysDept.deptId", d.parent_id AS "sysDept.parentId", d.dept_name AS "sysDept.deptName",
+            d.status AS "sysDept.status", di.estate_id, di.parent_id, di.ancestors, di.estate_name, di.dept_id,
+            di.estate_code, di.credit_code, di.hotline, di.legal, di.register_status, di.found_date, di.register_capital,
+            di.actual_capital, di.approve_date, di.business_code, di.taxpayer_code, di.firm_type, di.period_begin,
+            di.period_end, di.taxpayer_qualify, di.area_name, di.register_office, di.staff_size, di.insured_num,
+            di.former_name, di.register_address, di.history_server, di.brief, di.business_scope, di.del_flag
+        FROM xccj_community.bus_estate di
+        LEFT JOIN xccj_estate_sys.sys_dept d ON di.dept_id = d.dept_id
+        WHERE d.del_flag = '0' AND d.dept_type = '10' and di.del_flag = '0'
+        <if test="estateName != null and estateName != ''">
+            AND di.estate_name like concat('%', #{estateName}, '%')
+        </if>
+        <if test="legal != null and legal != ''">
+            AND di.legal like concat('%', #{legal}, '%')
+        </if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        ORDER BY d.parent_id,d.order_num,d.create_time
+    </select>
+
+    <!--校验：公司名称-->
+    <select id="checkEstateVoNameUnique" resultMap="SysDeptResult">
+        SELECT
+        <include refid="deptColumns"/>
+        FROM xccj_estate_sys.sys_dept d
+        WHERE d.del_flag='0' AND d.dept_type='10' AND d.dept_name=#{deptName} AND d.parent_id = #{parentId} LIMIT 1
+    </select>
+    <!--校验：社会统一信用代码-->
+    <select id="checkEstateVoCreditCodeUnique" parameterType="String" resultType="Integer">
+        select COUNT(credit_code)
+        from xccj_community.bus_estate
+        where credit_code = #{creditCode}
+    </select>
+    <!--校验：机构编码-->
+    <select id="checkEstateVoDeptCode" parameterType="String" resultType="Integer">
+        select COUNT(estate_code)
+        from xccj_community.bus_estate
+        where del_flag = '0'
+          and estate_code = #{deptCode}
+    </select>
+    <!--校验：工商注册号-->
+    <select id="checkEstateVoBusinessCode" parameterType="String" resultType="Integer">
+        select COUNT(business_code)
+        from xccj_community.bus_estate
+        where business_code = #{BusinessCode}
+    </select>
+    <!--校验：纳税人识别号-->
+    <select id="checkEstateVoTaxpayerCode" parameterType="String" resultType="Integer">
+        select COUNT(taxpayer_code)
+        from xccj_community.bus_estate
+        where taxpayer_code = #{taxpayerCode}
+    </select>
+
+
+    <select id="selectEstateVoById" resultMap="SysDeptResult">
+        SELECT dia.estate_name as parentName,
+        <include refid="deptColumns"/>,
+        <include refid="estateColumns"/>
+        FROM xccj_community.bus_estate di
+        LEFT JOIN xccj_community.bus_estate dia ON dia.estate_id = di.parent_id
+        LEFT JOIN xccj_estate_sys.sys_dept d ON di.dept_id = d.dept_id
+        WHERE di.del_flag = '0' AND di.estate_id = #{estateId}
+    </select>
+    <select id="selectEstateVoByName" resultType="com.wr.system.business.domain.EstateVo">
+        SELECT dia.estate_name as parentName,
+        <include refid="deptColumns"/>,
+        <include refid="estateColumns"/>
+        FROM xccj_community.bus_estate di
+        LEFT JOIN xccj_community.bus_estate dia ON dia.estate_id = di.parent_id
+        LEFT JOIN xccj_estate_sys.sys_dept d ON di.dept_id = d.dept_id
+        WHERE di.del_flag = '0' AND di.estate_name = #{name}
+    </select>
+    <insert id="insertDept" useGeneratedKeys="true" keyProperty="deptId">
+        insert into xccj_estate_sys.sys_dept(
+            <if test="deptId != null and deptId != 0">dept_id,</if>
+            <if test="parentId != null and parentId != 0">parent_id,</if>
+            <if test="deptName != null and deptName != ''">dept_name,</if>
+            <if test="deptType != null and deptType != ''">dept_type,</if>
+            <if test="ancestors != null and ancestors != ''">ancestors,</if>
+            <if test="orderNum != null and orderNum != ''">order_num,</if>
+            <if test="leader != null and leader != ''">leader,</if>
+            <if test="phone != null and phone != ''">phone,</if>
+            <if test="email != null and email != ''">email,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null and createBy != ''">create_by, update_by,</if>
+            create_time, update_time
+        )values(
+            <if test="deptId != null and deptId != 0">#{deptId},</if>
+            <if test="parentId != null and parentId != 0">#{parentId},</if>
+            <if test="deptName != null and deptName != ''">#{deptName},</if>
+            <if test="deptType != null and deptType != ''">#{deptType},</if>
+            <if test="ancestors != null and ancestors != ''">#{ancestors},</if>
+            <if test="orderNum != null and orderNum != ''">#{orderNum},</if>
+            <if test="leader != null and leader != ''">#{leader},</if>
+            <if test="phone != null and phone != ''">#{phone},</if>
+            <if test="email != null and email != ''">#{email},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},#{createBy},</if>
+            sysdate(), sysdate()
+        )
+    </insert>
+
+    <insert id="insertEstateVo">
+        INSERT INTO xccj_community.bus_estate(
+            dept_id
+            <if test="parentId != null">,parent_id</if>
+            <if test="ancestors != null">,ancestors</if>
+            <if test="estateName != null and estateName != ''">,estate_name</if>
+            <if test="estateCode != null and estateCode != ''">,estate_code</if>
+            <if test="creditCode != null and creditCode != ''">,credit_code</if>
+            <if test="hotline != null and hotline != ''">,hotline</if>
+            <if test="legal != null and legal != ''">,legal</if>
+            <if test="registerStatus != null and registerStatus != ''">,register_status</if>
+            <if test="foundDate != null">,found_date</if>
+            <if test="registerCapital != null">,register_capital</if>
+            <if test="actualCapital != null">,actual_capital</if>
+            <if test="approveDate != null">,approve_date</if>
+            <if test="businessCode != null and businessCode != ''">,business_code</if>
+            <if test="taxpayerCode != null and taxpayerCode != ''">,taxpayer_code</if>
+            <if test="firmType != null and firmType != ''">,firm_type</if>
+            <if test="periodBegin != null">,period_begin</if>
+            <if test="periodEnd != null">,period_end</if>
+            <if test="taxpayerQualify != null and taxpayerQualify != ''">,taxpayer_qualify</if>
+            <if test="areaName != null and areaName != ''">,area_name</if>
+            <if test="registerOffice != null and registerOffice != ''">,register_office</if>
+            <if test="staffSize != null and staffSize != ''">,staff_size</if>
+            <if test="insuredNum != null">,insured_num</if>
+            <if test="formerName != null and formerName != ''">,former_name</if>
+            <if test="registerAddress != null and registerAddress != ''">,register_address</if>
+            <if test="historyServer != null and historyServer != ''">,history_server</if>
+            <if test="brief != null and brief != ''">,brief</if>
+            <if test="businessScope != null and businessScope != ''">,business_scope</if>
+        )VALUES (
+            #{deptId}
+            <if test="parentId != null">,#{parentId}</if>
+            <if test="ancestors != null">,#{ancestors}</if>
+            <if test="estateName != null and estateName != ''">,#{estateName}</if>
+            <if test="estateCode != null and estateCode != ''">,#{estateCode}</if>
+            <if test="creditCode != null and creditCode != ''">,#{creditCode}</if>
+            <if test="hotline != null and hotline != ''">,#{hotline}</if>
+            <if test="legal != null and legal != ''">,#{legal}</if>
+            <if test="registerStatus != null and registerStatus != ''">,#{registerStatus}</if>
+            <if test="foundDate != null">,#{foundDate}</if>
+            <if test="registerCapital != null">,#{registerCapital}</if>
+            <if test="actualCapital != null">,#{actualCapital}</if>
+            <if test="approveDate != null">,#{approveDate}</if>
+            <if test="businessCode != null and businessCode != ''">,#{businessCode}</if>
+            <if test="taxpayerCode != null and taxpayerCode != ''">,#{taxpayerCode}</if>
+            <if test="firmType != null and firmType != ''">,#{firmType}</if>
+            <if test="periodBegin != null">,#{periodBegin}</if>
+            <if test="periodEnd != null">,#{periodEnd}</if>
+            <if test="taxpayerQualify != null and taxpayerQualify != ''">,#{taxpayerQualify}</if>
+            <if test="areaName != null and areaName != ''">,#{areaName}</if>
+            <if test="registerOffice != null and registerOffice != ''">,#{registerOffice}</if>
+            <if test="staffSize != null and staffSize != ''">,#{staffSize}</if>
+            <if test="insuredNum != null">,#{insuredNum}</if>
+            <if test="formerName != null and formerName != ''">,#{formerName}</if>
+            <if test="registerAddress != null and registerAddress != ''">,#{registerAddress}</if>
+            <if test="historyServer != null and historyServer != ''">,#{historyServer}</if>
+            <if test="brief != null and brief != ''">,#{brief}</if>
+            <if test="businessScope != null and businessScope != ''">,#{businessScope}</if>
+        )
+    </insert>
+
+    <update id="updateEstateVo">
+        UPDATE xccj_community.bus_estate SET
+        parent_id = #{parentId},estate_name = #{estateName},
+        estate_code = #{estateCode},
+        credit_code = #{creditCode},hotline = #{hotline},
+        legal = #{legal},register_status = #{registerStatus},
+        found_date = #{foundDate},register_capital = #{registerCapital},
+        actual_capital = #{actualCapital},approve_date = #{approveDate},
+        business_code = #{businessCode},taxpayer_code = #{taxpayerCode},
+        firm_type = #{firmType},period_begin = #{periodBegin},
+        <if test="periodEnd != null">
+            period_end = #{periodEnd},
+        </if>
+        taxpayer_qualify = #{taxpayerQualify},area_name = #{areaName},
+        register_office = #{registerOffice},staff_size = #{staffSize},
+        insured_num = #{insuredNum},former_name = #{formerName},
+        register_address = #{registerAddress},history_server = #{historyServer},
+        brief = #{brief},business_scope = #{businessScope}
+        WHERE dept_id = #{deptId}
+    </update>
+    <update id="updateStatus">
+        UPDATE xccj_estate_sys.sys_dept SET status = #{sysDept.status} where dept_id = #{sysDept.deptId}
+    </update>
+    <select id="selectChildrenDeptById" resultMap="SysDeptResult">
+        SELECT
+        <include refid="deptColumns"/>,
+        <include refid="estateColumns"/>
+        FROM xccj_estate_sys.sys_dept d
+        LEFT JOIN xccj_community.bus_estate di ON di.dept_id = d.dept_id
+        WHERE d.del_flag = '0' AND d.dept_type = '10'
+        AND find_in_set(#{deptId}, d.ancestors)
+    </select>
+    <select id="getCheckList" resultType="com.wr.system.business.domain.EstateVo">
+        select di.estate_name,di.credit_code,di.estate_code,di.business_code,di.taxpayer_code
+        from xccj_community.bus_estate di
+        where di.del_flag = '0'
+    </select>
+</mapper> 

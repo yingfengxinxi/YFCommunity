@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.wr</groupId>
+        <artifactId>community</artifactId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>modules-job</module>
+        <module>modules-payment</module>
+        <module>modules-file</module>
+        <module>modules-system</module>
+        <module>modules-estate</module>
+        <module>modules-aiot</module>
+        <module>modules-govern</module>
+        <module>modules-work</module>
+    </modules>
+
+    <artifactId>wr-modules</artifactId>
+    <packaging>pom</packaging>
+
+    <description>wr-modules业务模块</description>
+
+</project>

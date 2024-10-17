@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.business.mapper.EquipmentAlarmMapper">
+
+    <select id="getAcsNum" resultType="java.lang.Long">
+        SELECT count(*) FROM xccj_device.bus_warn_event
+        WHERE del_flag = '0' AND event_type  IN ('198657','199428','199708','199709')
+        <if test="communityId!=null and communityId!=''">
+            and community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+    </select>
+
+    <select id="getFireNum" resultType="java.lang.Long">
+        SELECT count(*) FROM xccj_device.bus_warn_event
+        WHERE del_flag = '0' AND event_type  IN ('192513','192514','192515')
+        <if test="communityId!=null and communityId!=''">
+            and community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+    </select>
+
+    <select id="getVideoNum" resultType="java.lang.Long">
+        SELECT count(*) FROM xccj_device.bus_warn_event
+        WHERE del_flag = '0' AND event_type  IN ('131330','131585','131597','131605','930335')
+        <if test="communityId!=null and communityId!=''">
+            and community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+    </select>
+
+    <select id="getVisitNum" resultType="java.lang.Long">
+        SELECT count(*) FROM xccj_device.bus_warn_event
+        WHERE del_flag = '0' AND event_type  IN ('983302','983303','983556','983560','983563')
+        <if test="communityId!=null and communityId!=''">
+            and community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+    </select>
+
+    <select id="getMonthlyMaintenanceStatistics" resultType="com.wr.system.business.domain.screen.AnnualMaintenanceEquipmentVo"
+            parameterType="java.lang.Integer">
+        SELECT DATE_FORMAT(create_time,'%m') AS dateMonth,COUNT(*) AS num
+        FROM xccj_community.bus_patrol_work_order
+        WHERE patrol_status = '1' AND DATE_FORMAT(create_time,'%Y') = #{year} <if test="communityId !=null"> and community_id = #{communityId}</if>
+        GROUP BY DATE_FORMAT(create_time,'%m')
+    </select>
+
+    <select id="selectWarnEvent" resultType="com.wr.remote.aiot.WarnEvent">
+        SELECT w.record_time, w.address, w.event_name FROM (
+        SELECT
+        swe.record_time,sdb.access_name as address,
+        (case swe.event_type
+        WHEN '198657' THEN '门被外力开启' WHEN '199428' THEN '门禁胁迫报警' WHEN '199708' THEN '门禁设备防拆报警' WHEN '199709' THEN '门禁设备防拆恢复'
+        end) as event_name
+        FROM xccj_device.bus_warn_event swe
+        LEFT JOIN xccj_device.bus_access sdb ON sdb.index_code = swe.src_index
+        WHERE swe.del_flag = '0' AND swe.event_type IN ('198657','199428','199708','199709')
+        <if test="startTime != null and startTime != ''"><!-- 开始时间检索 -->
+            and date_format(swe.record_time,'%y%m%d') &gt;= date_format(#{startTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            and date_format(swe.record_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+        <if test="communityId!=null and communityId!=''">
+            and swe.community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+        UNION ALL
+        SELECT
+        swe.record_time,sc.camera_name as address,
+        (case swe.event_type
+        WHEN '192513' THEN '烟雾检测' WHEN '192514' THEN '烟火检测' WHEN '192515' THEN '火点检测' WHEN '131330' THEN '视频遮挡' WHEN '131585' THEN '越界侦测'
+        WHEN '131597' THEN '攀高' WHEN '131605' THEN '倒地' WHEN '930335' THEN '高空抛物'
+        end) as event_name
+        FROM xccj_device.bus_warn_event swe
+        LEFT JOIN xccj_device.bus_camera sc ON sc.index_code = swe.src_index
+        WHERE swe.del_flag = '0' AND swe.event_type IN ('192513','192514','192515','131330','131585','131597','131605','930335')
+        <if test="startTime != null and startTime != ''"><!-- 开始时间检索 -->
+            and date_format(swe.record_time,'%y%m%d') &gt;= date_format(#{startTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            and date_format(swe.record_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+        <if test="communityId!=null and communityId!=''">
+            and swe.community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+        UNION ALL
+        SELECT
+        swe.record_time,stb.visual_name as address,
+        (case swe.event_type
+        WHEN '983302' THEN '可视对讲防拆报警' WHEN '983303' THEN '可视对讲劫持报警' WHEN '983556' THEN '可视对讲烟感报警' WHEN '983560' THEN '可视对讲紧急开关报警' WHEN '983563' THEN '可视对讲智能锁撬门报警'
+        end) as event_name
+        FROM xccj_device.bus_warn_event swe
+        LEFT JOIN xccj_device.bus_visual stb ON stb.index_code = swe.src_index
+        WHERE swe.del_flag = '0' AND swe.event_type IN ('983302','983303','983556','983560','983563')
+        <if test="startTime != null and startTime != ''"><!-- 开始时间检索 -->
+            and date_format(swe.record_time,'%y%m%d') &gt;= date_format(#{startTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            and date_format(swe.record_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+        <if test="communityId!=null and communityId!=''">
+            and swe.community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+        ) w
+        ORDER BY w.record_time DESC
+    </select>
+
+</mapper>

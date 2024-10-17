@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.business.mapper.CommunityMapper">
+    <sql id="communityColumns">
+        bc.community_id,bc.community_name,bc.community_alias,bc.estate_id,
+        bc.area_id,bc.plot_ratio,bc.developers_name,bc.resident_num,bc.register_num,
+        bc.green_ratio,bc.plate_name,bc.door_area,bc.land_space,bc.covered_area,
+        bc.contract_begin,bc.contract_end,bc.address,bc.latitude,bc.longitude,
+        bc.create_by,bc.create_time,bc.update_by,bc.update_time,bc.del_flag
+    </sql>
+    <sql id="communityHikColumns">
+        bch.community_id, bch.hik_ip, bch.hik_port, bch.hik_ak, bch.hik_sk, bch.del_flag
+    </sql>
+    <sql id="communityWechatColumns">
+        bcw.community_id,bcw.app_id as wecAppId,bcw.app_secret,bcw.public_app_id,bcw.public_secret,bcw.mch_id,bcw.serial_number,bcw.api_key,bcw.private_url as wecPrivateUrl,bcw.del_flag
+    </sql>
+    <resultMap id="communityVoResultMap" type="com.wr.system.business.domain.CommunityVo">
+        <id property="communityId" column="community_id"/>
+        <result property="communityName" column="community_name"/>
+        <result property="communityAlias" column="community_alias"/>
+        <result property="estateId" column="estate_id"/>
+        <result property="estateName" column="estate_name"/>
+        <result property="areaId" column="area_id"/>
+        <result property="plotRatio" column="plot_ratio"/>
+        <result property="developersName" column="developers_name"/>
+        <result property="residentNum" column="resident_num"/>
+        <result property="registerNum" column="register_num"/>
+        <result property="greenRatio" column="green_ratio"/>
+        <result property="plateName" column="plate_name"/>
+        <result property="doorArea" column="door_area"/>
+        <result property="landSpace" column="land_space"/>
+        <result property="coveredArea" column="covered_area"/>
+        <result property="contractBegin" column="contract_begin"/>
+        <result property="contractEnd" column="contract_end"/>
+        <result property="address" column="address"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <association property="communityHik" javaType="com.wr.common.customize.util.CommunityHik">
+            <id property="communityId" column="community_id"/>
+            <result property="hikIp" column="hik_ip"/>
+            <result property="hikPort" column="hik_port"/>
+            <result property="hikAk" column="hik_ak"/>
+            <result property="hikSk" column="hik_sk"/>
+            <result property="delFlag" column="del_flag"/>
+        </association>
+        <association property="communityWechat" javaType="com.wr.remote.domain.CommunityWechat">
+            <id property="communityId" column="community_id"/>
+            <result property="appId" column="wecAppId"/>
+            <result property="appSecret" column="app_secret"/>
+            <result property="publicAppId" column="public_app_id"/>
+            <result property="publicSecret" column="public_secret"/>
+            <result property="mchId" column="mch_id"/>
+            <result property="serialNumber" column="serial_number"/>
+            <result property="apiKey" column="api_key"/>
+            <result property="privateUrl" column="wecPrivateUrl"/>
+            <result property="delFlag" column="del_flag"/>
+        </association>
+    </resultMap>
+    <select id="selectCommunityVoById" resultMap="communityVoResultMap">
+        SELECT
+        be.estate_name,
+        <include refid="communityColumns"/>,
+        <include refid="communityHikColumns"/>
+        FROM xccj_community.bus_community bc
+        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bc.estate_id
+        LEFT JOIN xccj_community.bus_community_hik bch ON bc.community_id = bch.community_id
+        WHERE bc.del_flag = '0' AND bc.community_id = #{communityId}
+    </select>
+
+
+    <select id="communityTableColumnsById" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM xccj_community.${communityTable}
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+
+    <select id="selectCommunityVo" resultMap="communityVoResultMap">
+        select *
+        from xccj_community.bus_community
+        WHERE del_flag = '0'
+    </select>
+
+    <select id="selectCommunityVoList" resultMap="communityVoResultMap">
+        SELECT
+        be.estate_name,
+        <include refid="communityColumns"/>,
+        <include refid="communityHikColumns"/>
+        FROM xccj_community.bus_community bc
+        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bc.estate_id
+        LEFT JOIN xccj_community.bus_community_hik bch ON bc.community_id = bch.community_id
+        WHERE bc.del_flag = '0'
+        <if test="null != estateId and 0 != estateId">
+            AND bc.estate_id = #{estateId}
+        </if>
+        <if test="communityName != null and communityName != ''">
+            AND bc.community_name LIKE concat('%', #{communityName}, '%')
+        </if>
+    </select>
+
+    <insert id="insertCommunityVo">
+        INSERT INTO xccj_community.bus_community(
+        <if test="registerNum != null">
+            register_num,
+        </if>
+        <if test="latitude != null and latitude != ''">
+            latitude,
+        </if>
+        <if test="longitude != null and longitude != ''">
+            longitude,
+        </if>
+        <if test="estateId != null">
+            estate_id,
+        </if>
+        <if test="areaId != null">
+            area_id,
+        </if>
+        <if test="communityName != null and communityName != ''">
+            community_name,
+        </if>
+        <if test="developersName != null and developersName != ''">
+            developers_name,
+        </if>
+        <if test="plateName != null and plateName != ''">
+            plate_name,
+        </if>
+        <if test="address != null and address != ''">
+            address,
+        </if>
+        <if test="doorArea != null and doorArea != ''">
+            door_area,
+        </if>
+        <if test="landSpace != null and landSpace != ''">
+            land_space,
+        </if>
+        <if test="coveredArea != null and coveredArea != ''">
+            covered_area,
+        </if>
+        <if test="communityAlias != null and communityAlias != ''">
+            community_alias,
+        </if>
+        <if test="plotRatio != null">
+            plot_ratio,
+        </if>
+        <if test="residentNum != null">
+            resident_num,
+        </if>
+        <if test="greenRatio != null">
+            green_ratio,
+        </if>
+        <if test="contractBegin != null">
+            contract_begin,
+        </if>
+        <if test="contractEnd != null">
+            contract_end,
+        </if>
+        create_by, create_time, update_by,
+        update_time, del_flag
+        ) VALUES (
+        <if test="registerNum != null">
+            #{registerNum},
+        </if>
+        <if test="latitude != null and latitude != ''">
+            #{latitude},
+        </if>
+        <if test="longitude != null and longitude != ''">
+            #{longitude},
+        </if>
+        <if test="estateId != null">
+            #{estateId},
+        </if>
+        <if test="areaId != null">
+            #{areaId},
+        </if>
+        <if test="communityName != null and communityName != ''">
+            #{communityName},
+        </if>
+        <if test="developersName != null and developersName != ''">
+            #{developersName},
+        </if>
+        <if test="plateName != null and plateName != ''">
+            #{plateName},
+        </if>
+        <if test="address != null and address != ''">
+            #{address},
+        </if>
+        <if test="doorArea != null and doorArea != ''">
+            #{doorArea},
+        </if>
+        <if test="landSpace != null and landSpace != ''">
+            #{landSpace},
+        </if>
+        <if test="coveredArea != null and coveredArea != ''">
+            #{coveredArea},
+        </if>
+        <if test="communityAlias != null and communityAlias != ''">
+            #{communityAlias},
+        </if>
+        <if test="plotRatio != null">
+            #{plotRatio},
+        </if>
+        <if test="residentNum != null">
+            #{residentNum},
+        </if>
+        <if test="greenRatio != null">
+            #{greenRatio},
+        </if>
+        <if test="contractBegin != null">
+            #{contractBegin},
+        </if>
+        <if test="contractEnd != null">
+            #{contractEnd},
+        </if>
+        #{createBy},sysdate(),#{createBy},sysdate(),'0'
+        )
+    </insert>
+
+    <insert id="insertCommunityHikVo">
+        INSERT INTO xccj_community.bus_community_hik(
+        <if test="communityId != null and communityId != ''">
+            community_id,
+        </if>
+        <if test="hikIp != null and hikIp != ''">
+            hik_ip,
+        </if>
+        <if test="hikPort != null and hikPort != ''">
+            hik_port,
+        </if>
+        <if test="hikAk != null and hikAk != ''">
+            hik_ak,
+        </if>
+        <if test="hikSk != null and hikSk != ''">
+            hik_sk,
+        </if>
+        del_flag
+        ) VALUES (
+        <if test="communityId != null and communityId != ''">
+            #{communityId},
+        </if>
+        <if test="hikIp != null and hikIp != ''">
+            #{hikIp},
+        </if>
+        <if test="hikPort != null and hikPort != ''">
+            #{hikPort},
+        </if>
+        <if test="hikAk != null and hikAk != ''">
+            #{hikAk},
+        </if>
+        <if test="hikSk != null and hikSk != ''">
+            #{hikSk},
+        </if>
+        '0'
+        )
+    </insert>
+
+    <insert id="insertCommunityWechatVo">
+        INSERT INTO xccj_community.bus_community_wechat(
+        <if test="communityId != null and communityId != ''">
+            community_id,
+        </if>
+        <if test="appId != null and appId != ''">
+            app_id,
+        </if>
+        <if test="appSecret != null and appSecret != ''">
+            app_secret,
+        </if>
+        <if test="publicAppId != null and publicAppId != ''">
+            public_app_id,
+        </if>
+        <if test="publicSecret != null and publicSecret != ''">
+            public_secret,
+        </if>
+        <if test="mchId != null and mchId != ''">
+            mch_id,
+        </if>
+        <if test="serialNumber != null and serialNumber != ''">
+            serial_number,
+        </if>
+        <if test="apiKey != null and apiKey != ''">
+            api_key,
+        </if>
+        <if test="privateUrl != null and privateUrl != ''">
+            private_url,
+        </if>
+        del_flag
+        ) VALUES (
+        <if test="communityId != null and communityId != ''">
+            #{communityId},
+        </if>
+        <if test="appId != null and appId != ''">
+            #{appId},
+        </if>
+        <if test="appSecret != null and appSecret != ''">
+            #{appSecret},
+        </if>
+        <if test="publicAppId != null and publicAppId != ''">
+            #{publicAppId},
+        </if>
+        <if test="publicSecret != null and publicSecret != ''">
+            #{publicSecret},
+        </if>
+        <if test="mchId != null and mchId != ''">
+            #{mchId},
+        </if>
+        <if test="serialNumber != null and serialNumber != ''">
+            #{serialNumber},
+        </if>
+        <if test="apiKey != null and apiKey != ''">
+            #{apiKey},
+        </if>
+        <if test="privateUrl != null and privateUrl != ''">
+            #{privateUrl},
+        </if>
+        '0'
+        )
+    </insert>
+    <update id="updateCommunityVo">
+        UPDATE xccj_community.bus_community SET
+        estate_id = #{estateId}, area_id = #{areaId},
+        community_name = #{communityName},
+        developers_name = #{developersName},
+        plate_name = #{plateName},address = #{address},
+        contract_begin = #{contractBegin},contract_end = #{contractEnd},
+        door_area = #{doorArea}, land_space = #{landSpace},
+        covered_area = #{coveredArea},register_num = #{registerNum},
+        latitude = #{latitude},longitude = #{longitude},
+        <if test="communityAlias != null and communityAlias != ''">
+            community_alias = #{communityAlias},
+        </if>
+        <if test="plotRatio != null">
+            plot_ratio = #{plotRatio},
+        </if>
+        <if test="residentNum != null">
+            resident_num = #{residentNum},
+        </if>
+        <if test="greenRatio != null">
+            green_ratio = #{greenRatio},
+        </if>
+        <if test="contractBegin != null">
+            contract_begin = #{contractBegin},
+        </if>
+        <if test="contractEnd != null">
+            contract_end = #{contractEnd},
+        </if>
+        update_by = #{updateBy},update_time = sysdate()
+        WHERE community_id = #{communityId}
+    </update>
+
+    <update id="updateCommunityHikVo">
+        UPDATE xccj_community.bus_community_hik
+        SET hik_ip   = #{hikIp},
+            hik_port =#{hikPort},
+            hik_ak   = #{hikAk},
+            hik_sk   = #{hikSk}
+        WHERE community_id = #{communityId}
+    </update>
+    <update id="updateCommunityWechatVo">
+        UPDATE xccj_community.bus_community_wechat
+        SET app_id        = #{appId},
+            app_secret    = #{appSecret},
+            public_app_id = #{publicAppId},
+            public_secret = #{publicSecret},
+            mch_id        = #{mchId},
+            serial_number = #{serialNumber},
+            api_key       = #{apiKey},
+            private_url   = #{privateUrl}
+        WHERE community_id = #{communityId}
+    </update>
+
+    <update id="deleteCommunityVoById">
+        UPDATE xccj_community.bus_community
+        SET del_flag = '1'
+        WHERE community_id = #{communityId}
+    </update>
+    <update id="deleteCommunityTableVoById">
+        UPDATE xccj_community.${communityTable}
+        SET del_flag = '1'
+        WHERE community_id = #{communityId}
+    </update>
+
+    <select id="selectHikByCommunityId" resultType="com.wr.common.customize.util.CommunityHik">
+        SELECT
+            *
+        FROM xccj_community.bus_community_hik
+        WHERE del_flag = '0' AND community_id = #{communityId}
+        LIMIT 1
+    </select>
+</mapper>

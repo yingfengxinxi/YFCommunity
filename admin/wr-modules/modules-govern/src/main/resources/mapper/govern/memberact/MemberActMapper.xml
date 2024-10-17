@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.memberact.MemberActMapper">
+    <insert id="addMeberAct">
+        INSERT INTO xccj_govern.`bus_member_act`(act_theme, address, status, plan_status, start_time, end_time,close_time, content,
+                                                 picture_url, create_by, create_time, update_by, update_time, community_id)
+        VALUES (#{actTheme}, #{address}, #{status}, #{planStatus}, #{startTime}, #{endTime},#{closeTime}, #{content}, #{pictureUrl}, #{createBy}, sysdate(), #{updateBy},
+                sysdate(), #{communityId})
+    </insert>
+    <update id="delMeberAct">
+        UPDATE xccj_govern.`bus_member_act` SET del_flag = '1' WHERE activity_id IN
+        <foreach item="item" index="index" collection="activityIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+    <select id="getMemberActAll" resultType="com.wr.remote.govern.party.vo.MemberActVO">
+        SELECT
+        bma.*,
+        bc.community_name
+        FROM
+        xccj_govern.`bus_member_act` bma
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bma.community_id
+        WHERE bma.del_flag = '0'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != actTheme and '' != actTheme">
+            AND bma.act_theme LIKE CONCAT('%',#{actTheme},'%')
+        </if>
+        <if test="null != createBy and '' != createBy">
+            AND bma.create_by = #{createBy}
+        </if>
+        <if test="null != params">
+            AND date_format(bma.create_time,'%y%m%d') between date_format(#{params.beginTime},'%y%m%d') AND
+            date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="null != status and '' != status">
+            AND bma.status = #{status}
+        </if>
+        ORDER BY bma.create_time DESC
+    </select>
+    <select id="getMemberActById" resultType="com.wr.remote.govern.party.vo.MemberActVO">
+        SELECT bma.*,
+               bc.community_name
+        FROM xccj_govern.`bus_member_act` bma
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bma.community_id
+        WHERE bma.activity_id = #{activityId}
+    </select>
+    <select id="checkNameUnique" resultType="com.wr.remote.govern.party.MemberAct">
+        SELECT
+        bma.*,
+        bc.community_name
+        FROM
+        xccj_govern.`bus_member_act` bma
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bma.community_id
+        WHERE bma.del_flag = '0'
+        <if test="null != activityId">
+            bma.activity_id != #{activityId}
+        </if>
+        AND bma.community_id = #{communityId}
+        AND bma.act_theme = #{actTheme}
+    </select>
+    <select id="getToSignUpNumber" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_govern.bus_member_join
+        WHERE activity_id = #{activityId}
+    </select>
+
+    <select id="findListMemberPeople" parameterType="map" resultType="map">
+        SELECT
+            joi.join_name joinName,
+            joi.join_phone joinPhone,
+            joi.remark,
+            unt.account_name accountName,
+            unt.login_name loginName,
+            unt.account_id accountId,
+            date_format( joi.create_time, '%Y-%m-%d %H:%i' ) createTime
+        FROM
+            xccj_govern.bus_member_act act
+                LEFT JOIN xccj_govern.bus_member_join joi ON act.activity_id = joi.activity_id
+                LEFT JOIN xccj_govern.bus_member mem ON mem.member_id = joi.member_id
+                LEFT JOIN xccj_community.bus_account unt ON unt.account_id = mem.account_id
+        WHERE
+            act.activity_id = #{activityId}
+        <if test="joinName != null and joinName != null">
+            AND joi.join_name like concat('%', #{joinName}, '%')
+        </if>
+        <if test="joinPhone != null and joinPhone != null">
+            AND joi.join_phone like concat('%', #{joinPhone}, '%')
+        </if>
+        <if test="loginName != null and loginName != null">
+            AND unt.login_name like concat('%', #{loginName}, '%')
+        </if>
+        <if test="accountName != null and accountName != null">
+            AND unt.account_name like concat('%', #{accountName}, '%')
+        </if>
+    </select>
+</mapper>

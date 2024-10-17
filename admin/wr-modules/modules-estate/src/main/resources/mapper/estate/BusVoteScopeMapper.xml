@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.vote.BusVoteScopeMapper">
+
+    <select id="getList" resultType="com.wr.remote.estate.vote.BusVoteScope">
+        SELECT
+        bvs.id,
+        bvs.vote_id as "voteId",
+        bb.building_name AS "buildingName",
+        bu.unit_name AS "unitName",
+        br.room_name AS "roomName",
+        br.room_id AS "roomId",
+        GROUP_CONCAT( DISTINCT bo.owner_name ) AS "ownerName"
+        FROM
+        xccj_community.bus_vote_scope bvs
+        LEFT JOIN xccj_community.bus_community bc ON bvs.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bvs.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bvs.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bvs.room_id = br.room_id
+        ${il} JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        LEFT JOIN xccj_community.bus_owner bo ON bo.account_id = bvo.account_id
+        WHERE
+        bvs.del_flag = '0' and bvs.vote_id=#{voteId}
+        <if test="buildingId!=null">
+            and bvs.building_id=#{buildingId}
+        </if>
+        <if test="unitId!=null">
+            and bvs.unit_id=#{unitId}
+        </if>
+        <if test="roomId!=null">
+            and bvs.room_id=#{roomId}
+        </if>
+        <if test="ownerName!=null and ownerName !=''">
+            and bo.owner_name like CONCAT('%',#{ownerName},'%')
+        </if>
+        GROUP BY
+        br.room_id
+        ORDER BY
+        bvs.create_time DESC
+    </select>
+
+
+</mapper>

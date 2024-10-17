@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.BuildingMapper">
+    <select id="buildingList" resultType="com.wr.api.owner.entity.vo.serve.ApiBuildingVo">
+        SELECT building_id AS buildingid, building_name AS buildingname
+        FROM xccj_community.bus_building
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+        ORDER BY building_name
+    </select>
+
+    <select id="unitList" resultType="com.wr.api.owner.entity.vo.serve.ApiBuildingVo">
+        SELECT unit_id AS unitid, unit_name AS unitname
+        FROM xccj_community.bus_unit
+        WHERE building_id = #{buildingId}
+          AND del_flag = '0'
+        ORDER BY unit_name
+    </select>
+
+    <select id="roomList" resultType="com.wr.api.owner.entity.vo.serve.ApiBuildingVo">
+        SELECT room_id AS roomid, room_name AS roomname
+        FROM xccj_community.bus_room
+        WHERE unit_id = #{unitId}
+          AND del_flag = '0'
+        ORDER BY room_name
+    </select>
+
+    <select id="ownerList" resultType="com.wr.api.owner.entity.vo.serve.ApiBuildingVo">
+        SELECT account_id AS accountId, owner_name AS ownerName, owner_phone AS ownerPhone
+        FROM xccj_community.bus_owner
+        WHERE room_id = #{roomId}
+          AND del_flag = '0'
+        ORDER BY owner_name
+    </select>
+</mapper>

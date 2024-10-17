@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.audit.BusHouseMapper">
+    <resultMap id="BaseResultMap" type="com.wr.estate.entity.BusHouse">
+        <id column="house_id" property="houseId" jdbcType="BIGINT"/>
+        <result column="community_id" property="communityId" jdbcType="BIGINT"/>
+        <result column="building_id" property="buildingId" jdbcType="BIGINT"/>
+        <result column="unit_id" property="unitId" jdbcType="BIGINT"/>
+        <result column="room_id" property="roomId" jdbcType="BIGINT"/>
+        <result column="owner_id" property="ownerId" jdbcType="BIGINT"/>
+        <result column="audit_status" property="auditStatus" jdbcType="CHAR"/>
+        <result column="audit_time" property="auditTime" jdbcType="TIMESTAMP"/>
+        <result column="reject_reason" property="rejectReason" jdbcType="VARCHAR"/>
+        <result column="create_by" property="createBy" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_by" property="updateBy" jdbcType="VARCHAR"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="del_flag" property="delFlag" jdbcType="CHAR"/>
+    </resultMap>
+
+    <resultMap id="OwneAuditMap" type="com.wr.estate.entity.vo.OwneAuditVo">
+        <id column="owner_id" jdbcType="BIGINT" property="ownerId"/>
+        <id column="house_id" jdbcType="BIGINT" property="houseId"/>
+        <result column="community_name" jdbcType="VARCHAR" property="communityName"/>
+        <result column="building_name" jdbcType="VARCHAR" property="buildingName"/>
+        <result column="unit_name" jdbcType="VARCHAR" property="unitName"/>
+        <result column="room_name" jdbcType="VARCHAR" property="roomName"/>
+        <result column="license_url" jdbcType="VARCHAR" property="licenseUrl"/>
+        <result column="room_status" jdbcType="BIGINT" property="roomStatus"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="owner_relation" jdbcType="CHAR" property="ownerRelation"/>
+        <result column="owner_name" jdbcType="VARCHAR" property="ownerName"/>
+        <result column="owner_phone" jdbcType="VARCHAR" property="ownerPhone"/>
+        <result column="gender" jdbcType="CHAR" property="gender"/>
+        <result column="card_type" jdbcType="CHAR" property="cardType"/>
+        <result column="card_no" jdbcType="VARCHAR" property="cardNo"/>
+        <result column="card_font" jdbcType="VARCHAR" property="cardFont"/>
+        <result column="card_back" jdbcType="VARCHAR" property="cardBack"/>
+        <result column="face_url" jdbcType="VARCHAR" property="faceUrl"/>
+        <result column="domicile_address" jdbcType="VARCHAR" property="domicileAddress"/>
+        <result column="politics_status" jdbcType="CHAR" property="politicsStatus"/>
+        <result column="nation" jdbcType="VARCHAR" property="nation"/>
+        <result column="native_place" jdbcType="VARCHAR" property="nativePlace"/>
+        <result column="religion" jdbcType="VARCHAR" property="religion"/>
+        <result column="edu_level" jdbcType="VARCHAR" property="eduLevel"/>
+        <result column="military" jdbcType="VARCHAR" property="military"/>
+        <result column="marriage_status" jdbcType="CHAR" property="marriageStatus"/>
+        <result column="nationality" jdbcType="VARCHAR" property="nationality"/>
+        <result column="population" jdbcType="CHAR" property="population"/>
+        <result column="career" jdbcType="VARCHAR" property="career"/>
+        <result column="qq_number" jdbcType="VARCHAR" property="qqNumber"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="data_source" jdbcType="CHAR" property="dataSource"/>
+        <result column="self_intro" jdbcType="VARCHAR" property="selfIntro"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Owner_List">
+        bo
+        .
+        owner_id
+        , bh.house_id,bc.community_name, bb.building_name, bu.unit_name, br.room_name,br.room_status,bh.license_url, bo.account_id, bo.owner_relation,
+    bo.owner_name, bo.owner_phone, bo.gender, bo.card_type, bo.card_no, bo.card_font, bo.card_back, bo.face_url,
+    bo.domicile_address, bo.politics_status, bo.nation, bo.native_place, bo.religion, bo.edu_level, bo.military,
+    bo.marriage_status, bo.nationality, bo.population, bo.career, bo.qq_number, bo.email, bo.data_source,
+    bo.self_intro, bh.audit_status, bh.audit_time, bh.reject_reason, bh.create_by, bh.create_time, bh.update_by,
+    bh.update_time, bh.del_flag
+    </sql>
+
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        house_id
+        , community_id, building_id, unit_id, room_id, owner_id, audit_status, audit_time,
+    reject_reason, create_by, create_time, update_by, update_time, del_flag
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.wr.estate.entity.BusHouseExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from bus_house
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_house
+        where house_id = #{houseId,jdbcType=BIGINT}
+    </select>
+    <select id="getByRoomIdOwnerId" resultType="Long">
+        SELECT bo.owner_id
+        FROM xccj_community.bus_house bh
+                 LEFT JOIN xccj_community.bus_owner bo ON bh.owner_id = bo.owner_id
+        WHERE bo.parent_id = 0
+          AND bh.room_id = #{roomId}
+    </select>
+    <select id="deleteHouse">
+        delete
+        from xccj_community.bus_house
+        where del_flag = "0"
+          and owner_id = #{ownerId}
+          and community_id = #{communityId}
+          and building_id = #{buildingId}
+          and unit_id = #{unitId}
+          and room_id = #{roomId}
+    </select>
+    <select id="deleteByOwnerIdHouse">
+        delete
+        from xccj_community.bus_house
+        where del_flag = "0"
+          and owner_id = #{ownerId}
+    </select>
+
+    <select id="getByOwnerIdHouseCount" resultType="Integer">
+        SELECT count(1)
+        FROM xccj_community.bus_house bh
+        WHERE bh.owner_id = #{ownerId}
+          AND audit_status = '1'
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from bus_house
+        where house_id = #{houseId,jdbcType=BIGINT}
+    </delete>
+    <select id="getRoomIdCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_house
+        where del_flag = "0"
+          and room_id = #{roomId}
+    </select>
+
+    <delete id="deleteByExample" parameterType="com.wr.estate.entity.BusHouseExample">
+        delete from bus_house
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.wr.estate.entity.BusHouse">
+        insert into bus_house (house_id, community_id, building_id,
+                               unit_id, room_id, owner_id,
+                               audit_status, audit_time, reject_reason,
+                               create_by, create_time, update_by,
+                               update_time, del_flag)
+        values (#{houseId,jdbcType=BIGINT}, #{communityId,jdbcType=BIGINT}, #{buildingId,jdbcType=BIGINT},
+                #{unitId,jdbcType=BIGINT}, #{roomId,jdbcType=BIGINT}, #{ownerId,jdbcType=BIGINT},
+                #{auditStatus,jdbcType=CHAR}, #{auditTime,jdbcType=TIMESTAMP}, #{rejectReason,jdbcType=VARCHAR},
+                #{createBy,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR},
+                #{updateTime,jdbcType=TIMESTAMP}, #{delFlag,jdbcType=CHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.wr.estate.entity.BusHouse">
+        insert into bus_house
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="houseId != null">
+                house_id,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="buildingId != null">
+                building_id,
+            </if>
+            <if test="unitId != null">
+                unit_id,
+            </if>
+            <if test="roomId != null">
+                room_id,
+            </if>
+            <if test="ownerId != null">
+                owner_id,
+            </if>
+            <if test="auditStatus != null">
+                audit_status,
+            </if>
+            <if test="auditTime != null">
+                audit_time,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="houseId != null">
+                #{houseId,jdbcType=BIGINT},
+            </if>
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="buildingId != null">
+                #{buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="unitId != null">
+                #{unitId,jdbcType=BIGINT},
+            </if>
+            <if test="roomId != null">
+                #{roomId,jdbcType=BIGINT},
+            </if>
+            <if test="ownerId != null">
+                #{ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="auditStatus != null">
+                #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.wr.estate.entity.BusHouseExample" resultType="java.lang.Integer">
+        select count(*) from bus_house
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update bus_house
+        <set>
+            <if test="record.houseId != null">
+                house_id = #{record.houseId,jdbcType=BIGINT},
+            </if>
+            <if test="record.communityId != null">
+                community_id = #{record.communityId,jdbcType=BIGINT},
+            </if>
+            <if test="record.buildingId != null">
+                building_id = #{record.buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="record.unitId != null">
+                unit_id = #{record.unitId,jdbcType=BIGINT},
+            </if>
+            <if test="record.roomId != null">
+                room_id = #{record.roomId,jdbcType=BIGINT},
+            </if>
+            <if test="record.ownerId != null">
+                owner_id = #{record.ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="record.auditStatus != null">
+                audit_status = #{record.auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="record.auditTime != null">
+                audit_time = #{record.auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.rejectReason != null">
+                reject_reason = #{record.rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createBy != null">
+                create_by = #{record.createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateBy != null">
+                update_by = #{record.updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.delFlag != null">
+                del_flag = #{record.delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update bus_house
+        set house_id = #{record.houseId,jdbcType=BIGINT},
+        community_id = #{record.communityId,jdbcType=BIGINT},
+        building_id = #{record.buildingId,jdbcType=BIGINT},
+        unit_id = #{record.unitId,jdbcType=BIGINT},
+        room_id = #{record.roomId,jdbcType=BIGINT},
+        owner_id = #{record.ownerId,jdbcType=BIGINT},
+        audit_status = #{record.auditStatus,jdbcType=CHAR},
+        audit_time = #{record.auditTime,jdbcType=TIMESTAMP},
+        reject_reason = #{record.rejectReason,jdbcType=VARCHAR},
+        create_by = #{record.createBy,jdbcType=VARCHAR},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_by = #{record.updateBy,jdbcType=VARCHAR},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        del_flag = #{record.delFlag,jdbcType=CHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.estate.entity.BusHouse">
+        update bus_house
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="buildingId != null">
+                building_id = #{buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="unitId != null">
+                unit_id = #{unitId,jdbcType=BIGINT},
+            </if>
+            <if test="roomId != null">
+                room_id = #{roomId,jdbcType=BIGINT},
+            </if>
+            <if test="ownerId != null">
+                owner_id = #{ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="auditStatus != null">
+                audit_status = #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                audit_time = #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where house_id = #{houseId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.wr.estate.entity.BusHouse">
+        update bus_house
+        set community_id  = #{communityId,jdbcType=BIGINT},
+            building_id   = #{buildingId,jdbcType=BIGINT},
+            unit_id       = #{unitId,jdbcType=BIGINT},
+            room_id       = #{roomId,jdbcType=BIGINT},
+            owner_id      = #{ownerId,jdbcType=BIGINT},
+            audit_status  = #{auditStatus,jdbcType=CHAR},
+            audit_time    = #{auditTime,jdbcType=TIMESTAMP},
+            reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            create_by     = #{createBy,jdbcType=VARCHAR},
+            create_time   = #{createTime,jdbcType=TIMESTAMP},
+            update_by     = #{updateBy,jdbcType=VARCHAR},
+            update_time   = #{updateTime,jdbcType=TIMESTAMP},
+            del_flag      = #{delFlag,jdbcType=CHAR}
+        where house_id = #{houseId,jdbcType=BIGINT}
+    </update>
+
+
+    <!--分页查询业主审核信息-->
+    <select id="selectListOwnerAudit" parameterType="com.wr.estate.entity.BusOwner" resultMap="OwneAuditMap">
+        select
+        <include refid="Base_Owner_List"/>
+        from xccj_community.bus_house bh
+        LEFT JOIN xccj_community.bus_owner bo on bh.owner_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_community bc on bc.community_id = bh.community_id
+        LEFT JOIN xccj_community.bus_building bb on bb.building_id = bh.building_id
+        LEFT JOIN xccj_community.bus_unit bu on bu.unit_id = bh.unit_id
+        LEFT JOIN xccj_community.bus_room br on br.room_id = bh.room_id
+        where
+        bh.community_id in (select bcc.community_id from xccj_community.bus_community bcc where bcc.estate_id =
+        #{estateId} and bcc.del_flag = 0)
+        and bo.del_flag = 0 and bc.del_flag=0 and bb.del_flag=0 and bu.del_flag = 0 and br.del_flag = 0 and bh.del_flag
+        = 0
+        and bh.audit_status in(0,2)
+        <if test="ownerName != null">
+            and bo.owner_name like concat('%', #{ownerName}, '%')
+        </if>
+        <if test="ownerPhone != null">
+            and bo.owner_phone like concat('%', #{ownerPhone}, '%')
+        </if>
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            and date_format(bo.audit_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            and date_format(bo.audit_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="communityId != null">
+            and bo.community_id = #{communityId}
+        </if>
+        <if test="auditStatus != null and auditStatus != ''">
+            and bh.audit_status = #{auditStatus}
+        </if>
+        GROUP BY bh.house_id
+    </select>
+
+    <!--  尾删除-->
+    <update id="deleteByPrimaryKeys">
+        update xccj_community.bus_house
+        set del_flag    = 1,
+            update_by   = #{updateBy},
+            update_time = NOW()
+        where house_id = #{houseId,jdbcType=BIGINT}
+    </update>
+
+    <!--  通过或驳回-->
+    <update id="updataByownerIdAndAuditStatus" parameterType="java.lang.Long">
+        update xccj_community.bus_house set audit_status = #{auditStatus} , audit_time = NOW() ,update_by =
+        #{updateBy} , update_time = NOW()
+        <if test="rejectReason != null">
+            ,reject_reason = #{rejectReason,jdbcType=VARCHAR}
+        </if>
+        where house_id = #{houseId}
+    </update>
+
+    <!--  通过或驳回-->
+    <update id="updataByOwnerIdAuditStatus" parameterType="java.lang.Long">
+        update xccj_community.bus_house
+        set audit_status = #{auditStatus} ,
+        audit_time = NOW() ,
+        update_by = #{updateBy} ,
+        update_time = NOW()
+        <if test="rejectReason != null">
+            ,reject_reason = #{rejectReason,jdbcType=VARCHAR}
+        </if>
+        where owner_id = #{ownerId} and room_id=#{roomId}
+    </update>
+
+
+    <!--  查询单个业主审核信息-->
+    <select id="selectoneOwneAuditVo" parameterType="java.lang.Long" resultMap="OwneAuditMap">
+        select
+        <include refid="Base_Owner_List"/>
+        from xccj_community.bus_house bh
+        LEFT JOIN xccj_community.bus_owner bo on bh.owner_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_community bc on bc.community_id = bh.community_id
+        LEFT JOIN xccj_community.bus_building bb on bb.building_id = bh.building_id
+        LEFT JOIN xccj_community.bus_unit bu on bu.unit_id = bh.unit_id
+        LEFT JOIN xccj_community.bus_room br on br.room_id = bh.room_id
+        where
+        bc.community_id in (select bcc.community_id from xccj_community.bus_community bcc where bcc.estate_id =
+        #{estateId} and bcc.del_flag = 0)
+        and bo.del_flag = 0 and bc.del_flag=0 and bb.del_flag=0 and bu.del_flag = 0 and br.del_flag = 0 and bh.del_flag
+        = 0 and bh.house_id = #{houseId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectHouseByRoomId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_community.`bus_house`
+        WHERE del_flag = '0'
+          AND audit_status = '1'
+          AND room_id = #{roomId} limit 1
+    </select>
+</mapper>

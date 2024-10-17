@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.manage.contract.BuyerMapper">
+
+
+    <!--字段映射-->
+    <resultMap type="com.wr.remote.estate.manage.vo.contract.BuyerVo" id="buyerVoResult">
+        <id property="procurementId" column="procurement_id"/>
+        <result property="contractNo" column="contract_no"/>
+        <result property="estateName" column="estate_name"/>
+        <result property="legal" column="legal"/>
+        <result property="hotline" column="hotline"/>
+        <result property="companyName" column="company_name"/>
+        <result property="companyHead" column="company_head"/>
+        <result property="companyPhone" column="company_phone"/>
+        <result property="staffName" column="staff_name"/>
+        <result property="materialName" column="material_name"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="actuallyAmount" column="actually_amount"/>
+        <result property="staffPhone" column="staff_phone"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="specification" column="specification"/>
+        <result property="materialNum" column="material_num"/>
+        <result property="annexUrl" column="annex_url"/>
+    </resultMap>
+
+    <!--查询采购合同列表-->
+    <select id="getBuyerList" parameterType="com.wr.remote.estate.manage.vo.contract.BuyerVo" resultMap="buyerVoResult">
+        select pro.procurement_id,
+        pro.contract_no,
+        est.estate_name,
+        est.legal,
+        est.hotline,
+        pro.company_name,
+        pro.company_head,
+        pro.company_phone,
+        sta.staff_name,
+        mat.material_name,
+        mat.total_amount,
+        pro.create_time,
+        mat.actually_amount,
+        pro.contract_name,
+        com.community_name
+        FROM xccj_community.bus_procurement AS pro
+        LEFT JOIN xccj_community.bus_estate AS est ON pro.estate_id = est.estate_id
+        LEFT JOIN xccj_community.bus_staff AS sta ON pro.staff_id = sta.staff_id
+        LEFT JOIN xccj_community.bus_material AS mat ON pro.procurement_id = mat.procurement_id
+        LEFT JOIN xccj_community.bus_community AS com ON pro.community_id = com.community_id
+        WHERE
+        pro.del_flag = '0'
+        AND est.estate_id = #{estateId}
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(pro.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(pro.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="contractName != null and contractName!= ''">
+            AND pro.contract_name like concat('%', #{contractName}, '%')
+        </if>
+
+        <if test="companyName != null and companyName!= ''">
+            AND CONCAT( IFNULL(`company_name`,''),IFNULL(`estate_name`,'')) LIKE CONCAT('%',#{companyName},'%')
+        </if>
+
+        <if test="companyPerson != null and companyPerson!= ''">
+            AND CONCAT( IFNULL(`legal`,''),IFNULL(`company_head`,'')) LIKE CONCAT('%',#{companyPerson},'%')
+        </if>
+
+        <if test="companyPhone != null and companyPhone!= ''">
+            AND CONCAT( IFNULL(`company_phone`,''),IFNULL(`hotline`,'')) LIKE CONCAT('%',#{companyPhone},'%')
+        </if>
+        <if test="staffName != null and staffName!= ''">
+            AND sta.staff_name like concat('%', #{staffName}, '%')
+        </if>
+
+        order by pro.create_time desc
+    </select>
+
+
+    <!--插入采购合同记录-->
+    <insert id="add" parameterType="com.wr.remote.estate.manage.vo.contract.BuyerVo" useGeneratedKeys="true"
+            keyProperty="procurementId">
+        insert into xccj_community.bus_procurement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractNo!= null and contractNo!='' ">contract_no,</if>
+            <if test="contractName!= null and contractName!='' ">contract_name,</if>
+            <if test="estateId != null  ">estate_id,</if>
+            <if test="communityId != null  ">community_id,</if>
+            <if test="staffId != null  ">staff_id,</if>
+            <if test="companyName != null and companyName!='' ">company_name,</if>
+            <if test="companyHead != null and companyHead!='' ">company_head,</if>
+            <if test="companyPhone != null and companyPhone!='' ">company_phone,</if>
+            <if test="annexUrl != null and annexUrl!='' ">annex_url,</if>
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractNo!= null and contractNo!='' ">#{contractNo},</if>
+            <if test="contractName!= null and contractName!='' ">#{contractName},</if>
+            <if test="estateId != null  ">#{estateId},</if>
+            <if test="communityId != null  ">#{communityId},</if>
+            <if test="staffId != null  ">#{staffId},</if>
+            <if test="companyName != null and companyName!='' ">#{companyName},</if>
+            <if test="companyHead != null and companyHead!='' ">#{companyHead},</if>
+            <if test="companyPhone != null and companyPhone!='' ">#{companyPhone},</if>
+            <if test="annexUrl != null and annexUrl!='' ">#{annexUrl},</if>
+            #{createBy},sysdate()
+        </trim>
+    </insert>
+
+
+    <!--获取物业列表-->
+    <select id="getEstateList" resultType="com.wr.remote.estate.manage.contract.Estate">
+        select * from xccj_community.bus_estate AS est
+        where est.del_flag='0'
+        <if test="estateId != null">
+            AND estate_id = #{estateId}
+        </if>
+    </select>
+
+
+    <!--根据物业id,获取员工列表-->
+    <select id="getStaffList" resultType="com.wr.remote.estate.manage.Staff" parameterType="Long">
+        select sta.staff_id,
+               sta.staff_name,
+               sta.staff_phone
+        from xccj_community.bus_estate AS est
+                 LEFT JOIN xccj_community.bus_community AS com on est.estate_id = com.estate_id
+                 LEFT JOIN xccj_community.bus_staff as sta on com.community_id = sta.community_id
+        where est.estate_id = #{estateId}
+    </select>
+
+
+    <!--删除采购合同-->
+    <update id="deleteBuyerByIds" parameterType="String">
+        update xccj_community.bus_procurement set del_flag='1'
+        where procurement_id in
+        <foreach item="procurementId" collection="array" open="(" separator="," close=")">
+            #{procurementId}
+        </foreach>
+    </update>
+
+
+    <!--根据id查询采购信息表格-->
+    <resultMap type="com.wr.remote.estate.manage.vo.contract.BuyerVo" id="buyerVoResultById">
+        <id property="procurementId" column="procurement_id"/>
+        <result property="contractName" column="contract_name"/>
+        <result property="estateName" column="estate_name"/>
+        <result property="staffName" column="staff_name"/>
+        <result property="staffPhone" column="staff_phone"/>
+        <result property="companyName" column="company_name"/>
+        <result property="companyHead" column="company_head"/>
+        <result property="companyPhone" column="company_phone"/>
+        <result property="legal" column="legal"/>
+        <result property="hotline" column="hotline"/>
+        <result property="materialName" column="material_name"/>
+        <result property="materialNum" column="material_num"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="specification" column="specification"/>
+        <result property="actuallyAmount" column="actually_amount"/>
+        <result property="communityName" column="community_name"/>
+
+    </resultMap>
+
+
+    <!--根据id查询合同信息-->
+    <select id="getBuyerById" parameterType="java.lang.Long" resultMap="buyerVoResultById">
+        SELECT
+        pro.contract_name,
+        pro.procurement_id,
+        est.estate_name,
+        sta.staff_name,
+        sta.staff_phone,
+        pro.company_name,
+        pro.company_head,
+        pro.company_phone,
+        est.legal,
+        est.hotline,
+        mat.material_name,
+        mat.material_num,
+        mat.unit_price,
+        mat.total_amount,
+        mat.specification,
+        mat.actually_amount,
+        pro.annex_url,
+        com.community_name
+        FROM
+        xccj_community.bus_procurement AS pro
+        LEFT JOIN xccj_community.bus_estate AS est ON pro.estate_id = est.estate_id
+        LEFT JOIN xccj_community.bus_staff AS sta ON pro.staff_id = sta.staff_id
+        LEFT JOIN xccj_community.bus_material AS mat ON pro.procurement_id = mat.procurement_id
+        LEFT JOIN xccj_community.bus_community AS com ON pro.community_id = com.community_id
+        <where>
+            pro.procurement_id=#{procurementId}
+        </where>
+    </select>
+    <select id="getProcurementId" resultType="java.lang.Long">
+        SELECT staff_id
+        FROM xccj_community.bus_procurement
+        where estate_id = #{estateId}
+    </select>
+    <select id="getStaffListById" resultType="com.wr.remote.estate.manage.Staff">
+        select *
+        from xccj_community.bus_staff AS sta
+        where sta.del_flag = '0'
+    </select>
+
+
+</mapper>

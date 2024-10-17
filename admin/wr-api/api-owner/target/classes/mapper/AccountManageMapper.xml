@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.estateapi.AccountManageMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="accountId">
+        insert into xccj_community.bus_account values
+                          (
+                           null,#{communityId},#{phone},#{password},#{faceUrl},#{accountType},#{name},#{name},
+                           #{dataSource},'0',DEFAULT,DEFAULT,DEFAULT,#{by},now(),#{by},now(),'0'
+                           )
+    </insert>
+    <insert id="inAccount" useGeneratedKeys="true" keyProperty="accountId">
+        INSERT INTO xccj_community.bus_account(community_id, login_name, password, avatar, account_type, account_name,
+                                               account_nick, data_source, volunteer, create_by, create_time, update_by,
+                                               update_time, del_flag)
+        VALUES (#{communityId}, #{loginName}, #{password}, #{avatar}, #{accountType}, #{accountName}, #{accountNick},
+                #{dataSource}, #{volunteer}, #{createBy}, SYSDATE(), #{updateBy}, SYSDATE(), '0')
+    </insert>
+    <update id="updateAccountPwd">
+        update xccj_community.bus_account set password=#{pwd,jdbcType=VARCHAR}
+        where account_id=#{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateAccountName">
+        update xccj_community.bus_account set avatar=#{faceUrl},account_name=#{name},account_nick=#{name}
+        where account_id=#{accountId}
+    </update>
+    <delete id="deleteds">
+        update xccj_community.bus_account set del_flag='1' where account_id
+        in <foreach collection="list" open="(" close=")" separator="," item="i">
+                #{i}
+           </foreach>
+    </delete>
+    <delete id="deleted">
+        update xccj_community.bus_account set del_flag='1' where account_id=#{id}
+    </delete>
+    <delete id="delMember">
+        Update xccj_govern.bus_member SET del_flag = '1' WHERE account_id = #{accountId}
+    </delete>
+    <select id="queryAccountListByCommunityId" resultType="java.util.LinkedHashMap">
+        SELECT
+            a.login_name,
+            a.account_nick,
+            a.account_name,
+            a.account_type,
+            a.account_id,
+            a.create_time,
+            a.data_source,
+            a.avatar,
+            a.volunteer,
+               a.wechat_id,
+               (
+                   case a.account_type
+                       WHEN '0'
+                           THEN (SELECT card_no from xccj_community.bus_owner WHERE account_id=a.account_id and del_flag = '0' LIMIT 1)
+                       WHEN '1'
+                           THEN (SELECT card_no from xccj_community.bus_tenant WHERE account_id=a.account_id and del_flag = '0' LIMIT 1)
+                       WHEN '2'
+                           THEN (SELECT card_no from xccj_community.bus_visitor WHERE account_id=a.account_id and del_flag = '0' LIMIT 1)
+                       else ''
+                       end
+                   ) as 'card_no',
+               (
+                   case a.account_type
+                       WHEN '0'
+                           THEN (SELECT gender from xccj_community.bus_owner WHERE account_id=a.account_id and del_flag = '0' LIMIT 1)
+                       WHEN '1'
+                           THEN (SELECT gender from xccj_community.bus_tenant WHERE account_id=a.account_id and del_flag = '0' LIMIT 1)
+                       else ''
+                       end
+                   ) as 'sex',
+        a.is_property_council as "isPropertyCouncil"
+        from xccj_community.bus_account a
+        WHERE a.del_flag = '0'
+          AND a.account_type IN (0,1,2)
+        <if test="communityId != '' and communityId != null">
+            and a.community_id=#{communityId,jdbcType=BIGINT}
+        </if>
+        <if test="volunteer != '' and volunteer != null">
+            and a.volunteer=#{volunteer,jdbcType=CHAR}
+        </if>
+        <if test="roleId != '' and roleId != null">
+            and a.account_type=#{roleId,jdbcType=CHAR}
+        </if>
+        <if test="name != '' and name != null">
+            and a.account_name like concat ('%',#{name,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="account != '' and account != null">
+            and a.login_name like concat ('%',#{account,jdbcType=VARCHAR},'%')
+        </if>
+        order by a.create_time desc
+    </select>
+    <select id="getAccountPwd" resultType="java.lang.String">
+        select password from xccj_community.bus_account where account_id=#{id,jdbcType=BIGINT}
+    </select>
+
+    <!-- 根据登陆名获取accountId -->
+    <select id="getAccountIdByLoginName" resultType="java.lang.Long">
+        SELECT account_id FROM xccj_community.bus_account WHERE login_name = #{loginName} AND del_flag = '0'
+    </select>
+    <select id="getByAccountId" resultType="com.wr.remote.estate.manage.contract.Account">
+        SELECT login_name,
+               account_name,
+               account_nick,
+               avatar,
+               community_id
+        FROM xccj_community.bus_account
+        WHERE account_id = #{accountId}
+          AND del_flag = '0'
+    </select>
+
+    <!-- 修改账号为业主类型 -->
+    <update id="updateOwnerById">
+        UPDATE xccj_community.bus_account SET account_type = '0' WHERE account_id = #{accountId}
+    </update>
+    <update id="upAccountType">
+        UPDATE xccj_community.bus_account
+        SET account_type = #{accountType},
+            update_by    = #{updateBy},
+            update_time=NOW()
+        WHERE account_id = #{accountId}
+    </update>
+    <update id="updateIsPropertyCouncil">
+        update xccj_community.`bus_account` set is_property_council=#{isPropertyCouncil} where account_id=#{accountId}
+    </update>
+    <select id="checkPhoneUnique" resultType="com.wr.remote.estate.manage.contract.Account">
+        SELECT account_id, community_id, login_name, avatar, account_type
+        FROM xccj_community.`bus_account`
+        WHERE login_name = #{tenantPhone}
+          AND del_flag = '0'
+    </select>
+</mapper>

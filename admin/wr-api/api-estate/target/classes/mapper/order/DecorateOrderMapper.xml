@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.DecorateOrderMapper">
+    <!-- 装修评定工单移动端列表查询 -->
+    <select id="listDecorateOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bdo.order_id AS orderId,
+        bdo.order_no AS orderNo,
+        bdo.order_name AS orderName,
+        bdo.start_time AS startTime,
+        bdo.end_time AS endTime,
+        CONCAT(community.community_name, build.building_name, unit.unit_name, room.room_name) AS address,
+        '装修评定工单' AS orderTypeName,
+        4 AS orderType,
+        IF(bdo.allot_way = '2' AND bdo.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bdo.transfer_status = '1' THEN 4
+        WHEN bdo.allot_status = '0' THEN 1
+        WHEN bdo.accept_status = '0' THEN 2
+        WHEN bdo.execute_status = '0' THEN 3
+        WHEN bdo.execute_status = '2' THEN 6
+        WHEN bdo.execute_status = '3' THEN 8
+        WHEN bdo.execute_status = '1' AND NOW()>bdo.end_time THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_decorate_order bdo
+        LEFT JOIN xccj_community.bus_decorate decorate ON bdo.decorate_id = decorate.decorate_id
+        LEFT JOIN xccj_community.bus_room room ON room.room_id = decorate.room_id
+        LEFT JOIN xccj_community.bus_unit unit ON room.unit_id = unit.unit_id
+        LEFT JOIN xccj_community.bus_building build ON build.building_id = unit.building_id
+        LEFT JOIN xccj_community.bus_community community ON community.community_id = bdo.community_id
+        LEFT JOIN xccj_work.bus_order_audit audit ON bdo.order_id = audit.order_id AND audit.order_type = '4' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bdo.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bdo.staff_id = #{staffId} OR (bdo.allot_way = '2' AND bdo.allot_status = '0' AND bdo.accept_status = '0')
+            OR assist.staff_id = #{staffId})
+        </if>
+        AND bdo.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bdo.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bdo.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bdo.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bdo.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bdo.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bdo.execute_status = 2
+        </if>
+        order by bdo.start_time desc
+    </select>
+
+    <!-- 装修评定工单 -->
+    <select id="detailDecorateOrder" resultType="com.wr.api.estate.entity.vo.order.DecorateOrderDetailVO">
+        SELECT bdo.order_no                                                          AS orderNo,
+               bdo.order_name                                                        AS orderName,
+               bdo.start_time                                                        AS startTime,
+               bdo.end_time                                                          AS endTime,
+               bdo.remark                                                            AS finishRemark,
+               bdo.assess_result,
+               bdo.execute_time,
+               bdo.finish_time,
+               bdo.image_url                                                         AS finishImageUrl,
+               bdo.staff_id,
+               room.room_name,
+               roomOwner.owner_name,
+               CONCAT(community.community_name, build.building_name, unit.unit_name) AS address,
+               '装修评定工单'                                                        AS orderTypeName,
+               CASE
+                   WHEN bdo.transfer_status = '1' THEN 4
+                   WHEN bdo.allot_status = '0' THEN 1
+                   WHEN bdo.accept_status = '0' THEN 2
+                   WHEN bdo.execute_status = '0' THEN 3
+                   WHEN bdo.execute_status = '2' THEN 6
+                   WHEN bdo.execute_status = '3' THEN 8
+                   WHEN bdo.execute_status = '1' AND bdo.end_time > NOW() THEN 7
+                   ELSE 5 END                                                        AS orderStatus
+        FROM xccj_work.bus_decorate_order bdo
+                 LEFT JOIN xccj_community.bus_decorate decorate ON bdo.decorate_id = decorate.decorate_id
+                 LEFT JOIN xccj_community.bus_room room ON room.room_id = decorate.room_id
+                 LEFT JOIN xccj_community.bus_unit unit ON room.unit_id = unit.unit_id
+                 LEFT JOIN xccj_community.bus_building build ON build.building_id = unit.building_id
+                 LEFT JOIN xccj_community.bus_community community ON community.community_id = bdo.community_id
+                 LEFT JOIN xccj_community.bus_owner roomOwner ON roomOwner.owner_id = room.owner_id
+        WHERE bdo.order_id = #{orderId}
+    </select>
+
+    <!-- 抢单 -->
+    <update id="robOrder">
+        UPDATE xccj_work.bus_decorate_order
+        SET allot_status  = '1',
+            accept_status = '1',
+            staff_id      = #{staffId}
+        WHERE allot_status = '0'
+          AND accept_status = '0'
+          AND allot_way = '2'
+          AND order_id = #{orderId}
+    </update>
+
+    <!-- 接单 -->
+    <update id="receiveOrder">
+        UPDATE xccj_work.bus_decorate_order
+        SET accept_status = '1'
+        WHERE allot_status = '1'
+          AND accept_status = '0'
+          AND order_id = #{orderId}
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 开始执行 -->
+    <update id="startPerform">
+        UPDATE xccj_work.bus_decorate_order
+        SET execute_status = '1',
+            execute_time   = NOW()
+        WHERE order_id = #{orderId}
+          AND allot_status = '1'
+          AND accept_status = '1'
+          AND execute_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 完成工单 -->
+    <update id="finish">
+        UPDATE xccj_work.bus_decorate_order
+        SET execute_status = IF(NOW() > end_time, 3, 2),
+            finish_time    = NOW(),
+            image_url      = #{finishImageUrl},
+            remark         = #{remark},
+            execute_id     = #{staffId},
+            damage_status  = #{damageStatus},
+            neat_status    = #{neatStatus},
+            assess_result  = #{assessResult}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 转交工单 -->
+    <update id="transfer">
+        UPDATE xccj_work.bus_decorate_order
+        SET transfer_status = '1'
+        WHERE order_id = #{orderId}
+          AND execute_status IN ('1', '0')
+          AND transfer_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+</mapper>

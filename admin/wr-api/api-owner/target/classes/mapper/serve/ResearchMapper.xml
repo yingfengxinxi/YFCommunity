@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.ResearchMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.ApiResearch">
+        <id column="research_id" jdbcType="BIGINT" property="researchId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="research_name" jdbcType="VARCHAR" property="researchName"/>
+        <result column="research_status" jdbcType="CHAR" property="researchStatus"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        research_id,
+        community_id,
+        research_name,
+        research_intro,
+        research_status,
+        deadline_time,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_research
+        where research_id = #{researchId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_govern.bus_research
+        <set>
+            del_flag = '1'
+        </set>
+        where research_id = #{researchId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="research_id" keyProperty="researchId"
+            parameterType="com.wr.api.owner.entity.serve.ApiResearch" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_govern.bus_research
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="researchName != null">
+                research_name,
+            </if>
+            <if test="researchIntro != null">
+                research_intro,
+            </if>
+            <if test="researchStatus != null">
+                research_status,
+            </if>
+            <if test="deadlineTime != null">
+                deadline_time,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="researchName != null">
+                #{researchName,jdbcType=VARCHAR},
+            </if>
+            <if test="researchIntro != null">
+                #{researchIntro,jdbcType=VARCHAR},
+            </if>
+            <if test="researchStatus != null">
+                #{researchStatus,jdbcType=CHAR},
+            </if>
+            <if test="deadlineTime != null">
+                #{deadlineTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.ApiResearch">
+        <!--@mbg.generated-->
+        update xccj_govern.bus_research
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="researchName != null">
+                research_name = #{researchName,jdbcType=VARCHAR},
+            </if>
+            <if test="researchIntro != null">
+                research_intro = #{researchIntro,jdbcType=VARCHAR},
+            </if>
+            <if test="researchStatus != null">
+                research_status = #{researchStatus,jdbcType=CHAR},
+            </if>
+            <if test="deadlineTime != null">
+                deadline_time = #{deadlineTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+        </set>
+        where research_id = #{researchId,jdbcType=BIGINT}
+    </update>
+
+    <select id="listPage" resultType="com.wr.api.owner.entity.vo.serve.ApiResearchVo">
+        SELECT test.count,
+               br.research_name,
+               br.create_time         AS createTimes,
+               br.research_id,
+               br.research_status,
+               br.deadline_time,
+
+               (CASE
+                    WHEN DATE_FORMAT(br.deadline_time, '%Y-%m-%d %H:%i:%s') <![CDATA[<=]]>
+                         DATE_FORMAT(now(), '%Y-%m-%d %H:%i:%s') and br.research_status = '0' THEN '0'
+                    WHEN DATE_FORMAT(br.deadline_time, '%Y-%m-%d %H:%i:%s') <![CDATA[<=]]>
+                         DATE_FORMAT(now(), '%Y-%m-%d %H:%i:%s') and br.research_status = '1' THEN '1'
+                    WHEN DATE_FORMAT(br.deadline_time, '%Y-%m-%d %H:%i:%s') <![CDATA[>=]]>
+                         DATE_FORMAT(now(), '%Y-%m-%d %H:%i:%s') and br.research_status = '1'
+                        THEN '2' end) AS partyStatus
+        FROM xccj_govern.bus_research AS br
+                 LEFT JOIN (
+            SELECT table_id AS id, COUNT(account_id) AS count
+            FROM xccj_govern.bus_ques_answer
+            WHERE table_type = '1'
+              AND del_flag = '0'
+            GROUP BY table_id
+        ) test ON test.id = br.research_id
+        WHERE br.del_flag = '0'
+          AND br.community_id = #{communityId}
+            <if test="researchStatus != null and researchStatus != ''">
+                AND br.research_status = #{researchStatus}
+            </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectItem" resultType="com.wr.api.owner.entity.vo.serve.ApiResearchVo">
+        SELECT bq.question_id AS questionId, bq.question_name AS questionName, bq.question_type AS questionType
+        FROM xccj_govern.bus_question AS bq
+        WHERE bq.table_type = '1'
+          AND bq.del_flag = '0'
+          AND table_id = #{researchId}
+        ORDER BY bq.question_type
+    </select>
+
+    <select id="selectAnswer" resultType="com.wr.api.owner.entity.serve.QuesAnswer">
+        SELECT bqa.answer_id,
+               account_id,
+               table_type,
+               table_id,
+               question_id,
+               user_answer
+        FROM xccj_govern.bus_ques_answer AS bqa
+        WHERE bqa.question_id = #{questionId}
+          AND bqa.del_flag = '0'
+    </select>
+
+    <select id="selectQuestionList" resultType="com.wr.api.owner.entity.serve.QuestionItem">
+        SELECT item_id,
+               question_id,
+               item_name
+        FROM xccj_govern.bus_question_item
+        WHERE question_id = #{questionId}
+          AND del_flag = '0'
+    </select>
+
+    <select id="detail" resultType="com.wr.api.owner.entity.vo.serve.ApiResearchVo">
+        SELECT research_id,
+               community_id,
+               research_name,
+               research_intro,
+               research_status,
+               deadline_time,
+               create_by,
+               create_time,
+               update_by,
+               update_time
+        FROM xccj_govern.bus_research
+        WHERE del_flag = '0'
+          AND research_id = #{researchId}
+    </select>
+
+    <select id="findListResearch" resultType="com.wr.api.owner.entity.vo.serve.ApiResearchVo" parameterType="com.wr.api.owner.entity.vo.serve.ApiResearchVo">
+        SELECT DISTINCT
+            q.*,
+            CASE
+            WHEN q.status = '0'  THEN '未发布'
+            WHEN q.status = '1' OR (q.status = '2' AND a.account_id IS NULL ) THEN '进行中'
+            WHEN q.status = '2' AND a.account_id IS NOT NULL THEN '已提交'
+            ELSE '已结束'
+            END AS showStatus
+        FROM
+            xccj_govern.bus_research q
+                LEFT JOIN xccj_govern.bus_research_party s ON q.research_id = s.research_id
+                LEFT JOIN xccj_govern.bus_member m ON s.party_id = s.party_id AND m.account_id = #{accountId}
+                LEFT JOIN xccj_govern.bus_ques_answer a ON q.research_id = a.table_id
+                AND a.account_id = m.account_id
+        WHERE
+        s.party_id = #{partyId}
+        AND q.status != '0'
+        <if test="status != null and status != ''">
+            <!--进行中-->
+            <if test="status == '1'.toString()">
+                AND q.status != '3'
+                AND NOT EXISTS (
+                SELECT
+                1
+                FROM
+                xccj_govern.bus_ques_answer an
+                WHERE
+                an.table_id = q.research_id
+                AND a.account_id = #{accountId}
+                )
+            </if>
+            <!--已提交-->
+            <if test="status == '2'.toString()">
+                AND q.status = '2' AND a.account_id = #{accountId}
+            </if>
+            <!--已结束-->
+            <if test="status == '3'.toString()">
+                AND q.status = '3'
+            </if>
+        </if>
+        <if test="status == null or status == ''">
+          AND  m.account_id = #{accountId}
+        </if>
+        <if test="communityId != null">
+            AND q.community_id = #{communityId}
+        </if>
+        <if test="researchName != null and researchName != ''">
+            AND q.research_name = #{researchName}
+        </if>
+        GROUP BY q.research_id
+        ORDER BY q.deadline_time ASC,
+                    q.start_time DESC
+    </select>
+    <select id="findCountAnswer" resultType="Integer">
+        SELECT
+            COUNT(DISTINCT account_id) AS count
+        FROM
+            xccj_govern.bus_ques_answer
+        WHERE
+            table_id = #{tableId}
+    </select>
+</mapper>

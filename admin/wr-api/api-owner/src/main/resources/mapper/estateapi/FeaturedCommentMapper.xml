@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.featured.FeaturedCommentMapper">
+
+    <!--根据社交id，获取点赞数量-->
+    <select id="queryLikeAmount" resultType="Long">
+        SELECT
+            COUNT(*)
+        FROM
+            xccj_govern.bus_featured_like AS lik
+        WHERE
+            lik.featured_id =#{featuredId}
+    </select>
+
+
+    <!--添加点赞记录-->
+    <insert id="addLike">
+        INSERT INTO xccj_govern.bus_featured_like(
+            featured_id,user_type,user_id
+        ) VALUES(#{featuredId},#{userType},#{userId})
+    </insert>
+
+
+
+    <!--查询用户类型-->
+    <select id="queryAccountType" parameterType="Long" resultType="String">
+        SELECT account_type
+        FROM xccj_community.bus_account AS acc
+        where acc.account_id = #{userId}
+    </select>
+
+    <!--新增评论-->
+    <insert id="addComment">
+        insert into  xccj_govern.bus_featured_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test=" featuredId  != null">featured_id,</if>
+            <if test=" userType  != null and userType !=''">user_type,</if>
+            <if test=" userId  != null and userId !=''">user_id,</if>
+            <if test=" replyId  != null and replyId !=''">reply_id,</if>
+            <if test=" content  != null and content !=''">content,</if>
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test=" featuredId  != null">#{featuredId},</if>
+            <if test=" userType  != null and userType !=''">#{userType},</if>
+            <if test=" userId  != null and userId !=''">#{userId},</if>
+            <if test=" replyId  != null and replyId !=''">#{replyId},</if>
+            <if test=" content  != null and content !=''">#{content},</if>
+            #{createBy},sysdate()
+        </trim>
+    </insert>
+
+
+    <!--根据社交id查询该社交下的所有评论-->
+    <select id="getCommentList" resultType="com.wr.remote.govern.autonomy.social.vo.CommentVo">
+        SELECT acc.avatar,
+               acc.account_name,
+               comm.create_time,
+               comm.comment_id,
+               comm.content,
+               comm.reply_id,
+               repl.replyName
+        FROM xccj_govern.bus_featured_comment AS comm
+                 LEFT JOIN xccj_community.bus_account AS acc ON comm.user_id = acc.account_id
+                 LEFT JOIN (
+            SELECT comm.comment_id
+                 , acc.account_name as 'replyName'
+            FROM xccj_govern.bus_featured_comment AS comm
+                     LEFT JOIN xccj_community.bus_account AS acc ON comm.user_id = acc.account_id
+            WHERE comm.del_flag = '0'
+        ) as repl ON repl.comment_id = comm.reply_id
+        WHERE comm.del_flag = '0'
+          AND comm.featured_id = #{featuredId}
+    </select>
+
+
+    <!--查询当前社交信息发布人员类型-->
+    <select id="queryFeaturedInfoUserType" resultType="String" >
+        SELECT
+            soc.user_type
+        FROM
+            xccj_govern.bus_featured_section AS soc
+        WHERE
+            soc.featured_id =#{featuredId}
+    </select>
+
+    <select id="querySysCommentInfo" resultType="com.wr.remote.govern.autonomy.social.vo.CommentVo">
+        SELECT acc.avatar,
+               acc.user_name as account_name,
+               comm.create_time,
+               comm.comment_id,
+               comm.content,
+               comm.reply_id,
+               repl.replyName
+        FROM xccj_govern.bus_featured_comment AS comm
+                 LEFT JOIN xccj_estate_sys.sys_user AS acc ON comm.user_id = acc.user_id
+                 LEFT JOIN (
+            SELECT comm.comment_id,
+                   acc.user_name AS 'replyName'
+            FROM xccj_govern.bus_featured_comment AS comm
+                     LEFT JOIN xccj_estate_sys.sys_user AS acc ON comm.user_id = acc.user_id
+            WHERE comm.del_flag = '0'
+        ) AS repl ON repl.comment_id = comm.reply_id
+        WHERE comm.del_flag = '0'
+          AND comm.featured_id = #{featuredId}
+    </select>
+
+    <update id="revokeMsg" >
+        UPDATE xccj_govern.bus_featured_comment as comm
+        set comm.del_flag='1'
+        WHERE comm.comment_id = #{commentId}
+    </update>
+</mapper>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.autonomy.exposal.ExposalMapper">
+
+<!--获取信息列表-->
+    <select id="getList" parameterType="com.wr.remote.govern.autonomy.social.Social" resultType="com.wr.remote.govern.autonomy.social.Social">
+        SELECT
+        soc.social_id,
+        ( CASE WHEN soc.user_type = 1 THEN commOwn.community_name ELSE commTen.community_name END ) AS 'user_community_name',
+        ( CASE WHEN soc.user_type = 1 THEN own.owner_name ELSE ten.tenant_name END ) AS 'userName',
+        soc.create_time,
+        soc.content
+        FROM
+        xccj_govern.bus_social AS soc
+        LEFT JOIN xccj_community.bus_owner AS own ON soc.user_id = own.owner_id
+        LEFT JOIN xccj_community.bus_tenant AS ten ON soc.user_id = ten.tenant_id
+        LEFT JOIN xccj_community.bus_community AS commOwn ON commOwn.community_id = own.community_id
+        LEFT JOIN xccj_community.bus_community AS commTen ON commTen.community_id = ten.community_id
+        WHERE
+        soc.del_flag = '0'
+        AND soc.social_type = '1'
+        AND user_type IN ( 1, 2)
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(soc.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(soc.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="userName!=null and userName!= '' ">
+            and  own.owner_name like concat('%', #{userName}, '%')
+            or  ten.tenant_name like concat('%', #{userName}, '%')
+        </if>
+        <if test="userCommunityName!=null and userCommunityName!=''">
+            and  commOwn.community_name like concat('%', #{userCommunityName}, '%')
+            or  commTen.community_name like concat('%', #{userCommunityName}, '%')
+        </if>
+        <if test="estateId != null">
+            AND soc.estate_id = #{estateId}
+        </if>
+    </select>
+
+
+
+
+    <!--获取系统信息列表-->
+    <select id="systemList" parameterType="com.wr.remote.govern.autonomy.social.Social" resultType="com.wr.remote.govern.autonomy.social.Social">
+        SELECT
+        soc.social_id,
+        soc.content,
+        soc.create_time
+        FROM xccj_govern.bus_social AS soc
+
+        where soc.del_flag = '0'
+        and soc.social_type = '1'
+        and user_type = 0
+        <if test="params.beginTime != null and params.beginTime != ''">
+            <!-- 开始时间检索 -->
+            AND date_format(soc.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''">
+            <!-- 结束时间检索 -->
+            AND date_format(soc.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="estateId != null">
+            AND soc.estate_id = #{estateId}
+        </if>
+    </select>
+
+    <!--新增系统信息-->
+    <insert id="addSystemSocial" parameterType="com.wr.remote.govern.autonomy.social.Social" useGeneratedKeys="true"  keyProperty="socialId">
+        insert into  xccj_govern.bus_social
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null and estateId !=''">estate_id,</if>
+            <if test="content != null and content !=''">content,</if>
+            <if test="userId != null ">user_id,</if>
+            <if test="socialUrl != null and socialUrl !=''  ">social_url,</if>
+            social_type,user_type,
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null and estateId !=''">#{estateId},</if>
+            <if test="content != null and content !=''">#{content},</if>
+            <if test="userId != null ">#{userId},</if>
+            <if test="socialUrl != null and socialUrl !=''  ">#{socialUrl},</if>
+            '1','0',
+            #{createBy},sysdate()
+        </trim>
+    </insert>
+
+
+<!--发布的小区存储到关联表-->
+    <insert id="addSocialRang">
+        INSERT INTO xccj_govern.bus_social_rang(
+        social_id,community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.socialId},#{item.communityId})
+        </foreach>
+    </insert>
+
+
+<!--删除社交记录-->
+    <update id="delMessageSocial" parameterType="Long">
+        update xccj_govern.bus_social
+        set del_flag='1'
+        where social_id in
+        <foreach collection="array" item="socialId" open="(" separator="," close=")">
+            #{socialId}
+        </foreach>
+    </update>
+
+    <!--删除系统管理关联表-->
+    <delete id="delSocialRang" parameterType="Long">
+        delete
+        from xccj_govern.bus_social_rang
+        where social_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+<!--修改系统信息-->
+    <update id="updateSysSocial" parameterType="com.wr.remote.govern.autonomy.social.Social">
+        update xccj_govern.bus_social as soc
+        <set>
+            <if test="content != null ">
+                soc.content = #{content},
+            </if>
+            <if test="socialUrl != null and socialUrl != ''">
+                soc.social_url = #{socialUrl},
+            </if>
+            soc.update_by=#{updateBy},
+            soc.update_time = sysdate()
+        </set>
+        where soc.social_id = #{socialId}
+    </update>
+
+<!--查询社交详情-->
+    <select id="getSocialById" parameterType="Long" resultType="com.wr.remote.govern.autonomy.social.Social">
+        SELECT *
+        FROM xccj_govern.bus_social as soc
+        where soc.del_flag = '0'
+          and soc.social_id = #{socialId}
+    </select>
+
+
+<!--查询详情内容-->
+    <select id="querySocialRangById" parameterType="Long" resultType="Long">
+        SELECT ran.community_id
+        FROM xccj_govern.bus_social_rang as ran
+        where ran.social_id =#{socialId}
+    </select>
+
+
+<!--删除社交表中的信息-->
+    <delete id="delSocialRangByIds" parameterType="Long">
+        delete
+        from xccj_govern.bus_social_rang
+        where social_id =#{socialId}
+    </delete>
+
+</mapper>

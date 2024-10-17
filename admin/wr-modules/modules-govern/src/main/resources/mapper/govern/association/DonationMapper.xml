@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.association.DonationMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.govern.association.Donation">
+        <id column="donation_id" jdbcType="BIGINT" property="donationId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="donation_title" jdbcType="VARCHAR" property="donationTitle"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        donation_id, estate_id, donation_title, content, create_by, create_time, update_by,
+        update_time, del_flag
+    </sql>
+
+    <insert id="addDonation" useGeneratedKeys="true" keyProperty="donationId">
+        insert into xccj_govern.bus_donation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="donationTitle != null">
+                donation_title,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="donationTitle != null">
+                #{donationTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            sysDate()
+        </trim>
+    </insert>
+
+
+    <insert id="addDonationRang">
+        insert into xccj_govern.bus_donation_rang (donation_id,community_id)
+        VALUES
+        <foreach collection="communityIds" item="item" separator=",">
+            (#{donationId},#{item})
+        </foreach>
+    </insert>
+
+
+    <update id="updateDonation">
+        update xccj_govern.bus_donation
+        <set>
+            <if test="estateId != null">
+                estate_id = #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="donationTitle != null">
+                donation_title = #{donationTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            update_time = sysDate(),
+        </set>
+        where donation_id = #{donationId,jdbcType=BIGINT} and del_flag='0'
+    </update>
+
+    <update id="delDonation">
+        update xccj_govern.bus_donation
+        <set>
+            del_flag='1',
+            update_by=#{userName},
+            update_time=sysDate()
+        </set>
+        where donation_id = #{donationId,jdbcType=BIGINT} and del_flag='0'
+    </update>
+
+    <delete id="removeDonationRang">
+        DELETE
+        FROM xccj_govern.bus_donation_rang
+        WHERE donation_id = #{donationId,jdbcType=BIGINT}
+    </delete>
+
+    <select id="getList" resultType="com.wr.remote.govern.association.Donation">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_donation
+        where
+            del_flag='0'
+            AND estate_id in  (select GROUP_CONCAT(estate_id) estate_id from (SELECT estate_id
+        FROM (
+        SELECT t1.*,
+        IF(FIND_IN_SET(parent_id, @pids) > 0,
+        @pids := CONCAT(@pids, ',', estate_id), '0') AS ischild
+        FROM (
+        SELECT *
+        FROM xccj_community.bus_estate AS t
+        WHERE t.del_flag = '0'
+        ORDER BY t.estate_id ASC
+        ) t1,
+        (SELECT @pids := #{estateId}) t2
+        ) t3
+        WHERE ischild != '0'
+        UNION
+        SELECT estate_id
+        FROM xccj_community.bus_estate
+        WHERE estate_id = #{estateId}
+        AND del_flag = '0') a)
+            <if test="donationTitle != null and donationTitle != ''">
+                AND donation_title like concat('%',#{donationTitle},'%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+    </select>
+
+    <select id="getDonationDetail" resultType="com.wr.remote.govern.association.vo.DonationVO">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_donation
+        WHERE del_flag='0' and donation_id=#{donationId}
+    </select>
+
+    <select id="getDonationRangInfo" resultType="java.lang.Long">
+        SELECT community_id
+        FROM xccj_govern.bus_donation_rang
+        WHERE donation_id = #{donationId}
+    </select>
+</mapper>

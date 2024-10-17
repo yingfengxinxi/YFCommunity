@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.inspect.OrderTransferMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.work.inspect.OrderTransfer">
+        <!--@mbg.generated-->
+        <!--@Table bus_order_transfer-->
+        <id column="transfer_id" jdbcType="BIGINT" property="transferId"/>
+        <result column="order_type" jdbcType="CHAR" property="orderType"/>
+        <result column="order_id" jdbcType="BIGINT" property="orderId"/>
+        <result column="source_id" jdbcType="BIGINT" property="sourceId"/>
+        <result column="target_id" jdbcType="BIGINT" property="targetId"/>
+        <result column="submit_time" jdbcType="TIMESTAMP" property="submitTime"/>
+        <result column="accept_type" jdbcType="CHAR" property="acceptType"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        transfer_id,
+        order_type,
+        order_id,
+        source_id,
+        target_id,
+        submit_time,
+        accept_type,
+        reject_reason,
+        create_time,
+        del_flag
+    </sql>
+
+    <select id="selectByAuditId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_work.bus_order_transfer
+        where audit_id = #{auditId}
+    </select>
+
+    <!-- 根据审核id查询转交人信息 -->
+    <select id="getTransferTargetStaffByAuditId" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT bs.staff_phone,
+               bs.staff_name
+        FROM xccj_work.bus_order_transfer bot
+                 LEFT JOIN xccj_community.bus_staff bs ON bot.target_id = bs.staff_id
+        WHERE audit_id = #{auditId}
+    </select>
+
+    <insert id="insertSelective" keyColumn="transfer_id" keyProperty="transferId"
+            parameterType="com.wr.remote.work.inspect.OrderTransfer" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_work.bus_order_transfer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="sourceId != null">
+                source_id,
+            </if>
+            <if test="targetId != null">
+                target_id,
+            </if>
+            <if test="submitTime != null">
+                submit_time,
+            </if>
+            <if test="acceptType != null">
+                accept_type,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="sourceId != null">
+                #{sourceId,jdbcType=BIGINT},
+            </if>
+            <if test="targetId != null">
+                #{targetId,jdbcType=BIGINT},
+            </if>
+            <if test="submitTime != null">
+                #{submitTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="acceptType != null">
+                #{acceptType,jdbcType=CHAR},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.remote.work.inspect.OrderTransfer">
+        <!--@mbg.generated-->
+        update xccj_work.bus_order_transfer
+        <set>
+            <if test="orderType != null">
+                order_type = #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                order_id = #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="sourceId != null">
+                source_id = #{sourceId,jdbcType=BIGINT},
+            </if>
+            <if test="targetId != null">
+                target_id = #{targetId,jdbcType=BIGINT},
+            </if>
+            <if test="submitTime != null">
+                submit_time = #{submitTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="acceptType != null">
+                accept_type = #{acceptType,jdbcType=CHAR},
+            </if>
+            <if test="rejectReason != null">
+                reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where transfer_id = #{transferId,jdbcType=BIGINT}
+    </update>
+
+    <!-- 根据审核id修改转交记录 -->
+    <update id="updateByAuditId">
+        UPDATE xccj_work.bus_order_transfer
+        SET accept_type   = #{auditStatus},
+            reject_reason = #{rejectReason}
+        WHERE audit_id = #{auditId}
+    </update>
+</mapper>

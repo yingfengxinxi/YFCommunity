@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.info.CommunityNoticeMapper">
+    <resultMap type="com.wr.remote.estate.info.CommunityNotice" id="CommunityNoticeResult">
+        <id property="estateId" column="estate_id"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="noticeId" column="notice_id"/>
+        <result property="noticeTitle" column="notice_title"/>
+        <result property="noticeStatus" column="notice_status"/>
+        <result property="content" column="content"/>
+        <result property="readNum" column="read_num"/>
+        <result property="communityName" column="community_name"/>
+        <result property="communityId" column="community_id"/>
+        <result property="estateName" column="estate_name"/>
+        <result property="briefIntroduction" column="brief_introduction"/>
+
+    </resultMap>
+
+
+    <!--根据主键获取对象-->
+    <select id="selectNoticeById" parameterType="java.lang.Long" resultMap="CommunityNoticeResult">
+        SELECT bn.notice_id,
+               bn.community_id,
+               bn.estate_id,
+               bn.`range`,
+               bn.content,
+               bn.notice_title,
+               bn.notice_status,
+               bn.read_num,
+               bn.del_flag,
+               bn.create_by,
+               bn.create_time,
+               bn.update_by,
+               bn.update_time,
+               bn.brief_introduction
+        FROM xccj_community.bus_notice bn
+        where notice_id = #{noticeId}
+    </select>
+
+
+    <!--根据物业id查询物业名称-->
+    <select id="selectEstateNameById" parameterType="java.lang.Long" resultMap="CommunityNoticeResult">
+        select estate_name
+        from xccj_community.bus_estate
+        where estate_id = #{estateId}
+    </select>
+
+    <!--分页列表-->
+    <select id="selectList" resultType="com.wr.remote.estate.info.CommunityNotice">
+        SELECT
+        bn.notice_id as "noticeId",
+        bn.estate_id as "estateId",
+        bn.notice_title as "noticeTitle",
+        bn.`range` as "range",
+        ( CASE WHEN bn.notice_status = '0' THEN bn.update_time ELSE null END ) AS "updateTime",
+        bn.create_by as "createBy",
+        bn.create_time as "createTime",
+        bn.notice_status as "noticeStatus",
+        bn.read_num as "readNum",
+        bn.community_id as "communityId"
+        FROM
+        xccj_community.bus_notice bn
+        WHERE
+        bn.del_flag = '0'
+        and bn.estate_id = #{estateId}
+        <if test="noticeTitle != null and noticeTitle !=''">
+            and bn.notice_title like concat('%', #{noticeTitle}, '%')
+        </if>
+        <if test="noticeStatus != null and noticeStatus !=''">
+            and bn.notice_status=#{noticeStatus}
+        </if>
+        <if test="range !=null and range !=''">
+            and bn.`range`=#{range}
+        </if>
+        <if test="communityId !=null">
+            and bn.community_id=#{communityId}
+        </if>
+
+        ORDER BY
+        bn.notice_status DESC,
+        bn.create_time DESC
+    </select>
+
+    <!--添加社区头条设置-->
+    <insert id="insertNotice" parameterType="com.wr.remote.estate.info.CommunityNotice" useGeneratedKeys="true"
+            keyProperty="noticeId">
+        insert into xccj_community.bus_notice (estate_id,
+                                               community_id,
+                                               content,
+                                               brief_introduction,
+                                               notice_title,
+                                               notice_status,
+                                               `range`,
+                                               create_by,
+                                               create_time)
+        values (#{estateId},
+                #{communityId},
+                #{content},
+                #{briefIntroduction},
+                #{noticeTitle},
+                '0',
+                #{range},
+                #{createBy},
+                sysdate())
+    </insert>
+
+    <!-- 校验标题唯一性 -->
+    <select id="checkTitleUnique" resultType="Integer">
+        SELECT count(1)
+        FROM xccj_community.bus_notice bn
+        WHERE bn.del_flag = '0'
+        AND bn.estate_id = #{estateId}
+        AND bn.community_id = #{communityId}
+        AND notice_title = trim(#{noticeTitle})
+        <if test="noticeId !=null and noticeId !=''">
+            and notice_id!= #{noticeId}
+        </if>
+    </select>
+
+    <!--  发布公示-->
+    <update id="updateStatus" parameterType="com.wr.remote.estate.info.CommunityNotice">
+        update xccj_community.bus_notice
+        <set>
+            notice_status = '0',
+            update_time = sysdate()
+        </set>
+        where notice_id = #{noticeId}
+    </update>
+
+    <!--  撤回公示-->
+    <update id="updateStatus2" parameterType="com.wr.remote.estate.info.CommunityNotice">
+        update xccj_community.bus_notice
+        <set>
+            notice_status = '1',
+            read_num = 0
+        </set>
+        where notice_id = #{noticeId}
+    </update>
+
+    <!--编辑社区头条设置-->
+    <update id="updateNotice" parameterType="com.wr.remote.estate.info.CommunityNotice">
+        update xccj_community.bus_notice
+        <set>
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="noticeTitle != null and noticeTitle != ''">notice_title = #{noticeTitle},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="briefIntroduction != null and briefIntroduction != ''">brief_introduction = #{briefIntroduction},</if>
+            <if test="range != null and range != ''">`range` = #{range},</if>
+
+            update_by = #{updateBy}
+        </set>
+        where notice_id = #{noticeId}
+    </update>
+
+    <!--修改阅读量-->
+    <!--<update id="updateReadNum" parameterType="com.wr.remote.business.info.CommunityNotice">
+      update xccj_community.bus_notice
+      <set>
+        bus_notice.read_num = #{readNum}
+      </set>
+      where notice_id = #{noticeId}
+    </update>-->
+
+
+    <!--删除项目文档设置-->
+    <delete id="deleteNoticeByIds" parameterType="java.lang.Long">
+        UPDATE xccj_community.bus_notice
+        SET del_flag = '1'
+        WHERE notice_id IN
+        <foreach item="noticeId" collection="array" open="(" separator="," close=")">
+            #{noticeId}
+        </foreach>
+    </delete>
+
+</mapper>

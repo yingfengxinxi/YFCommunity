@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.message.MessageMapper">
+    <resultMap id="meResultMap" type="com.wr.remote.govern.party.vo.MessageVO">
+        <result property="messageId" column="message_id"/>
+        <result property="msgTitle" column="msg_title"/>
+        <result property="skipUrl" column="skip_url"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="lookNumber" column="look_number"/>
+        <result property="content" column="content"/>
+        <result property="communityId" column="community_id"/>
+        <result property="communityName" column="community_name"/>
+        <result property="partyName" column="pn"/>
+        <result property="top" column="top"/>
+        <collection property="parties" ofType="com.wr.remote.govern.party.Party">
+            <result property="partyId" column="party_id"/>
+            <result property="partyName" column="party_name"/>
+        </collection>
+    </resultMap>
+    <insert id="addMessage" useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO xccj_govern.`bus_message`(msg_title, skip_url, community_id, content, create_by, create_time, update_by,
+                                              update_time)
+        VALUES (#{msgTitle}, #{skipUrl}, #{communityId}, #{content}, #{createBy}, sysdate(), #{updateBy}, sysdate())
+    </insert>
+    <insert id="addMsgParty">
+        INSERT INTO xccj_govern.bus_msg_party(message_id, party_id) VALUES
+        <foreach item="item" index="index" collection="partyIds" separator=",">
+            (#{messageId}, #{item})
+        </foreach>
+    </insert>
+    <delete id="delMessage">
+        UPDATE xccj_govern.`bus_message` SET del_flag = '1' WHERE message_id IN
+        <foreach item="item" index="index" collection="messageIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+    <select id="getMessageAll" resultMap="meResultMap">
+        SELECT
+        bs.*,
+        bp.party_id,
+        group_concat(bp.party_name) pn,
+        bc.community_name
+        FROM
+        xccj_govern.`bus_message` bs
+        LEFT JOIN xccj_govern.bus_msg_party bms ON bms.message_id = bs.message_id
+        LEFT JOIN xccj_govern.bus_party bp ON bp.party_id = bms.party_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bs.community_id
+        WHERE
+        bs.del_flag = '0'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != msgTitle and '' != msgTitle">
+            AND bs.msg_title LIKE CONCAT('%',#{msgTitle},'%')
+        </if>
+        <if test="null != params">
+            AND date_format(bs.create_time,'%y%m%d') between date_format(#{params.beginTime},'%y%m%d') AND
+            date_format(#{params.endTime},'%y%m%d')
+        </if>
+        group by bs.message_id
+        ORDER BY bs.top DESC,bs.create_time DESC
+    </select>
+    <select id="getMessageById" resultMap="meResultMap">
+        SELECT bs.*, bp.party_id, bp.party_name
+        FROM xccj_govern.`bus_message` bs
+                 LEFT JOIN xccj_govern.bus_msg_party bms ON bms.message_id = bs.message_id
+                 LEFT JOIN xccj_govern.bus_party bp ON bp.party_id = bms.party_id
+        WHERE bs.del_flag = '0'
+          AND bs.message_id = #{messageId}
+    </select>
+    <select id="checkNameUnique" resultType="com.wr.remote.govern.party.Message">
+        SELECT bs.*  FROM
+        xccj_govern.`bus_message` bs
+        WHERE
+        bs.del_flag = '0'
+        AND bs.msg_title = #{msgTitle}
+        AND bs.community_id = #{communityId}
+        <if test="null != messageId">
+            AND bs.message_id != #{messageId}
+        </if>
+    </select>
+</mapper>

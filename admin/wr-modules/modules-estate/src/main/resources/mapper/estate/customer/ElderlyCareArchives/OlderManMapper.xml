@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.customer.ElderlyCareArchives.OlderManMapper">
+
+    <resultMap id="tree" type="com.wr.estate.entity.OldManByTreeEntity">
+        <result property="communityId" column="community_id"/>
+        <result property="communityName" column="community_name"/>
+    </resultMap>
+
+
+    <resultMap id="roomMap" type="com.wr.estate.entity.HomeEntity">
+        <result property="communityId" column="community_id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="unitId" column="unit_id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="communityName" column="community_name"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomName" column="room_name"/>
+        <result property="roomStatus" column="room_status"/>
+        <result property="ownerId" column="owner_id"/>
+    </resultMap>
+
+    <resultMap id="ManMap" type="com.wr.estate.entity.PeopleEntity">
+        <result property="ownerId" column="owner_id"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="gender" column="gender"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="cardType" column="card_type"/>
+        <result property="cardFont" column="card_font"/>
+        <result property="cardBack" column="card_back"/>
+        <result property="faceUrl" column="face_url"/>
+        <result property="ownerRelation" column="owner_relation"/>
+    </resultMap>
+
+
+    <resultMap id="olderMap" type="com.wr.estate.entity.vo.OlderVo">
+        <result property="olderId" column="older_id"/>
+        <result property="ownerId" column="older_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="ownerId" column="ownerId"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="contactGender" column="contact_gender"/>
+        <result property="relation" column="relation"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="olderAge" column="older_age"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="homeName" column="home_name"/>
+    </resultMap>
+
+    <resultMap id="olderMsgMap" type="com.wr.estate.entity.OldMsgEntity">
+        <result property="olderId" column="older_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="ownerId" column="ownerId"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="ownerRelation" column="owner_relation"/>
+        <result property="contactGender" column="contact_gender"/>
+        <result property="relation" column="relation"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="olderAge" column="older_age"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="homeName" column="home_name"/>
+        <result property="faceUrl" column="face_url"/>
+        <result property="communityName" column="community_name"/>
+        <result property="roomStatus" column="room_status"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomName" column="room_name"/>
+        <result property="cardType" column="card_type"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="cardBack" column="card_back"/>
+        <result property="cardFont" column="card_font"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+
+    <resultMap id="OlderExaminer" type="com.wr.estate.entity.OlderExaminerEntity">
+        <result property="examinerId" column="examiner_id"/>
+        <result property="activityName" column="activity_name"/>
+        <result property="medicalType" column="medical_type"/>
+        <result property="examinerDoctor" column="examiner_doctor"/>
+        <result property="examinerImportStatus" column="examiner_import_status"/>
+        <result property="examinerReportTime" column="examiner_report_time"/>
+        <result property="examinerSendStatus" column="examiner_send_status"/>
+        <result property="medicalOrg" column="medical_org"/>
+    </resultMap>
+
+    <select id="getTree" resultMap="tree">
+        SELECT community_id, community_name
+        FROM `bus_community` del_flag = 0
+    </select>
+
+
+    <!--    获取所属楼字-->
+    <select id="getbuilding" parameterType="com.wr.estate.entity.HomeEntity" resultMap="roomMap">
+        SELECT bb.building_id, bb.building_name
+        FROM xccj_community.bus_building bb
+        WHERE bb.community_id = #{communityId}
+          AND bb.del_flag = 0
+    </select>
+
+    <!--    获取所属单元-->
+    <select id="getunit" parameterType="com.wr.estate.entity.HomeEntity" resultMap="roomMap">
+        SELECT bu.unit_id, bu.unit_name
+        FROM xccj_community.bus_unit bu
+        WHERE bu.building_id = #{buildingId}
+          AND bu.community_id = #{communityId}
+          AND bu.del_flag = 0
+    </select>
+
+
+    <!--  获取所属房间  携带房屋状态-->
+    <select id="getroom" parameterType="com.wr.estate.entity.HomeEntity" resultMap="roomMap">
+        SELECT room_id, room_name, room_status
+        FROM xccj_community.bus_room
+        WHERE building_id = #{buildingId}
+          AND community_id = #{communityId}
+          AND unit_id = #{unitId}
+          AND del_flag = 0
+    </select>
+
+    <!--    获取该房屋下面所以人信息-->
+    <select id="getMan" parameterType="com.wr.estate.entity.HomeEntity" resultMap="ManMap">
+        select owner_id,
+               owner_name,
+               owner_phone,
+               gender,
+               card_no,
+               card_type,
+               card_font,
+               card_back,
+               face_url,
+               owner_relation
+        FROM xccj_community.bus_owner
+        WHERE room_id = #{roomId}
+    </select>
+
+
+    <insert id="addoldfile" parameterType="com.wr.estate.entity.vo.OlderVo">
+        INSERT INTO xccj_community.bus_older (community_id, building_id, unit_id, room_id, owner_id, contact_name,
+                                              contact_phone,
+                                              contact_gender, contact_id, relation, audit_status, create_time,
+                                              create_by)
+        VALUES (#{communityId}, #{buildingId}, #{unitId}, #{roomId}, #{ownerId}, #{contactName}, #{contactPhone},
+                #{contactGender}, #{contactId}, #{relation}, '1', sysdate(), #{createBy})
+    </insert>
+
+
+    <sql id="oldman">
+        SELECT bo.older_id,
+               bor.owner_name,
+               bor.card_no,
+               bor.gender                                                       AS old_gender,
+               GROUP_CONCAT(bc.community_name, "-", bb.building_name, "-", bu.unit_name, "-", br.room_name,
+                            "室")                                                AS home_Name,
+               bo.contact_name,
+               bo.audit_status,
+               bo.relation,
+               bo.contact_phone,
+               bo.create_by,
+               bo.create_time,
+               bo.update_time,
+               bo.update_by,
+               br.room_name,
+               (substring(now(), 1, 4) - substring(bor.card_no, 7, 4)) -
+               (substring(bor.card_no, 11, 4) - date_format(now(), '%m%d') > 0) as age
+        FROM xccj_community.bus_older bo
+                 LEFT JOIN xccj_community.bus_owner bor ON bo.owner_id = bor.owner_id
+                 LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON bo.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON bo.room_id = br.room_id
+    </sql>
+
+    <sql id="olderMsg">
+        SELECT bo.older_id,
+               bor.owner_name,
+               bor.owner_phone,
+               bor.card_no,
+               bor.card_type,
+               bor.owner_relation,
+               bor.gender        AS old_gender,
+               bor.card_type,
+               bor.card_back,
+               bor.card_font,
+               bor.face_url,
+               bc.community_name,
+               br.room_status,
+               bb.building_name,
+               bu.unit_name,
+               bo.reject_reason,
+               br.room_name,
+               GROUP_CONCAT(bc.community_name, "-", bb.building_name, "-", bu.unit_name, "-", br.room_name,
+                            "室") AS home_Name,
+               bo.contact_name,
+               bo.audit_status,
+               bo.relation,
+               bo.contact_phone,
+               bo.contact_id,
+               bo.create_by,
+               bo.create_time,
+               bo.update_time,
+               bo.update_by,
+               bo.contact_gender,
+               (substring(now(), 1, 4) - substring(bor.card_no, 7, 4)) -
+               (substring(bor.card_no, 11, 4) - date_format(now(), '%m%d') > 0) as age
+        FROM xccj_community.bus_older bo
+                 LEFT JOIN xccj_community.bus_owner bor ON bo.owner_id = bor.owner_id
+                 LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON bo.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON bo.room_id = br.room_id
+    </sql>
+
+    <select id="oldmsg" resultMap="olderMsgMap" parameterType="com.wr.estate.entity.OldMsgEntity">
+        <include refid="olderMsg"/>
+            where xccj_community.bo.del_flag = 0 and xccj_community.bo.older_id = #{olderId}
+    </select>
+
+
+    <select id="getoldman" resultMap="olderMap" parameterType="com.wr.estate.entity.vo.OlderVo">
+        <include refid="oldman"/>
+        <where>
+            xccj_community.bo.del_flag = 0
+            <if test="status == 1">
+                and bo.audit_status = #{status}
+            </if>
+            <if test="ownerName!=null and ownerName!=''">
+                and xccj_community.bor.owner_name like concat('%', #{ownerName}, '%')
+            </if>
+            <if test="contactName!=null and contactName!=''">
+                and xccj_community.bo.contact_name = #{contactName}
+            </if>
+            <if test="contactPhone!=null and contactPhone!=''">
+                and xccj_community.bo.contact_phone = #{contactPhone}
+            </if>
+            <if test="auditStatus!=null and auditStatus!=''">
+                and xccj_community.bo.audit_status = #{auditStatus}
+            </if>
+            <if test="communityId!=null and communityId!=''">
+                and xccj_community.bo.community_id = #{communityId}
+            </if>
+
+        </where>
+        GROUP BY bo.older_id
+    </select>
+
+    <!-- 审核通过 -->
+    <update id="tg">
+        UPDATE `xccj_community`.`bus_older`
+        SET `audit_status` = '1',
+            update_by      = #{updateBy}
+        WHERE `older_id` = #{olderId};
+    </update>
+
+    <!-- 审核驳回 -->
+    <update id="bh">
+        UPDATE `xccj_community`.`bus_older`
+        SET `audit_status`  = '2',
+            `reject_reason` = #{rejectReason},
+            update_by       = #{updateBy}
+        WHERE `older_id` = #{olderId};
+    </update>
+
+    <!--    删除-->
+    <!--<update id="del">
+        UPDATE `xccj_community`.`bus_older`
+        SET del_flag = '1' WHERE `older_id` = #{olderId};
+    </update>-->
+
+    <!-- 批量删除-->
+    <update id="del">
+        UPDATE `xccj_community`.`bus_older`
+        SET del_flag = '1' WHERE `older_id` in
+        <foreach collection="array" item="olderId" open="(" separator="," close=")">
+            #{olderId}
+        </foreach>;
+    </update>
+
+    <!--    查看老人是否已经办理古档案-->
+    <select id="getoldfilecount" resultType="int">
+        select count(*)
+        from `xccj_community`.bus_older
+        where owner_id = #{ownerId}
+          and del_flag = 0
+    </select>
+
+
+    <select id="lookolderman" resultMap="OlderExaminer">
+        SELECT be.examiner_id,
+               bm.activity_name,
+               bm.medical_type,
+               bm.medical_org,
+               be.examiner_doctor,
+               be.examiner_import_status,
+               be.examiner_send_status,
+               be.examiner_report_time
+        FROM xccj_community.bus_older buo
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = buo.owner_id
+                 LEFT JOIN xccj_community.bus_examiner be ON be.card_no = bo.card_no
+                 LEFT JOIN xccj_community.bus_medical bm ON bm.medical_id = be.examiner_medical
+        WHERE older_id = #{olderId}
+          AND bm.del_flag = 0
+          AND bo.del_flag = 0
+          AND buo.del_flag = 0
+    </select>
+    <select id="selectauditList" resultType="com.wr.estate.entity.vo.OlderVo">
+
+    </select>
+
+</mapper>

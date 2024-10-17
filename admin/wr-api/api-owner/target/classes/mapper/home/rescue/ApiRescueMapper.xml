@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.rescue.ApiRescueMapper">
+
+    <select id="getList" resultType="com.wr.api.owner.entity.home.rescue.vo.ApiRescueVo"
+            parameterType="com.wr.api.owner.entity.home.rescue.vo.ApiRescueVo">
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bo.owner_name AS `releaseName`,
+               br.release_time,
+               br.start_time,
+               br.end_time,
+               (
+                   CASE
+
+                       WHEN SYSDATE() &lt; br.start_time THEN '0'
+                       WHEN SYSDATE() >= br.start_time
+                           AND SYSDATE() &lt;= br.end_time THEN '1'
+                       WHEN SYSDATE() > br.end_time THEN
+                           '2'
+                       END
+                   )         AS `rescueStatus`
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = '0'
+          AND br.community_id = #{communityId}
+          AND bo.owner_phone != #{userPhone}
+          AND br.end_time
+            > SYSDATE()
+          AND br.rescue_id NOT IN ( SELECT rescue_id FROM xccj_govern.bus_rescue_user WHERE user_phone = #{userPhone} )
+        UNION ALL
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bt.tenant_name AS `releaseName`,
+               br.release_time,
+               br.start_time,
+               br.end_time,
+               (
+                   CASE
+
+                       WHEN SYSDATE() &lt; br.start_time THEN '0'
+                       WHEN SYSDATE() >= br.start_time
+                           AND SYSDATE() &lt;= br.end_time THEN '1'
+                       WHEN SYSDATE() > br.end_time THEN
+                           '2'
+                       END
+                   )          AS `rescueStatus`
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_tenant bt ON bt.tenant_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = '1'
+          AND br.community_id = #{communityId}
+          AND bt.tenant_phone != #{userPhone}
+          AND br.end_time
+            > SYSDATE()
+          AND br.rescue_id NOT IN (
+            SELECT
+            rescue_id
+            FROM
+            xccj_govern.bus_rescue_user
+            WHERE
+            user_phone = #{userPhone})
+    </select>
+    <!--救助详情-->
+    <select id="selectOneById" resultType="com.wr.api.owner.entity.home.rescue.vo.ApiRescueVo">
+        select
+        (CASE
+        WHEN release_type='0' THEN
+        (select ner.owner_name
+        from xccj_community.bus_owner as ner
+        where ner.owner_id =cue.release_id)
+        WHEN release_type='1' THEN
+        (select ten.tenant_name
+        from xccj_community.bus_tenant as ten
+        where ten.tenant_id =cue.release_id)
+        END
+        ) AS releaseName,
+        cue.rescue_title,
+        cue.address,
+        cue.need_num,
+        cue.start_time,
+        cue.end_time,
+        cue.content,
+        count(bru.rescue_id) as userNum
+        from xccj_govern.bus_rescue as cue
+        left join xccj_govern.bus_rescue_user as bru on cue.rescue_id = bru.rescue_id
+        <where>
+            <if test="rescueId != null">
+                and cue.rescue_id=#{rescueId}
+            </if>
+        </where>
+
+    </select>
+
+    <!--根据救助id查询志愿者的信息-->
+    <select id="getRescueUserById" resultType="com.wr.api.owner.entity.home.rescue.ApiRescueUser" parameterType="Long">
+        select *
+        from xccj_govern.bus_rescue_user as ser
+        <if test="rescueId != null">
+            where ser.rescue_id=#{rescueId}
+        </if>
+    </select>
+
+    <insert id="add" parameterType="com.wr.api.owner.entity.home.rescue.ApiRescueUser">
+        insert into xccj_govern.bus_rescue_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="rescueId!=null ">rescue_id,</if>
+            <if test="userName!=null and userName!=''">user_name,</if>
+            <if test="userPhone!=null and userPhone!=''">user_phone</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="rescueId!=null ">#{rescueId},</if>
+            <if test="userName!=null and userName!=''">#{userName},</if>
+            <if test="userPhone!=null and userPhone!=''">#{userPhone}</if>
+        </trim>
+    </insert>
+
+    <!-- 查询志愿者是否已经参与了社区救助 -->
+    <select id="countByUser" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_govern.bus_rescue_user
+        WHERE rescue_id = #{rescueId}
+          AND user_name = #{userName}
+          AND user_phone = #{userPhone}
+    </select>
+
+    <select id="getJoinRescueList" resultType="com.wr.api.owner.entity.home.rescue.vo.ApiRescueVo"
+            parameterType="com.wr.api.owner.entity.home.rescue.vo.ApiRescueVo">
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bo.owner_name AS `releaseName`,
+               br.release_time,
+               br.start_time,
+               br.end_time,
+               (
+                   CASE
+                       WHEN SYSDATE() &lt; br.start_time THEN '0'
+                       WHEN SYSDATE() >= br.start_time
+                           AND SYSDATE() &lt;= br.end_time THEN '1'
+                       WHEN SYSDATE() > br.end_time THEN
+                           '2'
+                       END
+                   )         AS `rescueStatus`
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = '0'
+          AND br.community_id = #{communityId}
+          AND bo.owner_phone != #{userPhone}
+          AND br.rescue_id IN ( SELECT rescue_id FROM xccj_govern.bus_rescue_user WHERE user_phone = #{userPhone} )
+        UNION ALL
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bt.tenant_name AS `releaseName`,
+               br.release_time,
+               br.start_time,
+               br.end_time,
+               (
+                   CASE
+
+                       WHEN SYSDATE() &lt; br.start_time THEN '0'
+                       WHEN SYSDATE() >= br.start_time
+                           AND SYSDATE() &lt;= br.end_time THEN '1'
+                       WHEN SYSDATE() > br.end_time THEN
+                           '2'
+                       END
+                   )          AS `rescueStatus`
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_tenant bt ON bt.tenant_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = '1'
+          AND br.community_id = #{communityId}
+          AND bt.tenant_phone != #{userPhone}
+          AND br.rescue_id IN (
+            SELECT
+            rescue_id
+            FROM
+            xccj_govern.bus_rescue_user
+            WHERE
+            user_phone = #{userPhone})
+    </select>
+
+
+</mapper>

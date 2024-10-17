@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.WarnEventMapper">
+
+    <insert id="insertWarnEvent" useGeneratedKeys="true" keyProperty="warnId">
+        INSERT INTO xccj_device.bus_warn_event(
+            send_time, ability, event_id, src_index, src_type, src_name,
+            event_type, `status`, timeout, event_name, happen_time, stop_time,
+            remark, record_time, community_id, del_flag
+        ) VALUES (
+            #{sendTime,jdbcType = VARCHAR}, #{ability,jdbcType = VARCHAR},
+            #{eventId,jdbcType = VARCHAR}, #{srcIndex,jdbcType = VARCHAR},
+            #{srcType,jdbcType = VARCHAR}, #{srcName,jdbcType = VARCHAR},
+            #{eventType}, #{status}, #{timeout}, #{eventName,jdbcType = VARCHAR},
+            #{happenTime,jdbcType = VARCHAR}, #{stopTime,jdbcType = VARCHAR},
+            #{remark,jdbcType = VARCHAR}, sysdate(), #{communityId,jdbcType = BIGINT}, '0'
+        )
+    </insert>
+
+</mapper>

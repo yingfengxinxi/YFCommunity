@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.InspectOrderMapper">
+    <resultMap id="detailMap" type="com.wr.api.estate.entity.vo.order.InspectOrderDetailVO">
+        <result column="orderNo" property="orderNo"/>
+        <result column="orderName" property="orderName"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <result column="remark" property="finishRemark"/>
+        <result column="orderTypeName" property="orderTypeName"/>
+        <result column="inspectType" property="inspectType"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <result column="orderSource" property="orderSource"/>
+        <result column="execute_time" property="executeTime"/>
+        <result column="finishTime" property="finishTime"/>
+        <result column="finishImageUrl" property="finishImageUrl"/>
+        <result column="otherOrderNo" property="otherOrderNo"/>
+        <collection property="devices" ofType="com.wr.api.estate.entity.vo.order.DeviceDetailVO">
+            <result column="index_code" property="indexCode"/>
+            <result column="deviceType" property="deviceType"/>
+            <result column="device_name" property="deviceName"/>
+            <result column="deviceAddress" property="deviceAddress"/>
+            <result column="inspect_result" property="inspectResult"/>
+            <result column="result_info" property="resultIfo"/>
+        </collection>
+        <collection property="abnormalImages" ofType="java.lang.String">
+            <result column="abnormalImage"/>
+        </collection>
+    </resultMap>
+
+    <!-- 巡检工单移动端列表查询 -->
+    <select id="listInspectOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bi.inspect_id AS orderId,
+        bi.inspect_no AS orderNo,
+        bi.inspect_name AS orderName,
+        bi.start_time AS startTime,
+        bi.end_time AS endTime,
+        '巡检工单' AS orderTypeName,
+        2 AS orderType,
+        IF(bi.allot_way = '2' AND bi.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bi.transfer_status = '1' THEN 4
+        WHEN bi.allot_status = '0' THEN 1
+        WHEN bi.accept_status = '0' THEN 2
+        WHEN bi.execute_status = '0' THEN 3
+        WHEN bi.execute_status = '2' THEN 6
+        WHEN bi.execute_status = '3' THEN 8
+        WHEN bi.execute_status = '1' AND NOW()>bi.end_time THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_inspect bi
+        LEFT JOIN xccj_work.bus_order_audit audit ON bi.inspect_id = audit.order_id AND audit.order_type = '2' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bi.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bi.staff_id = #{staffId} OR (bi.allot_way = '2' AND bi.allot_status = '0' AND bi.accept_status = '0') OR
+            assist.staff_id = #{staffId})
+        </if>
+        AND bi.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bi.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bi.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bi.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bi.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bi.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bi.execute_status = 2
+        </if>
+        order by bi.start_time desc
+    </select>
+
+    <!-- 巡检工单详情 -->
+    <select id="detailInspectOrders" resultMap="detailMap">
+        SELECT bi.inspect_no   AS orderNo,
+               bi.inspect_name AS orderName,
+               bi.start_time   AS startTime,
+               bi.end_time     AS endTime,
+               bi.remark,
+               CASE bi.data_source
+                   WHEN '0' THEN '计划生成'
+                   WHEN '1' THEN '后台添加'
+                   WHEN '2' THEN '其他工单' END AS orderSource,
+               bi.staff_id,
+               bi.order_no AS otherOrderNo,
+               bi.finish_time AS finishTime,
+               bi.image_url AS finishImageUrl,
+               bt.tour_name     AS inspectType,
+               device.device_name,
+               device.address  AS deviceAddress,
+               device.index_code,
+               device.type     AS deviceType,
+               inspectDevice.inspect_result,
+               inspectDevice.result_info,
+               '巡检工单'      AS orderTypeName,
+               bai.image_url AS abnormalImage,
+               CASE
+                   WHEN bi.transfer_status = '1' THEN 4
+                   WHEN bi.allot_status = '0' THEN 1
+                   WHEN bi.accept_status = '0' THEN 2
+                   WHEN bi.execute_status = '0' THEN 3
+                   WHEN bi.execute_status = '2' THEN 6
+                   WHEN bi.execute_status = '3' THEN 8
+                   WHEN bi.execute_status = '1' AND bi.end_time > NOW() THEN 7
+                   ELSE 5 END  AS orderStatus
+        FROM xccj_work.bus_inspect bi
+                 LEFT JOIN xccj_work.bus_tour bt ON bt.tour_id = bi.tour_id AND bt.tour_type = '2'
+                 LEFT JOIN xccj_work.bus_abnormal ba ON bi.inspect_id = ba.order_id AND ba.order_type = '2' AND ba.del_flag = '0'
+            LEFT JOIN xccj_work.bus_abnormal_img bai ON ba.abnormal_id = bai.abnormal_id AND bai.del_flag = '0'
+                 LEFT JOIN xccj_work.bus_inspect_device inspectDevice ON bi.inspect_id = inspectDevice.inspect_id
+                 LEFT JOIN xccj_device.view_all_device device
+                           ON inspectDevice.index_code = device.index_code AND device.type =
+                                                                               inspectDevice.device_type
+        WHERE bi.inspect_id = #{orderId}
+    </select>
+
+    <!-- 抢单 -->
+    <update id="robOrder">
+        UPDATE xccj_work.bus_inspect
+        SET allot_status  = '1',
+            accept_status = '1',
+            staff_id      = #{staffId}
+        WHERE allot_status = '0'
+          AND accept_status = '0'
+          AND allot_way = '2'
+          AND inspect_id = #{orderId}
+    </update>
+
+    <!-- 接单 -->
+    <update id="receiveOrder">
+        UPDATE xccj_work.bus_inspect
+        SET accept_status = '1'
+        WHERE allot_status = '1'
+          AND accept_status = '0'
+          AND inspect_id = #{orderId}
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 开始执行 -->
+    <update id="startPerform">
+        UPDATE xccj_work.bus_inspect
+        SET execute_status = '1',
+            execute_time   = NOW()
+        WHERE inspect_id = #{orderId}
+          AND allot_status = '1'
+          AND accept_status = '1'
+          AND execute_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 完成工单 -->
+    <update id="finish">
+        UPDATE xccj_work.bus_inspect
+        SET execute_status = IF(NOW() > end_time, 3, 2),
+            finish_time    = NOW(),
+            image_url      = #{finishImageUrl},
+            remark         = #{remark},
+            execute_id     = #{staffId}
+        WHERE inspect_id = #{orderId}
+    </update>
+
+    <!-- 转交工单 -->
+    <update id="transfer">
+        UPDATE xccj_work.bus_inspect
+        SET transfer_status = '1'
+        WHERE execute_status IN ('1', '0')
+          AND transfer_status = '0'
+          AND inspect_id = #{orderId}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="com.wr.remote.work.vo.InspectVo">
+        <!--@mbg.generated-->
+        SELECT *
+        FROM xccj_work.bus_inspect
+        WHERE inspect_id = #{inspectId,jdbcType=BIGINT}
+    </select>
+
+    <!-- 巡检设备数量 -->
+    <select id="inspectDeviceCount" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_work.bus_inspect_device
+        WHERE inspect_id = #{inspectId}
+    </select>
+
+    <!-- 巡检设备签到 -->
+    <update id="signInDevice">
+        UPDATE xccj_work.bus_inspect_device SET inspect_result = #{signInStatus}
+        <if test="remark != null and remark != ''">
+            ,result_info = #{remark}
+        </if>
+        WHERE inspect_id = #{orderId} AND index_code = #{id} AND device_type = #{deviceType}
+    </update>
+
+    <!-- 巡检设备查询 -->
+    <select id="listInspectDevices" resultType="com.wr.api.estate.entity.vo.order.DeviceDetailVO">
+        SELECT device_type, index_code, inspect_result, result_info
+        FROM xccj_work.bus_inspect_device
+        WHERE inspect_id = #{inspectId}
+    </select>
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.advice.SuggestionMapper">
+
+    <!--查询列表-->
+    <select id="selectSuggestionList" resultType="com.wr.api.owner.entity.home.advice.Suggestion">
+        select
+            suggest_id,
+            suggest_type,
+            remark,
+            create_time
+        FROM xccj_community.bus_suggestion
+        WHERE del_flag = '0'
+        AND account_id = #{accountId}
+        <if test="communityId != null">
+            AND community_id = #{communityId}
+        </if>
+        order by create_time desc
+    </select>
+
+    <!--查询详情-->
+    <select id="getSuggestionById" resultType="com.wr.api.owner.entity.home.advice.Suggestion">
+        SELECT
+            sug.suggest_id,
+            sug.account_id,
+            sug.community_id,
+            sug.building_id,
+            sug.unit_id,
+            sug.room_id,
+            sug.suggest_type,
+            sug.remark,
+            sug.create_time,
+            sug.del_flag,
+            acc.account_name,
+            acc.account_nick
+        FROM xccj_community.bus_suggestion sug
+                 LEFT JOIN xccj_community.bus_account acc on sug.account_id = acc.account_id
+        WHERE sug.suggest_id = #{suggestId}
+          AND sug.del_flag='0'
+    </select>
+
+    <!--新增 前台判断报单触发传order_id和order_no等内容,没有则默认0和空-->
+    <insert id="insertSuggestion" parameterType="com.wr.api.owner.entity.home.advice.Suggestion">
+        INSERT INTO xccj_community.bus_suggestion
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != accountId ">
+                account_id,
+            </if>
+            <if test="null != communityId ">
+                community_id,
+            </if>
+            <if test="null != buildingId ">
+                building_id,
+            </if>
+            <if test="null != unitId ">
+                unit_id,
+            </if>
+            <if test="null != roomId ">
+                room_id,
+            </if>
+            <if test="null != suggestType and '' != suggestType">
+                suggest_type,
+            </if>
+            <if test="null != remark and '' != remark">
+                remark,
+            </if>
+            <if test="null != createTime ">
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="null != accountId ">
+                #{accountId},
+            </if>
+            <if test="null != communityId ">
+                #{communityId},
+            </if>
+            <if test="null != buildingId ">
+                #{buildingId},
+            </if>
+            <if test="null != unitId ">
+                #{unitId},
+            </if>
+            <if test="null != roomId ">
+                #{roomId},
+            </if>
+            <if test="null != suggestType and '' != suggestType">
+                #{suggestType},
+            </if>
+            <if test="null != remark and '' != remark">
+                #{remark},
+            </if>
+            <if test="null != createTime ">
+                sysdate(),
+            </if>
+        </trim>
+    </insert>
+</mapper>

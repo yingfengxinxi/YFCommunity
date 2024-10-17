@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.system.mapper.MenuMapper">
+
+	<resultMap type="com.wr.remote.domain.SysMenu" id="SysMenuResult">
+		<id     property="menuId"         column="menu_id"        />
+		<result property="menuName"       column="menu_name"      />
+		<result property="parentName"     column="parent_name"    />
+		<result property="parentId"       column="parent_id"      />
+		<result property="orderNum"       column="order_num"      />
+		<result property="path"           column="path"           />
+		<result property="component"      column="component"      />
+		<result property="query"          column="query"          />
+		<result property="isFrame"        column="is_frame"       />
+		<result property="isCache"        column="is_cache"       />
+		<result property="menuType"       column="menu_type"      />
+		<result property="visible"        column="visible"        />
+		<result property="status"         column="status"         />
+		<result property="perms"          column="perms"          />
+		<result property="icon"           column="icon"           />
+		<result property="platType"       column="plat_type"           />
+		<result property="createBy"       column="create_by"      />
+		<result property="createTime"     column="create_time"    />
+		<result property="updateTime"     column="update_time"    />
+		<result property="updateBy"       column="update_by"      />
+		<result property="remark"         column="remark"         />
+	</resultMap>
+
+	<sql id="selectMenuVo">
+		select
+		       menu_id, menu_name, parent_id, order_num, path, component, `query`, is_frame,
+		       is_cache, menu_type, visible, status, ifnull(perms,'') as perms, icon, plat_type, create_time
+		from xccj_estate_sys.sys_menu
+	</sql>
+
+<!--	AND m.plat_type != 'SYSTEM' AND su.user_id = #{userId}-->
+	<select id="selectMenuListByVer" resultType="com.wr.remote.domain.SysMenu">
+		SELECT DISTINCT m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.plat_type, m.create_time
+		FROM xccj_estate_sys.sys_menu m
+				 LEFT JOIN xccj_community.bus_server_ver_menu svm ON svm.menu_id = m.menu_id
+				 LEFT JOIN xccj_community.bus_role_ver rv ON rv.version_id = svm.version_id
+				 LEFT JOIN xccj_estate_sys.sys_role sr ON sr.role_id = rv.role_id
+				 LEFT JOIN xccj_estate_sys.sys_user_role sur ON sur.role_id = sr.role_id
+				 LEFT JOIN xccj_estate_sys.sys_user su ON su.user_id = sur.user_id
+		WHERE m.status = '0'
+		ORDER BY m.parent_id, m.order_num
+	</select>
+
+	<select id="selectMenuListByRole" resultType="com.wr.remote.domain.SysMenu">
+		SELECT DISTINCT m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.plat_type, m.create_time
+		FROM xccj_estate_sys.sys_menu m
+				 LEFT JOIN xccj_estate_sys.sys_role_menu rm on m.menu_id = rm.menu_id
+				 LEFT JOIN xccj_estate_sys.sys_user_role ur on rm.role_id = ur.role_id
+				 LEFT JOIN xccj_estate_sys.sys_role ro on ur.role_id = ro.role_id
+				 LEFT JOIN xccj_estate_sys.sys_user u on ur.user_id = u.user_id
+		WHERE m.status = '0' AND m.plat_type != 'SYSTEM' AND u.user_id = #{userId}
+		ORDER BY m.parent_id, m.order_num
+	</select>
+
+	<select id="selectMenuListByRoleId" resultType="Long">
+		select m.menu_id
+		from xccj_estate_sys.sys_menu m
+		left join xccj_estate_sys.sys_role_menu rm on m.menu_id = rm.menu_id
+		where rm.role_id = #{roleId} AND m.plat_type != 'SYSTEM'
+		<if test="menuCheckStrictly">
+			and m.menu_id not in (select m.parent_id from xccj_estate_sys.sys_menu m inner join xccj_estate_sys.sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = #{roleId})
+		</if>
+		order by m.parent_id, m.order_num
+	</select>
+
+</mapper>

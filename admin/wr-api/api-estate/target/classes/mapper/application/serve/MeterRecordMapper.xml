@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.serve.MeterRecordMapper">
+    <resultMap type="com.wr.api.estate.entity.application.serve.MeterRecord" id="MeterCordResult">
+        <id property="recordId" column="record_id"/>
+    </resultMap>
+
+
+    <sql id="Base_MeterCord_List">
+        bmr.record_id, bmr.community_id, bmr.building_id, bmr.unit_id, bmr.room_id, bmr.owner_id, bmr.staff_id, bmr.meter_type,
+    bmr.last_consume, bmr.this_consume, bmr.meter_time, bmr.meter_push, bmr.del_flag
+    </sql>
+
+    <!--列表-->
+    <select id="selectMeterCord" resultType="com.wr.api.estate.entity.application.serve.MeterRecord">
+        SELECT br.room_id,
+        br.community_id,
+        br.building_id,
+        br.unit_id,
+        br.room_name,
+        br.owner_id,
+        bu.unit_name,
+        bb.building_name,
+        bo.owner_name,
+        bo.owner_phone,
+        (SELECT bmrt.record_id
+        FROM xccj_community.bus_meter_record bmrt
+        WHERE bmrt.room_id=br.room_id AND bmrt.del_flag='0'
+        <if test="meterTime==null">
+            AND DATE_FORMAT(bmrt.meter_time,'%Y-%m')=DATE_FORMAT(SYSDATE(),'%Y-%m')
+        </if>
+        <if test="meterTime!=null">
+            AND DATE_FORMAT(bmrt.meter_time,'%Y-%m')=DATE_FORMAT(#{meterTime},'%Y-%m')
+        </if>
+        AND bmrt.meter_type=#{meterType}
+        ) AS "record_id",
+        IF((SELECT COUNT(*) FROM xccj_community.bus_meter_record bmr
+        WHERE bmr.room_id=br.room_id
+        AND bmr.del_flag='0'
+        <if test="meterTime==null">
+            AND DATE_FORMAT(bmr.meter_time,'%Y-%m')=DATE_FORMAT(SYSDATE(),'%Y-%m')
+        </if>
+        <if test="meterTime!=null">
+            AND DATE_FORMAT(bmr.meter_time,'%Y-%m')=DATE_FORMAT(#{meterTime},'%Y-%m')
+        </if>
+        AND bmr.meter_type=#{meterType}
+        )>0,'1','0') AS "put_status",
+        bo.gender
+        FROM xccj_community.bus_room br
+        LEFT JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_owner bo ON br.owner_id = bo.owner_id
+        WHERE br.community_id = #{communityId}
+        AND bb.building_id = #{buildingId}
+        AND br.del_flag = '0'
+        AND bb.del_flag = '0'
+        AND bo.del_flag = '0'
+    </select>
+
+    <select id="getMeterRecordDetail" resultType="com.wr.api.estate.entity.vo.application.serve.MeterRecordVO">
+        SELECT
+        bo.owner_name,
+        bo.owner_phone,
+        br.room_name,
+        <include refid="Base_MeterCord_List"/>
+        FROM xccj_community.bus_meter_record `bmr`
+        LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id=bmr.owner_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id=bmr.room_id
+        WHERE bmr.record_id=#{recordId}
+        AND bmr.del_flag='0'
+        AND bo.del_flag='0'
+        AND br.del_flag='0'
+    </select>
+
+    <select id="getOwnerDetail" resultType="com.wr.api.estate.entity.vo.application.serve.MeterRecordVO">
+        SELECT bo.owner_id,
+               bo.owner_phone,
+               bo.owner_name,
+               br.room_name
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        WHERE bo.owner_id = #{ownerId}
+          AND bo.del_flag = '0'
+    </select>
+
+    <!--  获取上次抄表数  -->
+    <select id="getLastMeterRecord" resultType="java.math.BigDecimal">
+        SELECT this_consume
+        FROM xccj_community.bus_meter_record
+        WHERE community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND meter_type = #{meterType}
+          AND owner_id = #{ownerId}
+          AND del_flag = '0'
+        ORDER BY meter_time DESC
+        LIMIT 1
+    </select>
+
+
+    <select id="getBuilderList" resultType="com.wr.remote.estate.center.Building">
+        SELECT building_id,
+               building_name
+        FROM xccj_community.bus_building
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+    </select>
+
+    <!--新增-->
+    <insert id="insertCord" parameterType="com.wr.api.estate.entity.application.serve.MeterRecord">
+        INSERT INTO xccj_community.bus_meter_record
+        <trim suffixOverrides="," suffix=")" prefix="(">
+
+            <if test="communityId != null">community_id,</if>
+
+            <if test="buildingId != null">building_id,</if>
+
+            <if test="unitId != null">unit_id,</if>
+
+            <if test="roomId != null">room_id,</if>
+
+            <if test="ownerId != null">owner_id,</if>
+
+            <if test="userId != null">staff_id,</if>
+
+            <if test="meterType != null">meter_type,</if>
+
+            <if test="lastConsume  != null">last_consume,</if>
+            <if test="thisConsume  != null">this_consume,</if>
+            meter_push,
+            meter_time,
+            del_flag
+        </trim>
+        <trim suffixOverrides="," suffix=")" prefix="values (">
+            <if test="communityId != null">#{communityId},</if>
+
+            <if test="buildingId != null">#{buildingId},</if>
+
+            <if test="unitId != null">#{unitId},</if>
+
+            <if test="roomId != null">#{roomId},</if>
+
+            <if test="ownerId != null">#{ownerId},</if>
+
+            <if test="userId != null">
+                (SELECT staff_id
+                FROM xccj_community.bus_staff
+                WHERE user_id=#{userId} AND del_flag='0'),
+            </if>
+
+            <if test="meterType != null">#{meterType},</if>
+
+            <if test="lastConsume  != null">#{lastConsume},</if>
+
+            <if test="thisConsume != null">#{thisConsume},</if>
+            '0',sysdate(),'0'
+        </trim>
+    </insert>
+
+</mapper>

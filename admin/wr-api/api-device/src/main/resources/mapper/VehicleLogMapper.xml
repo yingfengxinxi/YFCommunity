@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.VehicleLogMapper">
+
+    <insert id="insertVehicleLog">
+        INSERT INTO ${tableName} (
+            <if test="userName != null and userName !=''">user_name,</if>
+            <if test="userPhone != null and userPhone !=''">user_phone,</if>
+            <if test="idCardNo != null and idCardNo !=''">id_card_no,</if>
+            <if test="communityName != null and communityName !=''">community_name,</if>
+            user_type,park_type,park_index,park_name,gate_index,gate_name,
+            roadway_index,roadway_name,plate_no,plate_type,plate_color,
+            vehicle_type,vehicle_color,inout_type,pay_status,community_id
+            <if test="inoutTime != null">,inout_time</if>
+            <if test="inoutOpen != null">,inout_open</if>
+        ) VALUES (
+            <if test="userName != null and userName !=''">#{userName},</if>
+            <if test="userPhone != null and userPhone !=''">#{userPhone},</if>
+            <if test="idCardNo != null and idCardNo !=''">#{idCardNo},</if>
+            <if test="communityName != null and communityName !=''">#{communityName},</if>
+            #{userType},#{parkType},#{parkIndex},#{parkName},#{gateIndex},#{gateName},
+            #{roadwayIndex},#{roadwayName},#{plateNo},#{plateType},#{plateColor},
+            #{vehicleType},#{vehicleColor},#{inoutType},#{payStatus},#{communityId}
+            <if test="inoutTime != null">,#{inoutTime}</if>
+            <if test="inoutOpen != null">,#{inoutOpen}</if>
+        )
+    </insert>
+
+    <update id="updateNewestInNoPay">
+        UPDATE ${tableName} SET
+            park_type = #{parkType}, park_index = #{parkIndex},park_name = #{parkName},
+            gate_index = #{gateIndex}, gate_name = #{gateName},
+            roadway_index = #{roadwayIndex}, roadway_name = #{roadwayName}
+        WHERE pay_status = '0' AND inout_type = '0'
+            AND inout_time = (
+                SELECT inout_time FROM ${tableName}
+                WHERE del_flag = '0' AND plate_no = #{plateNo}
+            )
+    </update>
+
+    <select id="getTodayOutPayLog" resultType="com.wr.remote.govern.manage.VehicleLog">
+        SELECT * FROM ${tableName}
+        WHERE del_flag = '0' AND pay_status = '1' AND inout_type = 1
+          AND plate_no = #{plateNo}
+        ORDER BY inout_time DESC
+        LIMIT 1
+    </select>
+
+    <update id="updateOutOpenTime">
+        UPDATE ${tableName} SET inout_open = sysdate() WHERE log_id = #{logId}
+    </update>
+
+    <select id="getNewestInLog" resultType="com.wr.remote.govern.manage.VehicleLog">
+        SELECT * FROM ${tableName}
+        WHERE del_flag = '0' AND inout_type = 1
+          AND plate_no = #{plateNo}
+        ORDER BY inout_time DESC
+        LIMIT 1
+    </select>
+</mapper>

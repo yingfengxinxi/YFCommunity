@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.info.OwnerMapper">
+    <select id="getList" resultType="com.wr.api.estate.entity.vo.application.info.OwnerVo">
+        SELECT DISTINCT
+        bo.owner_id AS "ownerId",
+        bo.owner_name AS "ownerName",
+        bo.owner_phone AS "ownerPhone",
+        bo.gender AS "gender"
+        FROM
+        xccj_community.bus_owner bo
+        LEFT JOIN xccj_community.bus_house bh ON bh.owner_id = bo.owner_id
+        WHERE
+        bo.del_flag = '0'
+        AND bo.audit_status = '1'
+        AND bh.community_id =#{communityId}
+        <if test="ownerName != null">
+            AND bo.owner_name like concat ('%',#{ownerName},'%')
+        </if>
+    </select>
+
+    <select id="getOwnerDetail" resultType="com.wr.api.estate.entity.vo.application.serve.OwnerInfoVo">
+        SELECT bo.owner_name      as "ownerName",
+               bo.gender          as "gender",
+               bo.owner_phone     as "ownerPhone",
+               bo.card_type       as "cardType",
+               bo.card_no         as "cardNo",
+               bo.owner_relation  as "ownerRelation",
+               bo.politics_status as "politicsStatus",
+               bo.religion        as "religion",
+               bo.self_intro      as "selfIntro",
+               bo.card_font       as "cardFont",
+               bo.card_back       as "cardBack",
+               bo.account_id      as "accountId",
+               bo.community_id    as "communityId"
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_account ba on ba.account_id = bo.account_id
+        WHERE bo.del_flag = '0'
+          AND bo.owner_id = #{ownerId}
+
+    </select>
+
+    <select id="getHouse" resultType="com.wr.api.estate.entity.vo.application.info.RoomInfoVo">
+        SELECT bc.community_name                                           AS "communityName",
+               br.room_attribute                                           AS "roomType",
+               bbg.building_name                                           AS "buildingName",
+               bu.unit_name                                                AS "unitName",
+               br.total_area                                               AS "totalArea",
+               br.room_name                                                AS "roomName",
+               SUBSTRING_INDEX(br.room_name, RIGHT ( br.room_name, 2 ), 1) AS "floor",
+               br.house_address                                            AS "houseAddress",
+               DATE_FORMAT(br.delivery_time, '%Y-%m-%d')                   AS "deliveryTime"
+        FROM xccj_community.bus_house bh
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bh.community_id
+                 LEFT JOIN xccj_community.bus_building bbg ON bbg.building_id = bh.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bh.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON br.room_id = bh.room_id
+        WHERE br.del_flag = '0'
+          AND bh.audit_status = '1'
+          AND br.owner_id = #{ownerId}
+          AND bh.community_id = #{communityId}
+    </select>
+
+    <!--<select id="getCar" resultType="com.wr.api.estate.entity.vo.application.info.OwnerVo">
+        SELECT
+            bc.carport_no,bv.plate_no
+        FROM xccj_community.bus_carport bc
+                 LEFT JOIN xccj_community.bus_vehicle bv ON bc.vehicle_id = bv.vehicle_id
+        WHERE bc.del_flag = '0' AND bc.carport_status = '0' AND bc.account_id = #{accountId}
+    </select>-->
+
+    <select id="getCar" resultType="com.wr.api.estate.entity.vo.application.info.OwnerVo">
+        SELECT bv.plate_no
+        FROM xccj_community.bus_vehicle bv
+        WHERE bv.del_flag = '0'
+          AND bv.audit_status = '1'
+          AND bv.account_id = #{accountId}
+    </select>
+
+    <select id="getOwnerNum" resultType="int">
+        SELECT count(*)
+        FROM xccj_community.bus_owner bc
+        WHERE bc.del_flag = '0'
+          AND bc.audit_status = '1'
+          AND bc.room_id = #{roomId}
+          AND bc.community_id = #{communityId}
+    </select>
+
+    <select id="getTenantNum" resultType="int">
+        SELECT count(*)
+        FROM xccj_community.bus_tenant bc
+        WHERE bc.del_flag = '0'
+          AND bc.audit_status = '1'
+          AND bc.room_id = #{roomId}
+          AND bc.community_id = #{communityId}
+    </select>
+
+    <select id="getOwnerCount" resultType="int">
+        SELECT count(*)
+        FROM xccj_community.bus_owner bo
+        WHERE bo.del_flag = '0'
+          AND bo.audit_status = '1'
+          AND bo.community_id = #{communityId}
+    </select>
+    <select id="getCarport" resultType="com.wr.api.estate.entity.vo.application.info.OwnerVo">
+        SELECT bc.carport_no
+        FROM xccj_community.bus_carport bc
+        WHERE bc.del_flag = '0'
+          AND bc.carport_status = '0'
+          AND bc.account_id = #{accountId}
+    </select>
+
+
+
+
+
+</mapper>

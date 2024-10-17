@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.nightPatrol.WatchmanMapper">
+    <resultMap type="com.wr.remote.work.nightPatrol.Watchman" id="WatchmanResult">
+        <result property="watchmanId" column="watchman_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="watchmanNo" column="watchman_no"/>
+        <result property="watchmanName" column="watchman_name"/>
+        <result property="watchmanType" column="watchman_type"/>
+        <result property="tourId" column="tour_id"/>
+        <result property="routeId" column="route_id"/>
+        <result property="dataSource" column="data_source"/>
+        <result property="planId" column="plan_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="allotWay" column="allot_way"/>
+        <result property="patrolNum" column="patrol_num"/>
+        <result property="gapTime" column="gap_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="staffId" column="staff_id"/>
+        <result property="assistNum" column="assist_num"/>
+        <result property="transferStatus" column="transfer_status"/>
+        <result property="allotStatus" column="allot_status"/>
+        <result property="acceptStatus" column="accept_status"/>
+        <result property="executeStatus" column="execute_status"/>
+        <result property="executeId" column="execute_id"/>
+        <result property="executeTime" column="execute_time"/>
+        <result property="finishTime" column="finish_time"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectWatchmanVo">
+        select watchman_id,
+               community_id,
+               watchman_no,
+               watchman_name,
+               watchman_type,
+               tour_id,
+               route_id,
+               data_source,
+               plan_id,
+               order_no,
+               allot_way,
+               patrol_num,
+               gap_time,
+               start_time,
+               end_time,
+               staff_id,
+               assist_num,
+               transfer_status,
+               allot_status,
+               accept_status,
+               execute_status,
+               execute_id,
+               execute_time,
+               finish_time,
+               image_url,
+               remark,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        from xccj_work.bus_watchman
+    </sql>
+
+    <select id="selectWatchmanList" parameterType="com.wr.remote.work.nightPatrol.Watchman" resultMap="WatchmanResult">
+        <include refid="selectWatchmanVo"/>
+        <where>
+            <if test="communityId != null ">
+                and community_id = #{communityId}
+            </if>
+            <if test="watchmanNo != null  and watchmanNo != ''">
+                and watchman_no = #{watchmanNo}
+            </if>
+            <if test="watchmanName != null  and watchmanName != ''">
+                and watchman_name like concat('%', #{watchmanName}, '%')
+            </if>
+            <if test="tourId != null ">
+                and tour_id = #{tourId}
+            </if>
+            <if test="routeId != null ">
+                and route_id = #{routeId}
+            </if>
+            <if test="dataSource != null  and dataSource != ''">
+                and data_source = #{dataSource}
+            </if>
+            <if test="planId != null ">
+                and plan_id = #{planId}
+            </if>
+            <if test="orderNo != null  and orderNo != ''">
+                and order_no = #{orderNo}
+            </if>
+            <if test="allotWay != null  and allotWay != ''">
+                and allot_way = #{allotWay}
+            </if>
+            <if test="patrolNum != null ">
+                and patrol_num = #{patrolNum}
+            </if>
+            <if test="gapTime != null ">
+                and gap_time = #{gapTime}
+            </if>
+            <if test="startTime != null ">
+                and start_time = #{startTime}
+            </if>
+            <if test="endTime != null ">
+                and end_time = #{endTime}
+            </if>
+            <if test="staffId != null ">
+                and staff_id = #{staffId}
+            </if>
+            <if test="assistNum != null ">
+                and assist_num = #{assistNum}
+            </if>
+            <if test="transferStatus != null  and transferStatus != ''">
+                and transfer_status = #{transferStatus}
+            </if>
+            <if test="allotStatus != null  and allotStatus != ''">
+                and allot_status = #{allotStatus}
+            </if>
+            <if test="acceptStatus != null  and acceptStatus != ''">
+                and accept_status = #{acceptStatus}
+            </if>
+            <if test="executeStatus != null  and executeStatus != ''">
+                and execute_status = #{executeStatus}
+            </if>
+            <if test="executeId != null ">
+                and execute_id = #{executeId}
+            </if>
+            <if test="executeTime != null ">
+                and execute_time = #{executeTime}
+            </if>
+            <if test="finishTime != null ">
+                and finish_time = #{finishTime}
+            </if>
+            <if test="imageUrl != null  and imageUrl != ''">
+                and image_url = #{imageUrl}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectWatchmanByWatchmanId" parameterType="Long" resultMap="WatchmanResult">
+        <include refid="selectWatchmanVo"/>
+        where watchman_id = #{watchmanId}
+    </select>
+
+    <insert id="insertWatchman" parameterType="com.wr.remote.work.nightPatrol.Watchman" useGeneratedKeys="true"
+            keyProperty="watchmanId">
+        insert into xccj_work.bus_watchman
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="watchmanNo != null and watchmanNo != ''">
+                watchman_no,
+            </if>
+            <if test="watchmanName != null and watchmanName != ''">
+                watchman_name,
+            </if>
+            <if test="watchmanType != null and watchmanType != ''">
+                watchman_type,
+            </if>
+            <if test="tourId != null">
+                tour_id,
+            </if>
+            <if test="routeId != null">
+                route_id,
+            </if>
+            <if test="dataSource != null and dataSource != ''">
+                data_source,
+            </if>
+            <if test="planId != null">
+                plan_id,
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                order_no,
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                allot_way,
+            </if>
+            <if test="patrolNum != null">
+                patrol_num,
+            </if>
+            <if test="gapTime != null">
+                gap_time,
+            </if>
+            <if test="startTime != null">
+                start_time,
+            </if>
+            <if test="endTime != null">
+                end_time,
+            </if>
+            <if test="staffId != null">
+                staff_id,
+            </if>
+            <if test="assistNum != null">
+                assist_num,
+            </if>
+            <if test="transferStatus != null and transferStatus != ''">
+                transfer_status,
+            </if>
+            <if test="allotStatus != null and allotStatus != ''">
+                allot_status,
+            </if>
+            <if test="acceptStatus != null and acceptStatus != ''">
+                accept_status,
+            </if>
+            <if test="executeStatus != null and executeStatus != ''">
+                execute_status,
+            </if>
+            <if test="executeId != null">
+                execute_id,
+            </if>
+            <if test="executeTime != null">
+                execute_time,
+            </if>
+            <if test="finishTime != null">
+                finish_time,
+            </if>
+            <if test="imageUrl != null and imageUrl != ''">
+                image_url,
+            </if>
+            <if test="remark != null and remark != ''">
+                remark,
+            </if>
+            <if test="createBy != null and createBy != ''">
+                create_by,
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by,
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                del_flag,
+            </if>
+            create_time,
+            update_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId},
+            </if>
+            <if test="watchmanNo != null and watchmanNo != ''">
+                #{watchmanNo},
+            </if>
+            <if test="watchmanName != null and watchmanName != ''">
+                #{watchmanName},
+            </if>
+            <if test="watchmanType != null and watchmanType != ''">
+                #{watchmanType},
+            </if>
+            <if test="tourId != null">
+                #{tourId},
+            </if>
+            <if test="routeId != null">
+                #{routeId},
+            </if>
+            <if test="dataSource != null and dataSource != ''">
+                #{dataSource},
+            </if>
+            <if test="planId != null">
+                #{planId},
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                #{orderNo},
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                #{allotWay},
+            </if>
+            <if test="patrolNum != null">
+                #{patrolNum},
+            </if>
+            <if test="gapTime != null">
+                #{gapTime},
+            </if>
+            <if test="startTime != null">
+                #{startTime},
+            </if>
+            <if test="endTime != null">
+                #{endTime},
+            </if>
+            <if test="staffId != null">
+                #{staffId},
+            </if>
+            <if test="assistNum != null">
+                #{assistNum},
+            </if>
+            <if test="transferStatus != null and transferStatus != ''">
+                #{transferStatus},
+            </if>
+            <if test="allotStatus != null and allotStatus != ''">
+                #{allotStatus},
+            </if>
+            <if test="acceptStatus != null and acceptStatus != ''">
+                #{acceptStatus},
+            </if>
+            <if test="executeStatus != null and executeStatus != ''">
+                #{executeStatus},
+            </if>
+            <if test="executeId != null">
+                #{executeId},
+            </if>
+            <if test="executeTime != null">
+                #{executeTime},
+            </if>
+            <if test="finishTime != null">
+                #{finishTime},
+            </if>
+            <if test="imageUrl != null and imageUrl != ''">
+                #{imageUrl},
+            </if>
+            <if test="remark != null and remark != ''">
+                #{remark},
+            </if>
+            <if test="createBy != null and createBy != ''">
+                #{createBy},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                #{updateBy},
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                #{delFlag},
+            </if>
+            NOW(),NOW()
+        </trim>
+    </insert>
+
+    <update id="updateWatchman" parameterType="com.wr.remote.work.nightPatrol.Watchman">
+        update xccj_work.bus_watchman
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id = #{communityId},
+            </if>
+            <if test="watchmanNo != null and watchmanNo != ''">
+                watchman_no = #{watchmanNo},
+            </if>
+            <if test="watchmanName != null and watchmanName != ''">
+                watchman_name = #{watchmanName},
+            </if>
+            <if test="watchmanType != null and watchmanType != ''">
+                watchman_type = #{watchmanType},
+            </if>
+            <if test="tourId != null">
+                tour_id = #{tourId},
+            </if>
+            <if test="routeId != null">
+                route_id = #{routeId},
+            </if>
+            <if test="dataSource != null and dataSource != ''">
+                data_source = #{dataSource},
+            </if>
+            <if test="planId != null">
+                plan_id = #{planId},
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                order_no = #{orderNo},
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                allot_way = #{allotWay},
+            </if>
+            <if test="patrolNum != null">
+                patrol_num = #{patrolNum},
+            </if>
+            <if test="gapTime != null">
+                gap_time = #{gapTime},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime},
+            </if>
+            <if test="staffId != null">
+                staff_id = #{staffId},
+            </if>
+            <if test="assistNum != null">
+                assist_num = #{assistNum},
+            </if>
+            <if test="transferStatus != null and transferStatus != ''">
+                transfer_status = #{transferStatus},
+            </if>
+            <if test="allotStatus != null and allotStatus != ''">
+                allot_status = #{allotStatus},
+            </if>
+            <if test="acceptStatus != null and acceptStatus != ''">
+                accept_status = #{acceptStatus},
+            </if>
+            <if test="executeStatus != null and executeStatus != ''">
+                execute_status = #{executeStatus},
+            </if>
+            <if test="executeId != null">
+                execute_id = #{executeId},
+            </if>
+            <if test="executeTime != null">
+                execute_time = #{executeTime},
+            </if>
+            <if test="finishTime != null">
+                finish_time = #{finishTime},
+            </if>
+            <if test="imageUrl != null and imageUrl != ''">
+                image_url = #{imageUrl},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="createBy != null and createBy != ''">
+                create_by = #{createBy},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by = #{updateBy},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                del_flag = #{delFlag},
+            </if>
+        </trim>
+        where watchman_id = #{watchmanId}
+    </update>
+
+    <delete id="deleteWatchmanByWatchmanId" parameterType="Long">
+        delete
+        from xccj_work.bus_watchman
+        where watchman_id = #{watchmanId}
+    </delete>
+
+    <update id="deleteWatchmanByWatchmanIds" parameterType="String">
+        update xccj_work.bus_watchman set del_flag='1' where watchman_id in
+        <foreach item="watchmanId" collection="array" open="(" separator="," close=")">
+            #{watchmanId}
+        </foreach>
+    </update>
+
+    <!-- 巡更计划工单生成历史列表 -->
+    <select id="listNightPatrolPlanOrderHistories"
+            resultType="com.wr.remote.work.nightPatrol.vo.NightPatrolPlanOrderHistoriesVO">
+        SELECT watchman.watchman_no,
+               watchman.watchman_name,
+               bt.tour_name,
+               sdd.dict_label AS allotWay,
+               bs.staff_name,
+               br.route_name,
+               IFNULL(COUNT(brp.route_id), 0) AS pointNum,
+               watchman.create_time
+        FROM xccj_work.bus_watchman watchman
+                 LEFT JOIN xccj_work.bus_tour bt ON watchman.tour_id = bt.tour_id
+                 LEFT JOIN xccj_work.bus_route br ON watchman.route_id = br.route_id
+                 LEFT JOIN xccj_community.bus_staff bs ON watchman.staff_id = bs.staff_id
+                 LEFT JOIN xccj_work.bus_route_point brp ON brp.route_id = watchman.route_id
+                 LEFT JOIN xccj_estate_sys.sys_dict_data sdd
+                           ON sdd.dict_type = 'allot_way' AND sdd.dict_value = watchman.allot_way
+
+        WHERE watchman.plan_id = #{planId}
+        GROUP BY watchman.watchman_id
+    </select>
+
+    <!-- 巡更工单分页列表 -->
+    <select id="listPage" parameterType="com.wr.remote.work.nightPatrol.vo.NightPatrolOrderQueryVO"
+            resultType="com.wr.remote.work.nightPatrol.vo.NightPatrolOrderListVO">
+        SELECT bw.watchman_id,
+        bw.watchman_no,
+        bw.watchman_name,
+        bt.tour_name,
+        bw.data_source AS dataSource,
+        bw.allot_way AS allotWay,
+        bs.staff_name,
+        br.route_name,
+        COUNT(brp.route_id) AS pointNum,
+        bw.allot_status,
+        bw.accept_status,
+        bw.execute_status,
+        bw.create_time
+        FROM xccj_work.bus_watchman bw
+        LEFT JOIN xccj_work.bus_tour bt ON bw.tour_id = bt.tour_id
+        LEFT JOIN xccj_community.bus_staff bs ON bw.staff_id = bs.staff_id
+        LEFT JOIN xccj_work.bus_route br ON bw.route_id = br.route_id
+        LEFT JOIN xccj_work.bus_route_point brp on brp.route_id = br.route_id
+        WHERE bw.community_id = #{communityId}
+        AND bw.del_flag = '0'
+        <if test="patrolTypeId != null">
+            AND bw.tour_id = #{patrolTypeId}
+        </if>
+        <if test="patrolType != null and patrolType != ''">
+            AND bt.tour_name LIKE CONCAT('%',#{patrolType},'%')
+        </if>
+        <if test="routeId != null">
+            AND bw.route_id = #{routeId}
+        </if>
+        <if test="allotWay != null">
+            AND bw.allot_way = #{allotWay}
+        </if>
+        <if test="dataSource != null">
+            AND bw.data_source = #{dataSource}
+        </if>
+        <if test="staffName != null and staffName != ''">
+            AND bs.staff_name LIKE CONCAT('%',#{staffName},'%')
+        </if>
+        <if test="executeStatus != null">
+            <choose>
+                <when test="executeStatus == 4">
+                    AND bw.execute_status = '1' AND bw.end_time > NOW()
+                </when>
+                <otherwise>
+                    AND bw.execute_status = #{executeStatus}
+                </otherwise>
+            </choose>
+        </if>
+        GROUP BY bw.watchman_id
+        ORDER BY bw.watchman_id DESC
+    </select>
+
+    <!-- 工单详情 -->
+    <select id="getDetail" resultType="com.wr.remote.work.nightPatrol.vo.NightPatrolOrderDetailVO">
+        SELECT watchman.watchman_no,
+               watchman.order_no,
+               watchman.watchman_name,
+               bs.staff_name,
+               IF(watchman.watchman_type = '0', '顺序', '乱序') AS watchmanType,
+               bt.tour_name,
+               sdd.dict_label                                   AS dataSource,
+               route.route_name,
+               watchman.start_time,
+               watchman.end_time,
+               watchman.finish_time,
+               watchman.remark,
+               watchman.image_url,
+               watchman.execute_status,
+               IF(COUNT(ba.abnormal_id) > 0, 1, 0)              AS errorStatus
+        FROM xccj_work.bus_watchman watchman
+                 LEFT JOIN xccj_community.bus_staff bs ON watchman.staff_id = bs.staff_id
+                 LEFT JOIN xccj_work.bus_tour bt ON watchman.tour_id = bt.tour_id
+                 LEFT JOIN xccj_work.bus_route route ON watchman.route_id = route.route_id
+                 LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_type = 'order_source'
+            AND sdd.dict_value = watchman.data_source
+                 LEFT JOIN xccj_work.bus_abnormal ba ON ba.order_type = '0' AND ba.order_id = watchman.watchman_id
+        WHERE watchman.watchman_id = #{watchmanId}
+    </select>
+
+    <!-- 分配负责人 -->
+    <update id="updateStaff">
+        UPDATE xccj_work.bus_watchman
+        SET staff_id     = #{staffId},
+            allot_status = '1'
+        WHERE watchman_id = #{watchmanId}
+          AND staff_id = 0
+    </update>
+
+    <!-- 查询定时生成的工单 -->
+    <select id="selectTimingOrderList" resultType="com.wr.remote.work.nightPatrol.Watchman">
+        SELECT t1.*
+        FROM xccj_work.bus_watchman t1
+                 INNER JOIN (SELECT MAX(watchman_id) watchman_id
+                             FROM xccj_work.bus_watchman
+                             WHERE plan_id != 0
+                               AND del_flag = '0'
+                               AND data_source = '0'
+                             GROUP BY plan_id) t2 ON t1.watchman_id = t2.watchman_id
+    </select>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatch" parameterType="com.wr.remote.work.nightPatrol.Watchman" useGeneratedKeys="true" keyProperty="watchmanId">
+        INSERT INTO xccj_work.bus_watchman (community_id, watchman_no, watchman_name, tour_id,
+        route_id, data_source, plan_id, allot_way,
+        patrol_num, gap_time, start_time, end_time, staff_id,
+        assist_num, transfer_status, allot_status, accept_status,
+        execute_status, create_time, del_flag) VALUES
+        <foreach collection="list" item="l" separator=",">
+            (#{l.communityId},#{l.watchmanNo},#{l.watchmanName},#{l.tourId},#{l.routeId},#{l.dataSource},#{l.planId}
+            ,#{l.allotWay},#{l.patrolNum},#{l.gapTime},#{l.startTime},#{l.endTime},#{l.staffId},0,'0',#{l.allotStatus},'0',
+            '0',NOW(),'0')
+        </foreach>
+    </insert>
+</mapper>

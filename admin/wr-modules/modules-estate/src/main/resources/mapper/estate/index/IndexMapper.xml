@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.index.IndexMapper">
+    <!--获取详情-->
+    <select id="getAuditNum" resultType="java.util.Map">
+        SELECT (SELECT COUNT(*)
+                FROM xccj_community.bus_house as bh
+                         LEFT JOIN xccj_community.bus_owner bo
+                                   ON bh.owner_id = bo.owner_id
+                         LEFT JOIN xccj_community.bus_community bc
+                                   ON bh.community_id = bc.community_id
+                         LEFT JOIN xccj_community.bus_building bb
+                                   ON bh.building_id = bb.building_id
+                         LEFT JOIN xccj_community.bus_unit bu
+                                   ON bh.unit_id = bu.unit_id
+                         LEFT JOIN xccj_community.bus_room br
+                                   ON bh.room_id = br.room_id
+                WHERE bh.del_flag = '0'
+                  AND bo.del_flag = '0'
+                  AND bc.del_flag = '0'
+                  AND bb.del_flag = '0'
+                  AND bu.del_flag = '0'
+                  AND br.del_flag = '0'
+                  AND bh.audit_status IN (0, 2)
+                  AND bh.community_id IN
+                      (SELECT community_id
+                       FROM xccj_community.bus_community
+                       WHERE del_flag = '0'
+                         AND estate_id = #{estateId}))                    AS "houseNum",
+
+               (select count(*)
+                from xccj_community.bus_vehicle bv
+                         LEFT JOIN xccj_community.bus_account ba on ba.account_id = bv.account_id
+                         LEFT JOIN xccj_community.bus_owner bo on bo.account_id = ba.account_id
+                         LEFT JOIN xccj_community.bus_community bc on bc.community_id = bv.community_id
+                         LEFT JOIN xccj_community.bus_building bb on bb.building_id = bo.building_id
+                         LEFT JOIN xccj_community.bus_unit bu on bu.unit_id = bo.unit_id
+                         LEFT JOIN xccj_community.bus_room br on br.room_id = bo.room_id
+                where bc.community_id in (select bcc.community_id
+                                          from xccj_community.bus_community bcc
+                                          where bcc.estate_id = #{estateId} and bcc.del_flag = 0)
+                  and bv.del_flag = 0
+                  and ba.del_flag = 0
+                  and bo.del_flag = 0
+                  and bc.del_flag = 0
+                  and bb.del_flag = 0
+                  and bu.del_flag = 0
+                  and br.del_flag = 0
+                  and bv.vehicle_status = 0
+                  and bv.audit_status in (0, 2))                          AS "vehicleNum",
+               (SELECT COUNT(*)
+                FROM xccj_community.bus_owner
+                WHERE del_flag = '0'
+                  and audit_status in (0, 2)
+                  AND community_id IN
+                      (SELECT community_id
+                       FROM xccj_community.bus_community
+                       WHERE del_flag = '0'
+                         AND estate_id = #{estateId}))                    AS "ownerNum",
+               (SELECT COUNT(*)
+                FROM xccj_community.bus_tenant AS bt
+                WHERE bt.del_flag = '0'
+                  and bt.audit_status in (0, 2)
+                  AND bt.community_id IN (SELECT community_id
+                                          FROM xccj_community.bus_community
+                                          WHERE del_flag = '0'
+                                            AND estate_id = #{estateId})) AS "tenantNum"
+    </select>
+    <select id="getCommunityIdList" resultType="com.wr.remote.domain.Community">
+        SELECT bc.*
+        from xccj_community.bus_estate a
+                 LEFT JOIN xccj_community.bus_community bc on a.estate_id=bc.estate_id
+        where (a.estate_id=#{estateId} or a.parent_id=#{estateId}) and bc.del_flag = '0' and a.del_flag='0';
+    </select>
+    <select id="getUserNumList" resultType="java.math.BigDecimal">
+        SELECT count(1)
+        FROM xccj_device.bus_door_event bde
+                 LEFT JOIN xccj_device.bus_door bd on bd.index_code = bde.door_index_code
+        WHERE bd.community_id = #{communityId}
+          and bde.event_type in
+          <foreach collection="eventTypeList" item="eventType" open="(" separator="," close=")">
+              #{eventType}
+          </foreach>
+          AND DATE_FORMAT(bde.event_time, '%Y-%m-%d %H:%i') &gt;= DATE_FORMAT(#{startTime}, '%Y-%m-%d %H:%i')
+          AND DATE_FORMAT(bde.event_time, '%Y-%m-%d %H:%i') &lt;= DATE_FORMAT(#{endTime}, '%Y-%m-%d %H:%i')
+    </select>
+    <select id="getVehicleNumList" resultType="java.math.BigDecimal">
+        SELECT count(1)
+        FROM xccj_device.bus_cross_record
+        WHERE community_id = #{communityId}
+          AND DATE_FORMAT(cross_time, '%Y-%m-%d %H:%i') &gt;= DATE_FORMAT(#{startTime}, '%Y-%m-%d %H:%i')
+          AND DATE_FORMAT(cross_time, '%Y-%m-%d %H:%i') &lt;= DATE_FORMAT(#{endTime}, '%Y-%m-%d %H:%i')
+    </select>
+
+    <select id="getEnergyData" resultType="java.math.BigDecimal">
+        SELECT
+        IFNULL( SUM( mrrwo.`data` ), '0' ) AS "data"
+        FROM
+        xccj_community.bus_meter_reading_work_order mrwo
+        LEFT JOIN xccj_community.bus_meter_reading_record_work_order mrrwo ON mrrwo.meter_reading_work_order_id =
+        mrwo.id
+        WHERE
+        mrwo.energy_consumption_type = #{meterType}
+        AND mrwo.community_id = #{communityId}
+        AND mrwo.meter_reading_status = '1'
+        <if test="meterTime !=null and meterTime !=''">
+            AND mrwo.meter_reading_time like CONCAT('%',#{meterTime},'%')
+        </if>
+    </select>
+
+    <select id="getRoomStatusData" resultType="java.util.Map">
+        SELECT IFNULL(SUM(IF(room_status = '0', 1, 0)), 0) AS "saleNum",
+               IFNULL(SUM(IF(room_status = '1', 1, 0)), 0) AS "unSaleNum",
+               IFNULL(SUM(IF(room_status = '2', 1, 0)), 0) AS "checkInNum",
+               IFNULL(SUM(IF(room_status = '3', 1, 0)), 0) AS "decorateNum",
+               IFNULL(SUM(IF(room_status = '4', 1, 0)), 0) AS "emptyNum",
+               IFNULL(SUM(IF(room_status = '5', 1, 0)), 0) AS "wholeNum",
+               IFNULL(SUM(IF(room_status = '6', 1, 0)), 0) AS "jointNum",
+               IFNULL(SUM(IF(room_status = '7', 1, 0)), 0) AS "groupNum"
+        FROM xccj_community.bus_room
+        WHERE del_flag = '0'
+          AND community_id = #{communtiyId}
+
+    </select>
+
+    <select id="getOrderList" resultType="com.wr.estate.entity.vo.OrderNumVO">
+        SELECT
+            '报事报修工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_reporting_warranty
+        WHERE
+            del_flag = '0'
+          AND community_id IN ( SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id =#{estateId} ) UNION ALL
+        SELECT
+            '装修评定工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_decorate
+        WHERE
+            del_flag = '0'
+          AND community_id IN ( SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id =#{estateId} ) UNION ALL
+        SELECT
+            '巡查工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_inspection
+        WHERE
+            del_flag = '0'
+          AND estate_id =#{estateId} UNION ALL
+        SELECT
+            '清洁工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_cleaning_work_order
+        WHERE
+            del_flag = '0'
+          AND estate_id =#{estateId} UNION ALL
+        SELECT
+            '巡检工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_patrol_work_order
+        WHERE
+            del_flag = '0'
+          AND estate_id =#{estateId} UNION ALL
+        SELECT
+            '抄表工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_meter_reading_work_order
+        WHERE
+            del_flag = '0'
+          AND estate_id =#{estateId}
+        UNION ALL
+        SELECT
+            '巡更工单' AS "orderName",
+            COUNT(*) AS "orderNum"
+        FROM
+            xccj_community.bus_patrol
+        WHERE
+            del_flag = '0'
+          AND estate_id =#{estateId}
+    </select>
+    <select id="getNoticeList" resultType="java.util.Map">
+        SELECT notice_id AS "noticeId", notice_title AS "noticeTitle", DATE_FORMAT(update_time,'%Y-%m-%d %H:%i:%s') AS "updateTime"
+        FROM xccj_community.bus_notice
+        WHERE del_flag = '0'
+          AND notice_status = '0'
+          AND estate_id = #{estateId}
+        ORDER BY update_time DESC
+    </select>
+    <select id="getFoundData" resultType="com.wr.remote.domain.vo.GetFoundDataVo">
+        SELECT pay_type as "name",
+               SUM(paid_amount) AS "value"
+        FROM xccj_community.bus_pay_billing_record
+        WHERE del_flag = '0'
+          and community_id = #{communityId}
+        GROUP BY pay_type
+
+    </select>
+</mapper>

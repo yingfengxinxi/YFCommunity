@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.device.mapper.VisitLogMapper">
+    <insert id="insertVisitLog">
+        INSERT INTO ${tableName} (
+            <if test="userPhone != null and userPhone != ''">user_phone,</if>
+            <if test="communityName != null and communityName != ''">community_name,</if>
+            <if test="roomName != null and roomName != ''">room_name,</if>
+            <if test="ownerName != null and ownerName != ''">owner_name,</if>
+            <if test="ownerPhone != null and ownerPhone != ''">owner_phone,</if>
+            <if test="deviceName != null and deviceName != ''">device_name,</if>
+            <if test="indexCode != null and indexCode != ''">index_code,</if>
+            user_name, community_id, id_card, health_level, into_time, del_flag
+        ) VALUES (
+            <if test="userPhone != null and userPhone != ''">#{userPhone},</if>
+            <if test="communityName != null and communityName != ''">#{communityName},</if>
+            <if test="roomName != null and roomName != ''">#{roomName},</if>
+            <if test="ownerName != null and ownerName != ''">#{ownerName},</if>
+            <if test="ownerPhone != null and ownerPhone != ''">#{ownerPhone},</if>
+            <if test="deviceName != null and deviceName != ''">#{deviceName},</if>
+            <if test="indexCode != null and indexCode != ''">#{indexCode},</if>
+            #{userName}, #{communityId}, #{idCard}, #{healthLevel}, sysdate(), '0'
+        )
+    </insert>
+
+    <select id="getLastTimeDate" resultType="com.wr.remote.estate.log.VisitLog">
+        SELECT
+            id,user_name,user_phone,id_card,
+            community_id,community_name,room_name,
+            owner_name, owner_phone,health_level,
+            device_name,index_code,into_time,
+            out_time,del_flag
+        FROM ${tableName}
+        WHERE del_flag = '0' AND id_card = #{idCardNo}
+        ORDER BY into_time DESC LIMIT 1
+    </select>
+
+    <update id="updateVisitLogOutTime">
+        UPDATE ${tableName} SET out_time = sysdate() WHERE id = #{id}
+    </update>
+
+</mapper>

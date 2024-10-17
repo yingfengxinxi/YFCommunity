@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.system.business.mapper.HomeMapper">
+    <!-- 物业总数 -->
+    <select id="countEstate" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_estate
+        WHERE del_flag = '0'
+    </select>
+
+    <!-- 员工总数 -->
+    <select id="countStaff" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_staff
+        WHERE del_flag = '0'
+          AND staff_type = '0'
+          AND audit_status = '1'
+          AND dimission_time IS NULL
+    </select>
+
+    <!-- 外来人员总数 -->
+    <select id="countForeignStaff" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_staff
+        WHERE del_flag = '0'
+          AND staff_type = '1'
+          AND audit_status = '1'
+          AND dimission_time IS NULL
+    </select>
+
+    <!-- 居家维修工单评价星级统计 -->
+    <select id="homeOrderScoreStatistics" resultType="com.wr.system.business.domain.HomeScoreVO">
+        SELECT IFNULL(SUM(CASE appraise_star WHEN 1 THEN 1 ELSE 0 END), 0) AS oneStar,
+               IFNULL(SUM(CASE appraise_star WHEN 2 THEN 1 ELSE 0 END), 0) AS twoStar,
+               IFNULL(SUM(CASE appraise_star WHEN 3 THEN 1 ELSE 0 END), 0) AS threeStar,
+               IFNULL(SUM(CASE appraise_star WHEN 4 THEN 1 ELSE 0 END), 0) AS fourStar,
+               IFNULL(SUM(CASE appraise_star WHEN 5 THEN 1 ELSE 0 END), 0) AS fiveStar
+        FROM xccj_work.bus_home_order
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+        ORDER BY appraise_star
+    </select>
+
+    <!-- 园区报事工单评价星级统计 -->
+    <select id="parkOrderScoreStatistics" resultType="com.wr.system.business.domain.HomeScoreVO">
+        SELECT IFNULL(SUM(CASE appraise_star WHEN 1 THEN 1 ELSE 0 END), 0) AS oneStar,
+               IFNULL(SUM(CASE appraise_star WHEN 2 THEN 1 ELSE 0 END), 0) AS twoStar,
+               IFNULL(SUM(CASE appraise_star WHEN 3 THEN 1 ELSE 0 END), 0) AS threeStar,
+               IFNULL(SUM(CASE appraise_star WHEN 4 THEN 1 ELSE 0 END), 0) AS fourStar,
+               IFNULL(SUM(CASE appraise_star WHEN 5 THEN 1 ELSE 0 END), 0) AS fiveStar
+        FROM xccj_work.bus_park_order
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+        ORDER BY appraise_star
+    </select>
+
+    <!-- 灾害报事工单评价星级统计 -->
+    <select id="disasterOrderScoreStatistics" resultType="com.wr.system.business.domain.HomeScoreVO">
+        SELECT IFNULL(SUM(CASE appraise_star WHEN 1 THEN 1 ELSE 0 END), 0) AS oneStar,
+               IFNULL(SUM(CASE appraise_star WHEN 2 THEN 1 ELSE 0 END), 0) AS twoStar,
+               IFNULL(SUM(CASE appraise_star WHEN 3 THEN 1 ELSE 0 END), 0) AS threeStar,
+               IFNULL(SUM(CASE appraise_star WHEN 4 THEN 1 ELSE 0 END), 0) AS fourStar,
+               IFNULL(SUM(CASE appraise_star WHEN 5 THEN 1 ELSE 0 END), 0) AS fiveStar
+        FROM xccj_work.bus_disaster_order
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+        ORDER BY appraise_star
+    </select>
+
+    <!-- 小区列表 -->
+    <select id="listCommunities" resultType="com.wr.system.business.domain.HomeCommunityVO">
+        SELECT community_id, community_name
+        FROM xccj_community.bus_community
+        WHERE del_flag = '0'
+    </select>
+
+    <!-- 物业统计 -->
+    <select id="estateStatistics" resultType="com.wr.system.business.domain.HomeEstateStatisticsVO">
+        SELECT IFNULL(SUM(CASE register_status WHEN '0' THEN 1 ELSE 0 END), 0) AS standNum,
+               IFNULL(SUM(CASE register_status WHEN '1' THEN 1 ELSE 0 END), 0) AS employedNum,
+               IFNULL(SUM(CASE register_status WHEN '2' THEN 1 ELSE 0 END), 0) AS revokeNum,
+               IFNULL(SUM(CASE register_status WHEN '3' THEN 1 ELSE 0 END), 0) AS removeNum,
+               IFNULL(SUM(CASE register_status WHEN '4' THEN 1 ELSE 0 END), 0) AS moveInNum,
+               IFNULL(SUM(CASE register_status WHEN '5' THEN 1 ELSE 0 END), 0) AS moveOutNum,
+               IFNULL(SUM(CASE register_status WHEN '6' THEN 1 ELSE 0 END), 0) AS closeNum,
+               IFNULL(SUM(CASE register_status WHEN '7' THEN 1 ELSE 0 END), 0) AS clearNum
+        FROM xccj_community.bus_estate
+        WHERE del_flag = '0'
+    </select>
+
+    <!-- 租房合同统计 -->
+    <select id="tenancyStatistics" resultType="com.wr.system.business.domain.HomeMonthStatisticsVO">
+        SELECT
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='01',1,0)),0) AS janNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='02',1,0)),0) AS febNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='03',1,0)),0) AS marNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='04',1,0)),0) AS aprNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='05',1,0)),0) AS mayNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='06',1,0)),0) AS junNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='07',1,0)),0) AS julNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='08',1,0)),0) AS augNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='09',1,0)),0) AS sepNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='10',1,0)),0) AS octNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='11',1,0)),0) AS novNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='12',1,0)),0) AS decNum
+        FROM
+            xccj_community.bus_rent_contract
+        WHERE
+            DATE_FORMAT( create_time, '%Y' ) = DATE_FORMAT( NOW(), '%Y' )
+          AND del_flag = '0'
+    </select>
+
+    <!-- 采购合同 -->
+    <select id="purchaseStatistics" resultType="com.wr.system.business.domain.HomeMonthStatisticsVO">
+        SELECT
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='01',1,0)),0) AS janNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='02',1,0)),0) AS febNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='03',1,0)),0) AS marNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='04',1,0)),0) AS aprNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='05',1,0)),0) AS mayNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='06',1,0)),0) AS junNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='07',1,0)),0) AS julNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='08',1,0)),0) AS augNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='09',1,0)),0) AS sepNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='10',1,0)),0) AS octNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='11',1,0)),0) AS novNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='12',1,0)),0) AS decNum
+        FROM
+            xccj_community.bus_procurement
+        WHERE
+            DATE_FORMAT( create_time, '%Y' ) = DATE_FORMAT( NOW(), '%Y' )
+          AND del_flag = '0'
+    </select>
+
+    <!-- 服务合同统计 -->
+    <select id="serveStatistics" resultType="com.wr.system.business.domain.HomeMonthStatisticsVO">
+        SELECT
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='01',1,0)),0) AS janNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='02',1,0)),0) AS febNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='03',1,0)),0) AS marNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='04',1,0)),0) AS aprNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='05',1,0)),0) AS mayNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='06',1,0)),0) AS junNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='07',1,0)),0) AS julNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='08',1,0)),0) AS augNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='09',1,0)),0) AS sepNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='10',1,0)),0) AS octNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='11',1,0)),0) AS novNum,
+            IFNULL(SUM(IF(DATE_FORMAT( create_time, '%m' )='12',1,0)),0) AS decNum
+        FROM
+            xccj_community.bus_server_contract
+        WHERE
+            DATE_FORMAT( create_time, '%Y' ) = DATE_FORMAT( NOW(), '%Y' )
+          AND del_flag = '0'
+    </select>
+
+    <!-- 工单排名 -->
+    <select id="orderRank" resultType="com.wr.system.business.domain.HomeOrderRankVO">
+        SELECT
+            estate.estate_name,
+            IFNULL( SUM( T2.orderCount ), 0 ) AS orderTotal
+        FROM
+            xccj_community.bus_estate estate
+                LEFT JOIN xccj_community.bus_community community ON estate.estate_id = community.estate_id
+                LEFT JOIN (
+                SELECT
+                    T1.community_id,
+                    SUM( orderCount ) AS orderCount
+                FROM
+                    (
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_meter_reading_work_order`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id UNION ALL
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_cleaning_work_order`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id UNION ALL
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_patrol_work_order`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id UNION ALL
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_patrol`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id UNION ALL
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_inspection`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id UNION ALL
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_reporting_warranty`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id UNION ALL
+                        SELECT
+                            community_id,
+                            COUNT( community_id ) AS orderCount
+                        FROM
+                            xccj_community.`bus_decorate`
+                        WHERE
+                            del_flag = '0'
+                        GROUP BY
+                            community_id
+                    ) T1
+                GROUP BY
+                    T1.community_id
+            ) T2 ON community.community_id = T2.community_id
+            WHERE estate.del_flag='0' AND community.del_flag='0'
+        GROUP BY
+            estate.estate_id
+        ORDER BY
+            IFNULL( SUM( T2.orderCount ), 0 ) DESC
+    </select>
+</mapper>

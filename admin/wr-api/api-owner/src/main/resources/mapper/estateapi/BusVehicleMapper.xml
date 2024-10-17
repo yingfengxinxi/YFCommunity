@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.BusVehicleMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.estate.center.BusVehicle">
+        <!--@mbg.generated-->
+        <!--@Table bus_vehicle-->
+        <id column="vehicle_id" jdbcType="BIGINT" property="vehicleId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="plate_no" jdbcType="VARCHAR" property="plateNo"/>
+        <result column="plate_color" jdbcType="INTEGER" property="plateColor"/>
+        <result column="plate_type" jdbcType="INTEGER" property="plateType"/>
+        <result column="vehicle_brand" jdbcType="VARCHAR" property="vehicleBrand"/>
+        <result column="vehicle_type" jdbcType="INTEGER" property="vehicleType"/>
+        <result column="vehicle_status" jdbcType="CHAR" property="vehicleStatus"/>
+        <result column="vehicle_color" jdbcType="VARCHAR" property="vehicleColor"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <!--  分页查询-->
+    <select id="listPage" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT bv.vehicle_id AS vehicleid,
+        bv.plate_no AS plateno,
+        ba.account_name AS accountname,
+        ba.login_name AS loginphone,
+        (CASE
+        WHEN ba.account_type = '0' THEN '业主'
+        WHEN ba.account_type = '1' THEN '租客'
+        WHEN ba.account_type = '2' THEN '访客（装修工）' END) AS accounttype,
+        bv.vehicle_brand AS vehiclebrand,
+        bv.create_time AS createtime
+        FROM xccj_community.bus_vehicle AS bv
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id
+        <where>
+            bv.del_flag = '0'
+            AND bv.audit_status = '1'
+            <if test="plateNo != null">
+                <bind name="plateNo" value="'%' + plateNo + '%'"/>
+                AND bv.plate_no LIKE #{plateNo,jdbcType=VARCHAR}
+            </if>
+            <if test="vehicleStatus != null">
+                AND bv.vehicle_status = #{vehicleStatus,jdbcType=VARCHAR}
+            </if>
+            <if test="communityId != null">
+                AND bv.community_id = #{communityId,jdbcType=BIGINT}
+            </if>
+            <if test="accountType!=null and accountType !=''">
+                AND bv.account_type=#{accountType}
+            </if>
+            ORDER BY bv.create_time DESC
+        </where>
+    </select>
+
+    <select id="accountTypeId" resultType="Integer">
+        SELECT ba.account_type AS accountType
+        FROM xccj_community.bus_vehicle AS bv
+                 LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id and ba.del_flag = '0'
+        where bv.del_flag = '0'
+          AND bv.vehicle_id = #{vehicleId}
+        GROUP BY bv.vehicle_id
+        ORDER BY NULL
+    </select>
+    <!--  详情查看-->
+    <select id="detailOwner" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT bcy.community_name AS communityname,
+        building.name AS buildingname,
+        unit.name AS unitname,
+        room.name AS roomname,
+        bo.owner_name AS ownername,
+        bo.owner_phone AS ownerphone,
+        bv.plate_no AS plateno,
+        IF(bv.vehicle_status = '0', '正常', '关闭') AS vehiclestatus,
+        bv.vehicle_brand AS vehiclebrand,
+        (CASE
+        WHEN bv.vehicle_type = 0 THEN '其他车'
+        WHEN bv.vehicle_type = 1 THEN '小型车'
+        WHEN bv.vehicle_type = 2 THEN '大型车'
+        WHEN bv.vehicle_type = 3
+        THEN '摩托车' END) AS vehicleTypeName,
+        sdd.dict_label AS vehicleColor,
+        sdd1.dict_label AS plateColorName,
+        sdd2.dict_label AS plateTypeName,
+        bv.update_by AS updatebyname,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_no) AS carportno,
+        (CASE
+        WHEN COUNT(bct.carport_id) = 0 THEN '-'
+        WHEN bct.rental_type = '0' THEN '售'
+        WHEN bct.rental_type = '1' THEN '年租'
+        WHEN bct.rental_type = '2'
+        THEN '月租' END) AS rentalmode,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.rental_type = '0', '售', '租')) AS rentaltype,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_fee) AS carportFees,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_start) AS rentalStarts,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_end) AS rentalEnds,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.carport_nature = 0, '人防', '非人防')) AS carportnature,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        CONCAT(TIMESTAMPDIFF(HOUR, bct.rental_start, bct.rental_end), 'h')) AS rentalduration
+        FROM xccj_community.bus_vehicle AS bv
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id
+        LEFT JOIN xccj_community.bus_owner AS bo ON bo.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_community AS bcy ON bcy.community_id = bo.community_id
+        LEFT JOIN xccj_community.bus_carport AS bct ON bct.vehicle_id = bv.vehicle_id
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd
+        ON sdd.dict_value = bv.vehicle_color AND sdd.dict_type = 'sys_vehicle_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd1
+        ON sdd1.dict_value = bv.plate_color AND sdd1.dict_type = 'sys_plate_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd2
+        ON sdd2.dict_value = bv.plate_type AND sdd2.dict_type = 'sys_plate_type'
+        LEFT JOIN (SELECT building_id AS id, building_name AS name
+        FROM xccj_community.bus_building
+        WHERE del_flag = '0') AS building ON building.id = bo.building_id
+        LEFT JOIN (SELECT unit_id AS id, unit_name AS name
+        FROM xccj_community.bus_unit
+        WHERE del_flag = '0') AS unit
+        ON unit.id = bo.unit_id
+        LEFT JOIN (SELECT room_id AS id, room_name AS name
+        FROM xccj_community.bus_room
+        WHERE del_flag = '0') AS room
+        ON room.id = bo.room_id
+        <where>
+            bv.del_flag = '0'
+            AND bv.vehicle_id = #{vehicleId}
+        </where>
+        GROUP BY bv.vehicle_id
+        ORDER BY NULL
+    </select>
+    <!--  详情查看-->
+    <select id="detailTenant" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT bcy.community_name AS communityname,
+        building.name AS buildingname,
+        unit.name AS unitname,
+        room.name AS roomname,
+        bo.tenant_name AS ownername,
+        bo.tenant_phone AS ownerphone,
+        bv.plate_no AS plateno,
+        IF(bv.vehicle_status = '0', '正常', '关闭') AS vehiclestatus,
+        bv.vehicle_brand AS vehiclebrand,
+        (CASE
+        WHEN bv.vehicle_type = 0 THEN '其他车'
+        WHEN bv.vehicle_type = 1 THEN '小型车'
+        WHEN bv.vehicle_type = 2 THEN '大型车'
+        WHEN bv.vehicle_type = 3
+        THEN '摩托车' END) AS vehicleTypeName,
+        sdd.dict_label AS vehicleColor,
+        sdd1.dict_label AS plateColorName,
+        sdd2.dict_label AS plateTypeName,
+        bv.update_by AS updatebyname,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_no) AS carportno,
+        (CASE
+        WHEN COUNT(bct.carport_id) = 0 THEN '-'
+        WHEN bct.rental_type = '0' THEN '售'
+        WHEN bct.rental_type = '1' THEN '年租'
+        WHEN bct.rental_type = '2'
+        THEN '月租' END) AS rentalmode,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.rental_type = '0', '售', '租')) AS rentaltype,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_fee) AS carportFees,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_start) AS rentalStarts,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_end) AS rentalEnds,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.carport_nature = 0, '人防', '非人防')) AS carportnature,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        CONCAT(TIMESTAMPDIFF(HOUR, bct.rental_start, bct.rental_end), 'h')) AS rentalduration
+        FROM xccj_community.bus_vehicle AS bv
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id
+        LEFT JOIN xccj_community.bus_tenant AS bo ON bo.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_community AS bcy ON bcy.community_id = bo.community_id
+        LEFT JOIN xccj_community.bus_carport AS bct ON bct.vehicle_id = bv.vehicle_id
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd
+        ON sdd.dict_value = bv.vehicle_color AND sdd.dict_type = 'sys_vehicle_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd1
+        ON sdd1.dict_value = bv.plate_color AND sdd1.dict_type = 'sys_plate_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd2
+        ON sdd2.dict_value = bv.plate_type AND sdd2.dict_type = 'sys_plate_type'
+        LEFT JOIN (SELECT building_id AS id, building_name AS name
+        FROM xccj_community.bus_building
+        WHERE del_flag = '0') AS building ON building.id = bo.building_id
+        LEFT JOIN (SELECT unit_id AS id, unit_name AS name
+        FROM xccj_community.bus_unit
+        WHERE del_flag = '0') AS unit
+        ON unit.id = bo.unit_id
+        LEFT JOIN (SELECT room_id AS id, room_name AS name
+        FROM xccj_community.bus_room
+        WHERE del_flag = '0') AS room
+        ON room.id = bo.room_id
+        <where>
+            bv.del_flag = '0'
+            AND bv.vehicle_id = #{vehicleId}
+        </where>
+        GROUP BY bv.vehicle_id
+        ORDER BY NULL
+    </select>
+    <!--  详情查看-->
+    <select id="detailVistor" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT bcy.community_name AS communityname,
+        bo.visitor_name AS ownername,
+        bo.visitor_phone AS ownerphone,
+        bv.plate_no AS plateno,
+        IF(bv.vehicle_status = '0', '正常', '关闭') AS vehiclestatus,
+        bv.vehicle_brand AS vehiclebrand,
+        (CASE
+        WHEN bv.vehicle_type = 0 THEN '其他车'
+        WHEN bv.vehicle_type = 1 THEN '小型车'
+        WHEN bv.vehicle_type = 2 THEN '大型车'
+        WHEN bv.vehicle_type = 3
+        THEN '摩托车' END) AS vehicleTypeName,
+        sdd.dict_label AS vehicleColor,
+        sdd1.dict_label AS plateColorName,
+        sdd2.dict_label AS plateTypeName,
+        bv.update_by AS updatebyname,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_no) AS carportno,
+        (CASE
+        WHEN COUNT(bct.carport_id) = 0 THEN '-'
+        WHEN bct.rental_type = '0' THEN '售'
+        WHEN bct.rental_type = '1' THEN '年租'
+        WHEN bct.rental_type = '2'
+        THEN '月租' END) AS rentalmode,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.rental_type = '0', '售', '租')) AS rentaltype,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_fee) AS carportFees,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_start) AS rentalStarts,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_end) AS rentalEnds,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.carport_nature = 0, '人防', '非人防')) AS carportnature,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        CONCAT(TIMESTAMPDIFF(HOUR, bct.rental_start, bct.rental_end), 'h')) AS rentalduration
+        FROM xccj_community.bus_vehicle AS bv
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id
+        LEFT JOIN xccj_community.bus_visitor AS bo ON bo.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_community AS bcy ON bcy.community_id = bo.community_id
+        LEFT JOIN xccj_community.bus_carport AS bct ON bct.vehicle_id = bv.vehicle_id
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd
+        ON sdd.dict_value = bv.vehicle_color AND sdd.dict_type = 'sys_vehicle_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd1
+        ON sdd1.dict_value = bv.plate_color AND sdd1.dict_type = 'sys_plate_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd2
+        ON sdd2.dict_value = bv.plate_type AND sdd2.dict_type = 'sys_plate_type'
+
+
+        <where>
+            bv.del_flag = '0'
+            AND bv.vehicle_id = #{vehicleId}
+        </where>
+        GROUP BY bv.vehicle_id
+        ORDER BY NULL
+    </select>
+    <!--  详情查看-->
+    <select id="detailWorker" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT
+        bo.worker_name AS ownername,
+        bo.worker_phone AS ownerphone,
+        bv.plate_no AS plateno,
+        IF(bv.vehicle_status = '0', '正常', '关闭') AS vehiclestatus,
+        bv.vehicle_brand AS vehiclebrand,
+        (CASE
+        WHEN bv.vehicle_type = 0 THEN '其他车'
+        WHEN bv.vehicle_type = 1 THEN '小型车'
+        WHEN bv.vehicle_type = 2 THEN '大型车'
+        WHEN bv.vehicle_type = 3
+        THEN '摩托车' END) AS vehicleTypeName,
+        sdd.dict_label AS vehicleColor,
+        sdd1.dict_label AS plateColorName,
+        sdd2.dict_label AS plateTypeName,
+        bv.update_by AS updatebyname,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_no) AS carportno,
+        (CASE
+        WHEN COUNT(bct.carport_id) = 0 THEN '-'
+        WHEN bct.rental_type = '0' THEN '售'
+        WHEN bct.rental_type = '1' THEN '年租'
+        WHEN bct.rental_type = '2'
+        THEN '月租' END) AS rentalmode,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.rental_type = '0', '售', '租')) AS rentaltype,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.carport_fee) AS carportFees,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_start) AS rentalStarts,
+        IF(COUNT(bct.carport_id) = 0, '-', bct.rental_end) AS rentalEnds,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        IF(bct.carport_nature = 0, '人防', '非人防')) AS carportnature,
+        IF(COUNT(bct.carport_id) = 0, '-',
+        CONCAT(TIMESTAMPDIFF(HOUR, bct.rental_start, bct.rental_end), 'h')) AS rentalduration
+        FROM xccj_community.bus_vehicle AS bv
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id
+        LEFT JOIN xccj_community.bus_worker AS bo ON bo.account_id = ba.account_id
+
+        LEFT JOIN xccj_community.bus_carport AS bct ON bct.vehicle_id = bv.vehicle_id
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd
+        ON sdd.dict_value = bv.vehicle_color AND sdd.dict_type = 'sys_vehicle_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd1
+        ON sdd1.dict_value = bv.plate_color AND sdd1.dict_type = 'sys_plate_color'
+        LEFT JOIN xccj_estate_sys.sys_dict_data AS sdd2
+        ON sdd2.dict_value = bv.plate_type AND sdd2.dict_type = 'sys_plate_type'
+
+
+        <where>
+            bv.del_flag = '0'
+            AND bv.vehicle_id = #{vehicleId}
+        </where>
+        GROUP BY bv.vehicle_id
+        ORDER BY NULL
+
+    </select>
+    <!--    逻辑删除-->
+    <delete id="remove">
+        UPDATE xccj_community.bus_vehicle
+        SET del_flag = '1'
+        WHERE vehicle_id = #{vehicleId}
+    </delete>
+
+    <!--    查找业主手机号-->
+    <select id="selectOwnerName" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT bo.owner_phone AS loginphone,
+        bo.account_id AS accountId,
+        bo.owner_name AS ownerName,
+        bo.card_no AS cardNo
+        FROM xccj_community.bus_owner AS bo
+        <where>
+            bo.owner_id = #{ownerId}
+            AND bo.del_flag = '0'
+        </where>
+    </select>
+
+    <!--    查找业主车辆下拉框-->
+    <select id="selectOwnerCar" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT bv.vehicle_id AS vehicleid, bv.plate_no AS plateno
+        FROM xccj_community.bus_owner AS bo
+                 INNER JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id
+                 INNER JOIN xccj_community.bus_vehicle AS bv ON bv.account_id = ba.account_id
+        WHERE bo.owner_id = #{ownerId}
+          AND bo.del_flag = '0'
+          AND bv.del_flag = '0'
+    </select>
+
+
+    <select id="selectVehicleNo" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_vehicle
+        <where>
+            del_flag = '0'
+            and audit_status = '1'
+            AND community_id = #{communityId}
+            <if test="vehicleId != null">
+                AND vehicle_id != #{vehicleId}
+            </if>
+            AND plate_no = #{plateNo}
+        </where>
+        LIMIT 1
+    </select>
+
+    <!--    新增车辆信息-->
+    <insert id="saveCar">
+        INSERT INTO xccj_community.bus_vehicle (
+        <if test="communityId!=null">community_id,</if>
+        <if test="auditStatus!=null and auditStatus !=''">audit_status,</if>
+        <if test="accountId!=null and accountId !=''">account_id,</if>
+        <if test="plateNo!=null and plateNo !=''">plate_no,</if>
+        <if test="plateColor!=null and plateColor !=''">plate_color,</if>
+        <if test="plateType!=null and plateType !=''">plate_type,</if>
+        <if test="vehicleBrand!=null and vehicleBrand !=''">vehicle_brand,</if>
+        <if test="auditTime!=null and auditTime !=''">audit_time,</if>
+        <if test="vehicleType!=null and vehicleType !=''">vehicle_type,</if>
+        <if test="vehicleStatus!=null and vehicleStatus !=''">vehicle_status,</if>
+        <if test="vehicleColor!=null and vehicleColor !=''">vehicle_color,</if>
+        <if test="createBy!=null and createBy!=''">create_by</if>
+        )
+        VALUES (
+        <if test="communityId!=null">#{communityId},</if>
+        <if test="auditStatus!=null and auditStatus !=''">#{auditStatus},</if>
+        <if test="accountId!=null and accountId !=''">#{accountId},</if>
+        <if test="plateNo!=null and plateNo !=''">#{plateNo},</if>
+        <if test="plateColor!=null and plateColor !=''">#{plateColor},</if>
+        <if test="plateType!=null and plateType !=''">#{plateType},</if>
+        <if test="vehicleBrand!=null and vehicleBrand !=''">#{vehicleBrand},</if>
+        <if test="auditTime!=null and auditTime !=''">#{auditTime},</if>
+        <if test="vehicleType!=null and vehicleType !=''">#{vehicleType},</if>
+        <if test="vehicleStatus!=null and vehicleStatus !=''">#{vehicleStatus},</if>
+        <if test="vehicleColor!=null and vehicleColor !=''">#{vehicleColor},</if>
+        <if test="createBy!=null and createBy!=''">#{createBy}</if>
+        );
+    </insert>
+
+
+
+    <update id="updateCar">
+        UPDATE xccj_community.bus_vehicle
+        SET
+        <if test="accountId != null">
+            account_id=#{accountId},
+        </if>
+
+        <if test="plateNo != null">
+            plate_no=#{plateNo},
+        </if>
+        <if test="plateColor != null">
+            plate_color=#{plateColor},
+        </if>
+        <if test="plateType != null">
+            plate_type = #{plateType},
+        </if>
+        <if test="vehicleBrand != null">
+            vehicle_brand=#{vehicleBrand},
+        </if>
+        <if test="vehicleStatus != null">
+            vehicle_status=#{vehicleStatus},
+        </if>
+        <if test="vehicleColor != null">
+            vehicle_color=#{vehicleColor},
+        </if>
+        <if test="updateBy != null">
+            update_by = #{updateBy},
+            update_time =NOW()
+        </if>
+        WHERE vehicle_id = #{vehicleId}
+        AND del_flag = '0'
+    </update>
+
+    <!--    根据车辆ID查找车主ID覆盖-->
+    <select id="selectOwnerIdByCar" resultType="java.lang.Long">
+        SELECT ba.account_id
+        FROM xccj_community.bus_vehicle AS bv
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bv.account_id
+        <where>
+            bv.del_flag = '0'
+            AND bv.account_id = #{ownerCarValueId}
+        </where>
+        LIMIT 1
+    </select>
+
+    <select id="selectOwnerIdAndCommunityIdByVehicle" resultType="com.wr.remote.estate.center.vo.BusVehicleVo">
+        SELECT ba.account_id AS accountId, ba.community_id AS communityId
+        FROM xccj_community.bus_account AS ba
+        <where>
+            ba.login_name = #{loginPhone}
+            AND ba.del_flag = '0'
+        </where>
+        LIMIT 1
+    </select>
+
+    <!--    判断是否有重复的车牌号-->
+    <select id="selectPlateNoBoolean" resultType="java.lang.Integer">
+        SELECT COUNT(bv.vehicle_id)
+        FROM xccj_community.bus_vehicle AS bv
+        <where>
+            AND bv.plate_no = #{plateNo}
+            AND bv.del_flag = '0'
+        </where>
+    </select>
+
+    <delete id="deleteByAccountId">
+        delete
+        from xccj_community.bus_vehicle bv
+        WHERE bv.account_id = #{accountId}
+          AND bv.community_id = #{communityId}
+          and del_flag = "0"
+    </delete>
+
+    <select id="getVehicleId" resultType="Long">
+        select bv.vehicle_id
+        from xccj_community.bus_vehicle bv
+        WHERE bv.account_id = #{accountId}
+          AND bv.community_id = #{communityId}
+          AND bv.plate_no = #{plateNo}
+          AND bv.del_flag="0"
+    </select>
+
+    <select id="getAccountIdVehicleInfo" resultType="com.wr.remote.estate.center.vo.SpaceVehicleVo">
+        SELECT bv.vehicle_id    as "vehicleId",
+               bv.vehicle_brand AS "vehicleBrand",
+               bv.vehicle_type  AS "vehicleType",
+               bv.plate_color   AS "plateColor",
+               bv.plate_no      AS "plateNo"
+        FROM xccj_community.bus_vehicle bv
+        WHERE bv.account_id = #{accountId}
+          AND bv.community_id = #{communityId}
+          AND bv.del_flag = "0"
+    </select>
+
+    <select id="getByPlateNoInfo" resultType="com.wr.remote.estate.center.vo.SpaceVehicleVo">
+        SELECT  bv.vehicle_id id,
+               bv.vehicle_id    as "vehicleId",
+               bv.vehicle_brand AS "vehicleBrand",
+               bv.vehicle_type  AS "vehicleType",
+               bv.plate_color   AS "plateColor",
+               bv.plate_no      AS "plateNo"
+        FROM xccj_community.bus_vehicle bv
+        WHERE  bv.community_id = #{communityId}
+          AND bv.plate_no = #{plateNo}
+          AND bv.del_flag = '0'
+    </select>
+</mapper>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.CarportNoMapper">
+
+    <!-- 新增车位编号 -->
+    <insert id="insert">
+        INSERT INTO xccj_community.bus_carport_no (carport_no_id,
+                                                   community_id,
+                                                   carport_no,
+                                                   create_by,
+                                                   create_time,
+                                                   del_flag)
+        VALUES (null, #{communityId}, #{carportNo}, #{createBy}, NOW(), "0")
+    </insert>
+
+    <select id="list" resultType="com.wr.remote.domain.CarportNo">
+        select carport_no_id as "carportNoId", carport_no as "carportNo",create_time as "createTime"
+        from xccj_community.bus_carport_no
+        where del_flag="0" and community_id=#{communityId}
+        <if test="carportNo!=null and carportNo !=''">
+            and carport_no like CONCAT('%',#{carportNo},'%')
+        </if>
+        order by create_time desc,carport_no desc
+    </select>
+
+    <select id="get" resultType="com.wr.remote.domain.CarportNo">
+        select carport_no_id as "carportNoId", community_id as "communityId", carport_no as "carportNo"
+        from xccj_community.bus_carport_no
+        where carport_no_id = #{carportNoId}
+          and del_flag = "0"
+    </select>
+
+    <select id="getCarportNoId" resultType="Long">
+        select carport_no_id as "carportNoId"
+        from xccj_community.bus_carport_no
+        where carport_no = #{carportNo}
+          <if test="communityId!=null">
+              and community_id = #{communityId}
+          </if>
+          and del_flag = "0"
+    </select>
+
+    <select id="updateCheckCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_carport_no
+        where carport_no_id != #{carportNoId}
+          and carport_no=#{carportNo}
+          and del_flag="0"
+          and community_id=#{communityId}
+    </select>
+
+    <select id="addCheckCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_carport_no
+        where carport_no = #{carportNo}
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+
+        and del_flag = "0"
+    </select>
+
+    <update id="delete">
+        update xccj_community.bus_carport_no
+        set del_flag="1"
+        where carport_no_id = #{carportNoId}
+    </update>
+
+    <select id="getCarportNoCarportNature" resultType="String">
+        select carport_nature
+        from xccj_community.bus_carport
+        where carport_no = #{carportNo}
+          and del_flag = '0'
+    </select>
+
+    <select id="getByCarportNoCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_carport
+        where carport_no = #{carportNo}
+          and del_flag = '0'
+          and all_status = '0'
+    </select>
+
+    <update id="update">
+        update xccj_community.bus_carport_no
+        <set>
+            <if test="carportNo!=null and carportNo !=''">
+                carport_no=#{carportNo},
+            </if>
+            <if test="updateBy!=null and updateBy !=''">
+                update_by=#{updateBy},
+                update_time=NOW()
+            </if>
+        </set>
+        where carport_no_id=#{carportNoId}
+    </update>
+
+    <select id="getAllCarportNo" resultType="com.wr.remote.domain.vo.CarportVo">
+        SELECT bcn.carport_no_id                                      AS "carportNoId",
+               bcn.carport_no                                         AS "carportNo",
+               (SELECT count(1)
+                FROM xccj_community.bus_staff_property bsp
+                WHERE bsp.vehicle_no = bcn.carport_no_id
+                  AND bsp.del_flag = '0') + (SELECT count(1)
+                                             FROM xccj_community.bus_carport bc
+                                             WHERE bc.carport_no = bcn.carport_no_id
+                                               AND bc.del_flag = '0' and bc.all_status!='0') AS "isCarport"
+        FROM xccj_community.bus_carport_no bcn
+        WHERE bcn.del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+</mapper>

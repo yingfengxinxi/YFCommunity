@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.inspect.OrderAuditMapper">
+    <sql id="Base_Column_List">
+        audit_id,
+        audit_type,
+        order_type,
+        order_id,
+        audit_status,
+        audit_time,
+        reject_reason,
+        create_time,
+        del_flag
+    </sql>
+
+    <!-- 根据id查询数据 -->
+    <select id="getInfo" resultType="com.wr.remote.work.inspect.OrderAudit">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM xccj_work.bus_order_audit
+        WHERE audit_id = #{id}
+    </select>
+
+    <insert id="insertSelective" keyColumn="audit_id" keyProperty="auditId"
+            parameterType="com.wr.remote.work.inspect.OrderAudit" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_work.bus_order_audit
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="auditType != null">
+                audit_type,
+            </if>
+
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="auditStatus != null">
+                audit_status,
+            </if>
+            <if test="auditTime != null">
+                audit_time,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="auditType != null">
+                #{auditType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="auditStatus != null">
+                #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.remote.estate.order.vo.OrderAuditListVO">
+        <!--@mbg.generated-->
+        update xccj_work.bus_order_audit
+        <set>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="auditStatus != null">
+                audit_status = #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                audit_time = #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where audit_id = #{auditId,jdbcType=BIGINT}
+    </update>
+    <update id="updateById">
+        update xccj_work.bus_order_audit
+        set audit_status = 1
+        where audit_id = #{auditId}
+    </update>
+    <update id="updateByIdEmp" parameterType="com.wr.remote.work.vo.BusDisasterAuditVo">
+        update xccj_work.bus_order_audit
+        set audit_status =2, reject_reason=#{rejectReason}
+        where audit_id = #{auditId}
+    </update>
+
+    <!-- 根据条件查询审核列表 -->
+    <select id="listPage" resultType="com.wr.remote.estate.order.vo.OrderAuditListVO">
+        SELECT
+        boa.audit_id,
+        <if test="orderType == '0'.toString()">
+            workOrder.patrol_no AS orderNo,
+            workOrder.patrol_name AS orderName,
+        </if>
+        <if test="orderType == '1'.toString()">
+            workOrder.watchman_no AS orderNo,
+            workOrder.watchman_name AS orderName,
+        </if>
+        <if test="orderType == '2'.toString()">
+            workOrder.inspect_no AS orderNo,
+            workOrder.inspect_name AS orderName,
+        </if>
+        <if test="orderType == '3'.toString()">
+            workOrder.clean_no AS orderNo,
+            workOrder.clean_name AS orderName,
+        </if>
+        <if test="orderType == '4'.toString() || orderType == '5'.toString() || orderType == '6'.toString() || orderType == '7'.toString() || orderType == '8'.toString()">
+            workOrder.order_no AS orderNo,
+            workOrder.order_name AS orderName,
+        </if>
+        IF(boa.audit_type = '0',bsB.staff_name,bsA.staff_name) AS applyName,
+        boa.audit_type,
+        boa.audit_status
+        FROM xccj_work.bus_order_audit AS boa
+        <if test="orderType == '0'.toString()">
+            LEFT JOIN xccj_work.bus_patrol workOrder ON workOrder.patrol_id = boa.order_id
+        </if>
+        <if test="orderType == '1'.toString()">
+            LEFT JOIN xccj_work.bus_watchman workOrder ON workOrder.watchman_id = boa.order_id
+        </if>
+        <if test="orderType == '2'.toString()">
+            LEFT JOIN xccj_work.bus_inspect workOrder ON boa.order_id = workOrder.inspect_id
+        </if>
+        <if test="orderType == '3'.toString()">
+            LEFT JOIN xccj_work.bus_clean workOrder ON boa.order_id = workOrder.clean_id
+        </if>
+        <if test="orderType == '4'.toString()">
+            LEFT JOIN xccj_work.bus_decorate_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '5'.toString()">
+            LEFT JOIN xccj_work.bus_home_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '6'.toString()">
+            LEFT JOIN xccj_work.bus_device_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '7'.toString()">
+            LEFT JOIN xccj_work.bus_park_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '8'.toString()">
+            LEFT JOIN xccj_work.bus_disaster_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        LEFT JOIN xccj_community.bus_staff AS bsA ON bsA.staff_id = workOrder.staff_id
+        LEFT JOIN xccj_work.bus_order_transfer AS bot ON bot.audit_id = boa.audit_id AND boa.audit_type = '0'
+        LEFT JOIN xccj_community.bus_staff AS bsB ON bsB.staff_id = bot.source_id
+        <where>
+            boa.del_flag = '0'
+            AND workOrder.community_id = #{communityId}
+            AND boa.order_type = #{orderType}
+            <if test="orderName != null and orderName != ''">
+                <bind name="orderName" value="'%' + orderName + '%'"/>
+                <if test="orderType == '0'.toString()">
+                    AND workOrder.patrol_name LIKE #{orderName,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '1'.toString()">
+                    AND workOrder.watchman_name LIKE #{orderName,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '2'.toString()">
+                    AND workOrder.inspect_name LIKE #{orderName,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '3'.toString()">
+                    AND workOrder.clean_name LIKE #{orderName,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '4'.toString() || orderType == '5'.toString() || orderType == '6'.toString() || orderType == '7'.toString() || orderType == '8'.toString()">
+                    AND workOrder.order_name LIKE #{orderName,jdbcType=VARCHAR}
+                </if>
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                <bind name="orderNo" value="'%' + orderNo + '%'"/>
+                <if test="orderType == '0'.toString()">
+                    AND workOrder.patrol_no LIKE #{orderNo,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '1'.toString()">
+                    AND workOrder.watchman_no LIKE #{orderNo,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '2'.toString()">
+                    AND workOrder.inspect_no LIKE #{orderNo,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '3'.toString()">
+                    AND workOrder.clean_no LIKE #{orderNo,jdbcType=VARCHAR}
+                </if>
+                <if test="orderType == '4'.toString() || orderType == '5'.toString() || orderType == '6'.toString() || orderType == '7'.toString() || orderType == '8'.toString()">
+                    AND workOrder.order_no LIKE #{orderNo,jdbcType=VARCHAR}
+                </if>
+            </if>
+            <if test="applyName != null and applyName != ''">
+                <bind name="applyName" value="'%' + applyName + '%'"/>
+                AND IF(boa.audit_type = '0',bsB.staff_name,bsA.staff_name) LIKE #{applyName,jdbcType=VARCHAR}
+            </if>
+            <if test="auditType != null and auditType != ''">
+                AND boa.audit_type = #{auditType}
+            </if>
+            <if test="auditStatus != null and auditStatus != ''">
+                AND boa.audit_status = #{auditStatus}
+            </if>
+        </where>
+        ORDER BY boa.audit_status ASC, boa.audit_id DESC
+    </select>
+
+    <!-- 查询详情 -->
+    <select id="getDetail" resultType="com.wr.remote.estate.order.vo.OrderAuditDetailVO">
+        SELECT
+        boa.audit_id,
+        <if test="orderType == '0'.toString()">
+            workOrder.patrol_no AS orderNo,
+            workOrder.patrol_name AS orderName,
+        </if>
+        <if test="orderType == '1'.toString()">
+            workOrder.watchman_no AS orderNo,
+            workOrder.watchman_name AS orderName,
+        </if>
+        <if test="orderType == '2'.toString()">
+            workOrder.inspect_no AS orderNo,
+            workOrder.inspect_name AS orderName,
+        </if>
+        <if test="orderType == '3'.toString()">
+            workOrder.clean_no AS orderNo,
+            workOrder.clean_name AS orderName,
+        </if>
+        <if test="orderType == '4'.toString() || orderType == '5'.toString() || orderType == '6'.toString() || orderType == '7'.toString() || orderType == '8'.toString()">
+            workOrder.order_no AS orderNo,
+            workOrder.order_name AS orderName,
+        </if>
+        IF(boa.audit_type = '0',bsB.staff_name,bsA.staff_name) AS applyName,
+        boa.audit_type,
+        boa.reject_reason,
+        boa.audit_status,
+        boa.order_type,
+        su.user_name AS userName,
+        boa.audit_time,
+        boa.remark
+        FROM xccj_work.bus_order_audit AS boa
+        <if test="orderType == '0'.toString()">
+            LEFT JOIN xccj_work.bus_patrol workOrder ON workOrder.patrol_id = boa.order_id
+        </if>
+        <if test="orderType == '1'.toString()">
+            LEFT JOIN xccj_work.bus_watchman workOrder ON workOrder.watchman_id = boa.order_id
+        </if>
+        <if test="orderType == '2'.toString()">
+            LEFT JOIN xccj_work.bus_inspect workOrder ON boa.order_id = workOrder.inspect_id
+        </if>
+        <if test="orderType == '3'.toString()">
+            LEFT JOIN xccj_work.bus_clean workOrder ON boa.order_id = workOrder.clean_id
+        </if>
+        <if test="orderType == '4'.toString()">
+            LEFT JOIN xccj_work.bus_decorate_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '5'.toString()">
+            LEFT JOIN xccj_work.bus_home_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '6'.toString()">
+            LEFT JOIN xccj_work.bus_device_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '7'.toString()">
+            LEFT JOIN xccj_work.bus_park_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        <if test="orderType == '8'.toString()">
+            LEFT JOIN xccj_work.bus_disaster_order workOrder ON boa.order_id = workOrder.order_id
+        </if>
+        LEFT JOIN xccj_community.bus_staff AS bsA ON bsA.staff_id = workOrder.staff_id
+        LEFT JOIN xccj_work.bus_order_transfer AS bot ON bot.audit_id = boa.audit_id AND boa.audit_type = '0'
+        LEFT JOIN xccj_community.bus_staff AS bsB ON bsB.staff_id = bot.source_id
+
+        LEFT JOIN xccj_estate_sys.sys_user AS su ON su.user_id = boa.user_id
+        WHERE boa.audit_id = #{auditId}
+    </select>
+
+    <!-- 修改工单转交人 -->
+    <update id="updateOrderTransferStaff">
+        <if test="orderType == '0'.toString()">
+            UPDATE xccj_work.bus_patrol workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.patrol_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '1'.toString()">
+            UPDATE xccj_work.bus_watchman workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.watchman_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '2'.toString()">
+            UPDATE xccj_work.bus_inspect workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.inspect_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '3'.toString()">
+            UPDATE xccj_work.bus_clean workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.clean_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '4'.toString()">
+            UPDATE xccj_work.bus_decorate_order workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.order_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '5'.toString()">
+            UPDATE xccj_work.bus_home_order workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.order_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '6'.toString()">
+            UPDATE xccj_work.bus_device_order workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.order_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '7'.toString()">
+            UPDATE xccj_work.bus_park_order workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.order_id =
+            transfer.order_id
+        </if>
+        <if test="orderType == '8'.toString()">
+            UPDATE xccj_work.bus_disaster_order workOrder LEFT JOIN xccj_work.bus_order_transfer transfer ON workOrder.order_id =
+            transfer.order_id
+        </if>
+        <set>
+            workOrder.transfer_status = '0',
+            <if test="auditStatus == '1'.toString()">
+                workOrder.staff_id = transfer.target_id,
+                workOrder.accept_status = '0',
+                workOrder.execute_status = '0',
+            </if>
+        </set>
+        WHERE transfer.order_id = #{orderId} AND transfer.order_type = #{orderType} AND transfer.audit_id = #{auditId}
+    </update>
+
+    <!-- 删除协助人 -->
+    <delete id="deleteAssistByStaffId">
+        DELETE assist
+        FROM xccj_work.bus_order_assist assist
+                 LEFT JOIN xccj_work.bus_order_audit assistAudit ON assist.audit_id = assistAudit.audit_id
+                 LEFT JOIN xccj_work.bus_order_transfer transfer ON transfer.order_id = assistAudit.order_id AND transfer.order_type = assistAudit.order_type
+        WHERE transfer.audit_id = #{auditId} AND transfer.target_id = assist.staff_id
+    </delete>
+</mapper>

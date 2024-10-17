@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.vote.BusVoteOwnerMapper">
+
+    <select id="getList" resultType="com.wr.remote.estate.vote.BusVoteOwner">
+        SELECT
+            bvo.id,
+            bo.owner_name AS "ownerName",
+            sdd.dict_label AS "cardType",
+            bo.card_no AS "cardNo",
+            bo.owner_phone AS "ownerPhone",
+            bvo.owner_status AS "ownerStatus"
+        FROM
+            xccj_community.bus_vote bv
+                LEFT JOIN xccj_community.bus_vote_scope bvs ON bvs.vote_id = bv.id
+                LEFT JOIN xccj_community.bus_vote_owner bvo ON bvs.id = bvo.vote_scope_id
+                LEFT JOIN xccj_community.bus_owner bo ON bvo.account_id = bo.account_id
+                LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_value = bo.card_type
+                AND sdd.dict_type = "sys_certificate"
+        WHERE
+            bvo.del_flag = '0'
+          AND bv.id = #{voteId}
+          AND bvs.room_id =#{roomId}
+        ORDER BY
+            bvo.create_time DESC;
+    </select>
+
+
+</mapper>

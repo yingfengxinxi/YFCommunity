@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.StaffMapper">
+    <select id="selectStaffList" resultType="com.wr.remote.estate.manage.Staff">
+        select
+        bs.staff_id as staffId,
+        bs.community_id as "communityId",
+        bs.user_id as userId,
+        bs.building_id ,
+        bs.staff_name as staffName,
+        bs.staff_phone as staffPhone,
+        bs.gender as gender,
+        bs.card_no as cardNo,
+        bs.avatar as avatar,
+        bs.staff_type as staffType,
+        bs.work_post as workPost,
+        bs.healthy as healthy,
+        bs.education as education,
+        bs.cert_url as certUrl,
+        bs.work_year as workYear,
+        bs.audit_status as auditStatus,
+        bs.entry_time as entryTime,
+        bs.dimission_time as dimissionTime,
+        bs.address as address,
+        bs.staff_intro as staffIntro,
+        bs.create_by as createBy,
+        bs.create_time as createTime,
+        bs.update_by as updateBy,
+        bs.update_time as updateTime,
+        bs.del_flag as delflag,
+        if(bs.dimission_time>0,'离职','在职') as jobStatus,
+        (substring(now(),1,4)-substring(bs.card_no,7,4))-(substring(bs.card_no,11,4)-date_format(now(),'%m%d')>0) as age
+        from xccj_community.bus_staff bs
+        LEFT JOIN xccj_community.bus_community bc ON bs.community_id = bc.community_id
+        where bs.del_flag='0'and bs.estate_id=#{estateId}
+        <if test="communityId != null ">
+            AND bs.community_id=#{communityId}
+        </if>
+        <if test="staffType != null and staffType != ''">
+            AND bs.staff_type=#{staffType}
+        </if>
+        <if test="workPost != null and workPost != ''">
+            AND bs.work_post=#{workPost}
+        </if>
+        <if test="staffName != null and staffName != ''">
+            AND bs.staff_name like concat('%', #{staffName}, '%')
+        </if>
+        <if test="staffPhone != null and staffPhone != ''">
+            AND bs.staff_phone like concat('%', #{staffPhone}, '%')
+        </if>
+        <if test="jobStatus =='0'.toString() ">
+            AND bs.dimission_time is null
+        </if>
+        <if test="jobStatus =='1'.toString() ">
+            AND bs.dimission_time is not null
+        </if>
+        order by bs.entry_time DESC
+    </select>
+    <select id="getStaffById" resultType="com.wr.remote.estate.manage.Staff">
+        select
+        bs.staff_id as staffId,
+        bs.user_id as userId,
+        bs.community_id as communityId,
+        bs.staff_name as staffName,
+        bs.staff_phone as staffPhone,
+        bs.gender as gender,
+        bs.card_no as cardNo,
+        bs.avatar as avatar,
+        bs.staff_type as staffType,
+        bs.work_post as workPost,
+        bs.healthy as healthy,
+        bs.education as education,
+        bs.cert_url as certUrl,
+        bs.work_year as workYear,
+        bs.audit_status as auditStatus,
+        bs.entry_time as entryTime,
+        bs.dimission_time as dimissionTime,
+        bs.address as address,
+        bs.staff_intro as staffIntro,
+        bs.create_by as createBy,
+        bs.create_time as createTime,
+        bs.update_by as updateBy,
+        bs.update_time as updateTime,
+        bs.del_flag as delflag,
+        bs.building_id as "buildingId",
+        if(bs.dimission_time>0,'离职','在职') as jobStatus,
+        (substring(now(),1,4)-substring(bs.card_no,7,4))-(substring(bs.card_no,11,4)-date_format(now(),'%m%d')>0) as
+        age,
+        bs.qr_code_base64 as "qrCodeBase64"
+        from xccj_community.bus_staff bs
+        where bs.staff_id=#{id}
+        order by bs.entry_time
+    </select>
+    <insert id="addStaff">
+        INSERT
+        INTO xccj_community.bus_staff (user_id, estate_id, community_id, staff_name, staff_phone, gender, card_no,
+                                       avatar,
+                                       staff_type,
+                                       work_post, healthy,
+                                       education, cert_url, work_year, building_id, entry_time, dimission_time,
+                                       address,
+                                       staff_intro, create_by, update_time, del_flag)
+        VALUES (#{userId},
+                #{estateId},
+                #{communityId},
+                #{staffName},
+                #{staffPhone},
+                #{gender},
+                #{cardNo},
+                #{avatar},
+                #{staffType},
+                #{workPost},
+                #{healthy},
+                #{education},
+                #{certUrl},
+                #{workYear},
+                #{buildingId},
+                #{entryTime},
+                #{dimissionTime},
+                #{address},
+                #{staffIntro},
+                #{createBy},
+                sysdate(),
+                '0');
+    </insert>
+    <update id="updateByIdQrCode">
+        UPDATE xccj_community.bus_staff
+        set qr_code_base64 = #{qrCodeBase64}
+        where staff_id = #{staffId}
+    </update>
+    <select id="getByUserIdStaffId" resultType="Long">
+        select staff_id
+        from xccj_community.bus_staff
+        where user_id = #{userId}
+    </select>
+    <update id="updateStaff">
+        UPDATE xccj_community.bus_staff
+        SET user_id        = #{userId},
+            community_id   = #{communityId},
+            staff_name     = #{staffName},
+            staff_phone    = #{staffPhone},
+            gender         = #{gender},
+            card_no        = #{cardNo},
+            avatar         = #{avatar},
+            staff_type     = #{staffType},
+            work_post      = #{workPost},
+            healthy        = #{healthy},
+            education      = #{education},
+            cert_url       = #{certUrl},
+            work_year      = #{workYear},
+            building_id    =#{buildingId},
+            entry_time     = #{entryTime},
+            dimission_time = #{dimissionTime},
+            address        = #{address},
+            staff_intro    = #{staffIntro},
+            create_by      = #{createBy},
+            create_time    = #{createTime},
+            update_by      = #{updateBy},
+            update_time    = #{updateTime},
+            del_flag       = #{delFlag},
+            qr_code_base64 = #{qrCodeBase64}
+        WHERE staff_id = #{staffId}
+    </update>
+
+    <insert id="insertUser" parameterType="com.wr.remote.domain.SysUser" useGeneratedKeys="true" keyProperty="userId">
+        insert into xccj_estate_sys.sys_user(
+        <if test="userId != null and userId != 0">user_id,</if>
+        <if test="deptId != null and deptId != 0">dept_id,</if>
+        <if test="userName != null and userName != ''">user_name,</if>
+        <if test="nickName != null and nickName != ''">nick_name,</if>
+        <if test="email != null and email != ''">email,</if>
+        <if test="avatar != null and avatar != ''">avatar,</if>
+        <if test="phonenumber != null and phonenumber != ''">phonenumber,</if>
+        <if test="sex != null and sex != ''">sex,</if>
+        <if test="password != null and password != ''">password,</if>
+        <if test="status != null and status != ''">status,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        user_type,create_time
+        )values(
+        <if test="userId != null and userId != ''">#{userId},</if>
+        <if test="deptId != null and deptId != ''">#{deptId},</if>
+        <if test="userName != null and userName != ''">#{userName},</if>
+        <if test="nickName != null and nickName != ''">#{nickName},</if>
+        <if test="email != null and email != ''">#{email},</if>
+        <if test="avatar != null and avatar != ''">#{avatar},</if>
+        <if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
+        <if test="sex != null and sex != ''">#{sex},</if>
+        <if test="password != null and password != ''">#{password},</if>
+        <if test="status != null and status != ''">#{status},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        #{userType},sysdate()
+        )
+    </insert>
+
+    <update id="updateStatusByIds">
+        update xccj_community.bus_staff set dimission_time = now() where staff_id in
+        <foreach collection="array" item="staffId" open="(" separator="," close=")">
+            #{staffId}
+        </foreach>
+        and del_flag='0'
+    </update>
+
+    <delete id="deleteUserByIds">
+        UPDATE xccj_estate_sys.sys_user SET del_flag ='2'
+        WHERE user_id IN (
+        SELECT user_id FROM xccj_community.bus_staff WHERE staff_id in
+        <foreach collection="array" item="staffId" open="(" separator="," close=")">
+            #{staffId}
+        </foreach>
+        )
+    </delete>
+
+    <update id="deleteStaffByIds">
+        update xccj_community.bus_staff set del_flag = '1' where staff_id in
+        <foreach collection="array" item="staffId" open="(" separator="," close=")">
+            #{staffId}
+        </foreach>
+    </update>
+
+    <select id="selectUserIdByUserName" resultType="java.lang.String">
+        select u.user_id
+        from xccj_estate_sys.sys_user u
+        where u.user_name = #{userName}
+          and u.del_flag = '0'
+          and u.user_type = '12'
+    </select>
+
+    <update id="resetPass" parameterType="com.wr.remote.estate.manage.Staff">
+        update xccj_community.bus_staff
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="password != null">
+                password = #{password}
+            </if>
+        </trim>
+        where staff_id = #{staffId}
+    </update>
+    <select id="selectPhone" resultType="int">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_staff
+        where del_flag = '0'
+          and staff_phone = #{staffPhone}
+    </select>
+    <select id="getStaffPhoneId" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT staff_id as "staffId", community_id as "communityId",user_id as "userId"
+        FROM xccj_community.bus_staff
+        where del_flag = '0'
+          and staff_phone = #{staffPhone}
+    </select>
+    <select id="selectPhoneNo" resultType="int">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_staff
+        where del_flag = '0'
+          and staff_phone = #{staffPhone}
+          and staff_id != #{staffId}
+    </select>
+    <select id="selectCardNo" resultType="int">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_staff
+        where del_flag = '0'
+          and card_no = #{cardNo}
+    </select>
+
+    <select id="selectCardNum" resultType="int">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_staff
+        where del_flag = '0'
+          and card_no = #{cardNo}
+          and staff_id != #{staffId}
+    </select>
+
+    <select id="selectStaffId" resultType="Long">
+        SELECT staff_id
+        FROM xccj_community.bus_staff
+        where del_flag = '0'
+          and card_no = #{cardNo}
+    </select>
+
+    <!-- 查询空闲的人员 -->
+    <select id="listLeisureStaffs" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT bs.staff_id,
+               bs.staff_name
+        FROM xccj_community.bus_staff bs
+                 LEFT JOIN xccj_work.bus_allot_post bap ON bs.work_post = bap.user_post
+                 LEFT JOIN xccj_work.bus_allot ba ON bap.allot_id = ba.allot_id and ba.del_flag = '0'
+        WHERE bs.del_flag = '0'
+          AND ba.allot_id = #{allotId}
+          AND bs.community_id = #{communityId}
+          AND bs.staff_id NOT IN
+              (SELECT unifinish.staff_id FROM xccj_work.view_unfinish_order unifinish WHERE unifinish.staff_id != 0)
+    </select>
+    <!-- 查询 空闲 繁忙 的人员 -->
+    <select id="listLeisureBusyStaffs" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT DISTINCT bs.staff_id, CONCAT(bs.staff_name, IF(vuo.staff_id IS NULL, '（空闲）', '（繁忙）')) as staffName
+        FROM xccj_community.bus_staff bs
+                 LEFT JOIN xccj_work.bus_allot_post bap ON bs.work_post = bap.user_post
+                 LEFT JOIN xccj_work.bus_allot ba ON bap.allot_id = ba.allot_id
+                 left JOIN xccj_work.view_unfinish_order vuo ON vuo.staff_id = bs.staff_id
+        WHERE bs.del_flag = '0'
+          AND bs.audit_status = '1'
+          AND bs.dimission_time IS NULL
+          AND ba.allot_id = #{allotId}
+          AND bs.community_id = #{communityId}
+    </select>
+
+    <!-- 获取员工名称 -->
+    <select id="getStaffName" resultType="java.lang.String">
+        SELECT staff_name
+        FROM xccj_community.bus_staff
+        WHERE staff_id = #{staffId}
+    </select>
+
+    <select id="getUserIdStaffId" resultType="java.lang.Long">
+        SELECT staff_id
+        FROM xccj_community.bus_staff
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getCommunityIdWorkPostStaff" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT
+        user_id as "userId",
+        staff_name as "staffName",
+        staff_phone as "staffPhone"
+        FROM
+        xccj_community.bus_staff
+        WHERE
+        del_flag = "0" and ( dimission_time IS NULL ) and community_id = #{communityId}
+        <if test="workPostList !=null and workPostList.size()>0">
+            AND
+            <foreach collection="workPostList" item="workPost" open="(" separator="OR"
+                     close=")">
+                REGEXP_LIKE (work_post, '(^|,)'+#{workPost}+'($|,)')
+            </foreach>
+
+        </if>
+
+    </select>
+    <select id="getBuildingCount" resultType="java.lang.Integer">
+        SELECT count(1) AS "count"
+        FROM xccj_community.bus_staff
+        WHERE del_flag = "0"
+          AND (dimission_time IS NULL)
+          AND community_id = #{communityId}
+          AND REGEXP_LIKE(
+                building_id,
+                '(^|,)' + #{buildingId} + '($|,)')
+    </select>
+
+</mapper>

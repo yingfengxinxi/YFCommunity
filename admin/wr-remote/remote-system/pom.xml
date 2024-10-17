@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.wr</groupId>
+        <artifactId>wr-remote</artifactId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    
+    <artifactId>remote-system</artifactId>
+
+    <description>remote-system系统接口模块</description>
+
+    <dependencies>
+        <!-- wr Common Core-->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-core</artifactId>
+        </dependency>
+
+        <!-- wr Common Customize-->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-customize</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

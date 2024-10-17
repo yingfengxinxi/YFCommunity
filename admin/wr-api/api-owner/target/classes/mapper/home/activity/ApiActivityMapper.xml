@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.activity.ApiActivityMapper">
+    <resultMap type="com.wr.api.owner.entity.home.activity.vo.apiActivityVo" id="activity">
+        <id     property="activityId"     column="activity_id"     />
+        <result property="actUrl"   column="act_url"   />
+        <result property="activityName"   column="activity_name"   />
+        <result property="createTime"   column="create_time"   />
+        <result property="typeName"   column="type_name"   />
+        <result property="startTime"   column="start_time"   />
+        <result property="endTime"   column="end_time"   />
+        <result property="closeTime"   column="close_time"   />
+        <result property="address"   column="address"   />
+        <result property="actAmount"   column="act_amount"   />
+        <result property="actIntro"   column="act_intro"   />
+        <result property="typeId"   column="type_id"   />
+        <result property="createBy"   column="create_by"   />
+        <collection property="actSupplyList" ofType="com.wr.api.owner.entity.home.activity.ApiActSupply"  >
+            <result property="supplyName" column="supply_name"/>
+            <result property="supplyNum" column="supply_num"/>
+        </collection>
+    </resultMap>
+
+    <!--列表-->
+    <select id="getList" resultType="com.wr.api.owner.entity.home.activity.ApiActivity" parameterType="com.wr.api.owner.entity.home.activity.ApiActivity">
+        select DISTINCT
+        act.activity_id,
+        act.act_url,
+        act.activity_name,
+        act.create_time,
+        '1' AS tableStatus,
+        CASE
+        WHEN NOW() > act.end_time THEN '已结束'
+        WHEN NOW() >= act.start_time THEN '进行中'
+        ELSE '未开始'
+        END AS status
+        from xccj_community.bus_activity as act
+        left join xccj_community.bus_act_building xcbau on act.activity_id = xcbau.activity_id
+        where act.del_flag='0' and act.act_rang='0'
+        <if test="communityId != null">
+            and act.community_id = #{communityId}
+        </if>
+        union all
+        select DISTINCT
+        act.activity_id,
+        act.act_url,
+        act.activity_name,
+        act.create_time,
+        '1' AS tableStatus,
+        CASE
+        WHEN NOW() > act.end_time THEN '已结束'
+        WHEN NOW() >= act.start_time THEN '进行中'
+        ELSE '未开始'
+        END AS status
+        from xccj_community.bus_activity as act
+        left join xccj_community.bus_act_building xcbau on act.activity_id = xcbau.activity_id
+        where act.del_flag='0' and act.act_rang='1'
+        <if test="communityId != null">
+            and act.community_id = #{communityId}
+        </if>
+        <if test="buildingIds != null and buildingIds != ''">
+            AND xcbau.building_id IN
+            <foreach collection="buildingIds" item="building" open="(" close=")" separator=",">
+                #{building}
+            </foreach>
+        </if>
+        union all
+        select
+        vol.voluntary_id,
+        vol.cover_url,
+        vol.act_title,
+        vol.create_time,
+        '2' AS tableStatus,
+        CASE
+        WHEN NOW() > vol.end_time THEN '已结束'
+        WHEN NOW() >= vol.start_time THEN '进行中'
+        ELSE '未开始'
+        END AS status
+        from xccj_govern.bus_voluntary as vol
+        where vol.del_flag='0'
+        <if test="communityId != null">
+            and vol.community_id = #{communityId}
+        </if>
+        order by create_time desc
+    </select>
+
+<!--详情-->
+    <select id="getInfo" resultMap="activity" parameterType="com.wr.api.owner.entity.home.activity.ApiActivity">
+        select
+        act.activity_id,
+        act.act_url,
+        act.activity_name,
+        act.create_time,
+        ype.type_name,
+        act.start_time,
+        act.end_time,
+        act.close_time,
+        act.address,
+        act.act_amount,
+        act.act_intro,
+        act.type_id,
+        ply.supply_name,
+        ply.supply_num,
+        (IF(DATE_FORMAT(now(),'%Y-%m-%d')>DATE_FORMAT(act.end_time,'%Y-%m-%d'),'已结束',IF(DATE_FORMAT(now(),'%Y-%m-%d')>DATE_FORMAT(act.start_time,'%Y-%m-%d'),'进行中','未开始'))) status,
+        act.create_by
+        from xccj_community.bus_activity as act
+        left join xccj_community.bus_act_type ype on act.type_id=ype.type_id
+        left join xccj_community.bus_act_supply ply on ply.activity_id=act.activity_id
+        where act.del_flag = '0'
+        <if test="activityId != null">
+            and act.activity_id=#{activityId}
+        </if>
+
+    </select>
+
+    <!--新增报名-->
+    <insert id="add" parameterType="com.wr.api.owner.entity.home.activity.ApiActivityOwner">
+        insert into xccj_community.bus_activity_owner
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="activityId!=null ">activity_id,</if>
+            <if test="ownerId!=null ">owner_id,</if>
+            <if test="ownerName!=null and ownerName!=''">owner_name,</if>
+            <if test="ownerPhone!=null and ownerPhone!=''">owner_phone,</if>
+            <if test="ownerRemark!=null and ownerRemark!=''">owner_remark,</if>
+            <if test="typeId!=null">type_id,</if>
+            <if test="activityName!=null and activityName!=''">activity_name,</if>
+            sign_in_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="activityId!=null ">#{activityId},</if>
+            <if test="ownerId!=null ">#{ownerId},</if>
+            <if test="ownerName!=null and ownerName!=''">#{ownerName},</if>
+            <if test="ownerPhone!=null and ownerPhone!=''">#{ownerPhone},</if>
+            <if test="ownerRemark!=null and ownerRemark!=''">#{ownerRemark},</if>
+            <if test="typeId!=null ">#{typeId},</if>
+            <if test="activityName!=null and activityName!=''">#{activityName},</if>
+            SYSDATE()
+        </trim>
+
+    </insert>
+
+<!--修改签到时间-->
+    <update id="update" parameterType="com.wr.api.owner.entity.home.activity.ApiActivityOwner">
+        UPDATE xccj_community.bus_activity_owner as bao
+        SET bao.sign_up_time=sysdate()
+        WHERE bao.owner_id = #{ownerId}
+          and bao.activity_id = #{activityId}
+    </update>
+    <!--修改活动信息-->
+    <update id="updateInfo">
+        UPDATE xccj_community.bus_activity AS ba SET  ba.join_num = ba.join_num+1
+        WHERE ba.activity_id = #{activityId}
+    </update>
+
+
+    <!--查询当前用户参与状态-->
+    <select id="getOwnerStatus" resultType="com.wr.api.owner.entity.home.activity.ApiActivityOwner" parameterType="com.wr.api.owner.entity.home.activity.ApiActivityOwner">
+        select bao.activity_id,
+               bao.owner_id,
+               bao.sign_in_time,
+               bao.sign_up_time,
+               act.close_time,
+               act.start_time,
+               act.end_time
+        from xccj_community.bus_activity_owner as bao
+             left join xccj_community.bus_activity as act on bao.activity_id = act.activity_id
+        where act.activity_id = #{activityId}
+          and bao.owner_id = #{ownerId}
+    </select>
+
+<!--查询当前活动状态： 是否可参加  是否可签到-->
+    <select id="activityStatus" parameterType="com.wr.api.owner.entity.home.activity.ApiActivity"
+            resultType="com.wr.api.owner.entity.home.activity.ApiActivity">
+        select
+            act.start_time,
+            act.end_time,
+            act.close_time
+        from xccj_community.bus_activity as act
+        where act.del_flag='0'
+        <if test="activityId != null">
+          and  act.activity_id=#{activityId}
+        </if>
+    </select>
+
+
+    <!--查询志愿者活动详情， 根据当前的id查询当前的信息-->
+    <select id="getVoluntaryInfo" parameterType="com.wr.api.owner.entity.home.activity.ApiActivity" resultType="com.wr.api.owner.entity.home.activity.vo.apiActivityVo">
+        select
+        ary.voluntary_id as activityId,
+        ary.cover_url as actUrl,
+        ary.act_title as activityName,
+        ary.start_time,
+        ary.end_time,
+        ary.need_num,
+        ary.content,
+        comm.community_name as address,
+        (select count(*)
+        from xccj_govern.bus_voluntary_user as bvu
+        where bvu.community_id = ary.community_id and bvu.voluntary_id=ary.voluntary_id
+        ) as isJoinNum
+        from xccj_govern.bus_voluntary as ary
+        left join xccj_community.bus_community as comm on comm.community_id=ary.community_id
+        where ary.del_flag='0'
+        <if test="activityId != null">
+            and  ary.voluntary_id=#{activityId}
+        </if>
+    </select>
+
+
+    <!--新增志愿者活动-->
+    <insert id="addVoluntaryUser" parameterType="com.wr.api.owner.entity.home.activity.VoluntaryUser" >
+        insert into xccj_govern.bus_voluntary_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="voluntaryId!=null ">voluntary_id,</if>
+            <if test="communityId!=null ">community_id,</if>
+            <if test="userName!=null and userName!=''  ">user_name,</if>
+            <if test="avatar!=null and avatar!=''  ">avatar,</if>
+            <if test="gender != null and gender!=''  ">gender,</if>
+            <if test="userAge != null">user_age,</if>
+            <if test="cardType != null and cardType!=''  ">card_type,</if>
+            <if test="cardNo != null and cardNo!=''  ">card_no,</if>
+            <if test="userPhone != null and userPhone!=''  ">user_phone,</if>
+            apply_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="voluntaryId!=null ">#{voluntaryId},</if>
+            <if test="communityId!=null ">#{communityId},</if>
+            <if test="userName!=null and userName!=''  ">#{userName},</if>
+            <if test="avatar!=null and avatar!=''  ">#{avatar},</if>
+            <if test="gender != null and gender!=''  ">#{gender},</if>
+            <if test="userAge != null">#{userAge},</if>
+            <if test="cardType != null and cardType!=''  ">#{cardType},</if>
+            <if test="cardNo != null and cardNo!=''  ">#{cardNo},</if>
+            <if test="userPhone != null and userPhone!=''  ">#{userPhone},</if>
+            SYSDATE()
+        </trim>
+    </insert>
+
+
+    <select id="selectAccountById" resultType="com.wr.api.owner.entity.home.visitor.ApiAccount" parameterType="Long">
+        select *,
+               (
+                   case
+                       when unt.account_type='0'  then
+                           (select own.gender from xccj_community.bus_owner as own where own.account_id=unt.account_id )
+                       when unt.account_type='1'  then (select ten.gender from xccj_community.bus_tenant as ten where ten.account_id=unt.account_id)
+                       else
+                           '2'
+                       end
+                   ) as gender,
+               (
+                   case
+                       when unt.account_type='0'  then (select own.card_no from xccj_community.bus_owner as own where own.account_id=unt.account_id )
+                       when unt.account_type='1'  then (select ten.card_no from xccj_community.bus_tenant as ten where ten.account_id=unt.account_id)
+                       when unt.account_type='2'  then (select vis.card_no from xccj_community.bus_visitor as vis where vis.account_id=unt.account_id)
+                       end
+                   ) as card_no,
+               (
+                   case
+                       when unt.account_type='0'  then (select own.card_type from xccj_community.bus_owner as own where own.account_id=unt.account_id )
+                       when unt.account_type='1'  then (select ten.card_type from xccj_community.bus_tenant as ten where ten.account_id=unt.account_id)
+                       when unt.account_type='2'  then (select vis.card_type from xccj_community.bus_visitor as vis where vis.account_id=unt.account_id)
+                       end
+                   ) as card_type,
+               (
+                   case
+                       when unt.account_type='0'  then (select own.owner_phone from xccj_community.bus_owner as own where own.account_id=unt.account_id )
+                       when unt.account_type='1'  then (select ten.tenant_phone from xccj_community.bus_tenant as ten where ten.account_id=unt.account_id)
+                       when unt.account_type='2'  then (select vis.visitor_phone from xccj_community.bus_visitor as vis where vis.account_id=unt.account_id)
+                       end
+                   ) as user_phone
+        from xccj_community.bus_account as unt
+        where unt.account_id = #{accountId}
+    </select>
+
+
+    <!--查询用户是否已经参加活动了-->
+    <select id="checkVoluntaryIsJoin" parameterType="com.wr.api.owner.entity.home.activity.VoluntaryUser" resultType="int">
+        select count(*) from xccj_govern.bus_voluntary_user as bvu
+        where bvu.voluntary_id=#{voluntaryId} and bvu.card_no=#{cardNo}
+    </select>
+
+    <!--查询活动物资-->
+    <select id="selectJoinSupplyList" resultType="com.wr.api.owner.entity.home.activity.ApiActivity">
+        SELECT
+            activity_id,supply_num,supply_name
+        FROM
+            xccj_community.bus_act_supply
+        WHERE
+            activity_id = #{activityId}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.serve.VisitLogMapper">
+
+    <insert id="insertVisitLog">
+        INSERT INTO ${tableName} (
+        <if test="params.plantNo != null and params.plantNo != ''">plant_no,</if>
+        device_name,
+        <if test="params.healthLevel!= null and params.healthLevel!= ''">health_level,</if>
+        community_name,
+        user_name,
+        user_phone,
+        with_num,
+        community_id,
+        id_card,
+        into_time,
+        out_time,
+        del_flag
+        ) VALUES (
+        <if test="params.plantNo != null and params.plantNo != ''">#{params.plantNo},</if>
+        <if test="params.deviceName != null and params.deviceName != ''">concat(#{params.deviceName},'(登记)'),</if>
+        <if test="params.deviceName == null or params.deviceName == ''">'(登记)',</if>
+        <if test="params.healthLevel != null and params.healthLevel!= ''">#{params.healthLevel},</if>
+        (select community_name from xccj_community.bus_community where community_id = #{params.communityId} AND del_flag='0'),
+        #{params.userName},
+        #{params.userPhone},
+        #{params.withNum},
+        #{params.communityId},
+        #{params.idCard},
+        #{params.intoTime},
+        #{params.outTime},
+        '0')
+    </insert>
+
+</mapper>

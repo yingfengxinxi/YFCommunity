@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.security.BulletInMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.govern.security.Bulletin">
+        <id column="bulletin_id" jdbcType="BIGINT" property="bulletinId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="avatar" jdbcType="VARCHAR" property="avatar"/>
+        <result column="gender" jdbcType="CHAR" property="gender"/>
+        <result column="user_age" jdbcType="INTEGER" property="userAge"/>
+        <result column="card_type" jdbcType="CHAR" property="cardType"/>
+        <result column="card_no" jdbcType="VARCHAR" property="cardNo"/>
+        <result column="crime_level" jdbcType="CHAR" property="crimeLevel"/>
+        <result column="crime_reason" jdbcType="VARCHAR" property="crimeReason"/>
+        <result column="archive" jdbcType="CHAR" property="archive"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        xgb.bulletin_id, xgb.estate_id, xgb.user_name, xgb.avatar, xgb.gender, xgb.user_age,
+        xgb.card_type, xgb.card_no, xgb.crime_level, xgb.crime_reason, xgb.archive, xgb.create_by,
+        xgb.create_time, xgb.update_by, xgb.update_time, xgb.del_flag
+    </sql>
+
+    <insert id="insertBulletin">
+        insert into xccj_govern.bus_bulletin
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userName != null">
+                user_name,
+            </if>
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="avatar != null">
+                avatar,
+            </if>
+            <if test="gender != null">
+                gender,
+            </if>
+            <if test="userAge != null">
+                user_age,
+            </if>
+            <if test="cardType != null">
+                card_type,
+            </if>
+            <if test="cardNo != null">
+                card_no,
+            </if>
+            <if test="crimeLevel != null">
+                crime_level,
+            </if>
+            <if test="crimeReason != null">
+                crime_reason,
+            </if>
+            <if test="archive != null">
+                archive,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="estateId != null">
+                #{estateId},
+            </if>
+            <if test="avatar != null">
+                #{avatar,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null">
+                #{gender,jdbcType=CHAR},
+            </if>
+            <if test="userAge != null">
+                #{userAge,jdbcType=INTEGER},
+            </if>
+            <if test="cardType != null">
+                #{cardType,jdbcType=CHAR},
+            </if>
+            <if test="cardNo != null">
+                #{cardNo,jdbcType=VARCHAR},
+            </if>
+            <if test="crimeLevel != null">
+                #{crimeLevel,jdbcType=CHAR},
+            </if>
+            <if test="crimeReason != null">
+                #{crimeReason,jdbcType=VARCHAR},
+            </if>
+            <if test="archive != null">
+                #{archive,jdbcType=CHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            sysDate()
+        </trim>
+    </insert>
+
+    <update id="updateBulletin">
+        update xccj_govern.bus_bulletin
+        <set>
+            <if test="userName != null">
+                user_name = #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="avatar != null">
+                avatar = #{avatar,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null">
+                gender = #{gender,jdbcType=CHAR},
+            </if>
+            <if test="userAge != null">
+                user_age = #{userAge,jdbcType=INTEGER},
+            </if>
+            <if test="cardType != null">
+                card_type = #{cardType,jdbcType=CHAR},
+            </if>
+            <if test="cardNo != null">
+                card_no = #{cardNo,jdbcType=VARCHAR},
+            </if>
+            <if test="crimeLevel != null">
+                crime_level = #{crimeLevel,jdbcType=CHAR},
+            </if>
+            <if test="crimeReason != null">
+                crime_reason = #{crimeReason,jdbcType=VARCHAR},
+            </if>
+            <if test="archive != null">
+                archive = #{archive,jdbcType=CHAR},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            update_time = sysDate()
+        </set>
+        where bulletin_id = #{bulletinId,jdbcType=BIGINT} and del_flag='0'
+    </update>
+
+    <update id="deleteBulletinByIds">
+        update xccj_govern.bus_bulletin
+        <set>
+            del_flag='1',
+            update_by = #{userName},
+            update_time=sysDate()
+        </set>
+        where bulletin_id = #{bulletinId} and del_flag='0'
+    </update>
+
+    <update id="updateArchive">
+        update xccj_govern.bus_bulletin
+        <set>
+            archive='1',
+            update_by = #{userName},
+            update_time=sysDate()
+        </set>
+        where bulletin_id = #{bulletinId} and del_flag='0'
+    </update>
+
+    <select id="selectBulletinList" resultType="com.wr.remote.govern.security.Bulletin">
+        SELECT
+            ifnull(xbc.clue_num, 0) AS clueNum,
+            <include refid="Base_Column_List"/>
+        FROM xccj_govern.bus_bulletin xgb
+        LEFT JOIN (
+            SELECT count(clue_id) clue_num,bulletin_id FROM xccj_govern.bus_clue
+            WHERE del_flag = '0' GROUP BY bulletin_id
+        ) xbc ON xgb.bulletin_id = xbc.bulletin_id
+        <where>
+            xgb.del_flag='0'
+            <if test="estateId != null ">
+                and xgb.estate_id=#{estateId}
+            </if>
+            <if test="archive != null and archive != ''">
+                and xgb.archive=#{archive}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(xgb.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(xgb.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+        <if test="archive =='1'">
+            order by xgb.update_time desc
+        </if>
+        <if test="archive !='1'">
+            order by xgb.create_time desc
+        </if>
+
+    </select>
+
+    <select id="selectBulletinById" resultType="com.wr.remote.govern.security.Bulletin">
+        select
+            <include refid="Base_Column_List"/>
+        from xccj_govern.bus_bulletin xgb
+        WHERE xgb.del_flag='0' and xgb.bulletin_id=#{bulletinId}
+    </select>
+
+    <select id="selectClueListByBulletinId" resultType="com.wr.remote.govern.security.Clue">
+        SELECT a.account_name,
+               c.clue_id,
+               c.estate_id,
+               c.bulletin_id,
+               c.account_id,
+               c.address,
+               c.remark,
+               c.create_time
+        FROM xccj_govern.bus_clue c
+                 LEFT JOIN xccj_community.bus_account a USING (account_id)
+        WHERE bulletin_id = #{bulletinId}
+          AND c.del_flag = '0'
+          AND a.del_flag = '0'
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectUserType" resultType="com.wr.remote.domain.SysUser">
+        SELECT user_id,
+               dept_id,
+               user_name,
+               nick_name,
+               phonenumber,
+               password,
+               sex,
+               status,
+               user_type
+        FROM xccj_estate_sys.sys_user
+        WHERE user_id = #{userId}
+          AND del_flag = '0'
+    </select>
+
+
+    <select id="checkBulletinExsist" resultType="java.lang.Integer">
+        select
+        count(*)
+        from xccj_govern.bus_bulletin
+        WHERE card_no=#{cardNo} AND del_flag='0'
+    </select>
+
+</mapper>

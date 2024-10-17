@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.headline.HeadlineMapper">
+<!--头条列表-->
+<select id="getList" resultType="com.wr.api.owner.entity.home.headline.Headline" parameterType="com.wr.api.owner.entity.home.headline.Headline">
+    select
+    ine.headline_id,
+    ine.headline_title,
+    ine.content,
+    ine.create_by,
+    ine.create_time,
+    ine.headline_url,
+    ine.read_num,
+    com.community_name,
+    ine.end_time,
+    ine.start_time,
+    ate.estate_name
+    from xccj_community.bus_headline as ine
+    left join xccj_community.bus_headline_community bhc on ine.headline_id = bhc.headline_id
+    left join xccj_community.bus_community com on bhc.community_id=com.community_id
+    left join xccj_community.bus_estate ate on com.estate_id=ate.estate_id
+    where ine.del_flag='0' and ine.end_time <![CDATA[>]]>  SYSDATE()
+    <if test="communityId != null">
+        and bhc.community_id =#{communityId}
+    </if>
+    order by ine.create_time desc
+    </select>
+
+
+<!--头条详情-->
+<select id="selectOneById" resultType="com.wr.api.owner.entity.home.headline.Headline" parameterType="com.wr.api.owner.entity.home.headline.Headline">
+    select
+    ine.headline_id,
+    ine.headline_url,
+    ine.headline_title,
+    ine.create_by,
+    ine.create_time,
+    ine.content,
+    ine.end_time,
+    ine.read_num,
+    com.community_name,
+    ine.start_time
+    from xccj_community.bus_headline as ine
+    left join xccj_community.bus_headline_community bhc on ine.headline_id = bhc.headline_id
+    left join xccj_community.bus_community com on bhc.community_id=com.community_id
+    where ine.del_flag='0'
+    <if test="headlineId != null">
+        and bhc.headline_id =#{headlineId}
+    </if>
+    <if test="communityId != null">
+        and bhc.community_id =#{communityId}
+    </if>
+    limit 1
+    </select>
+
+<!--社区头条表-->
+<select id="selectNews" resultType="com.wr.api.owner.entity.home.headline.Headline" parameterType="com.wr.api.owner.entity.home.headline.Headline">
+    select ine.headline_title,
+           ine.content,
+           ine.create_by,
+           ine.create_time,
+           ine.read_num
+    from xccj_community.bus_headline as ine
+             left join xccj_community.bus_headline_community bhc on ine.headline_id = bhc.headline_id
+    where ine.del_flag='0'
+    <if test="communityId != null">
+        and bhc.community_id =#{communityId}
+    </if>
+    order by ine.create_time desc
+    limit 0,1
+    </select>
+
+
+<!--用户点击详情新增浏览数-->
+    <update id="readNumAdd" parameterType="com.wr.api.owner.entity.home.headline.Headline">
+        UPDATE xccj_community.bus_headline as ine
+        SET ine.read_num = ine.read_num + 1
+        WHERE ine.headline_id = #{headlineId}
+    </update>
+
+
+
+
+</mapper>

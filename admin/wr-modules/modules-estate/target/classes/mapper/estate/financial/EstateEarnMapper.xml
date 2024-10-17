@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.EstateEarnMapper">
+    <resultMap type="com.wr.remote.estate.financial.EstateCash" id="estateCashTypeResult">
+        <id     property="communityId"       column="community_id"      />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="depositSum"    column="depositSum"    />
+        <result property="payAmountSum"    column="payAmountSum"    />
+        <result property="refundAmount"    column="refundAmount"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <!--停车费-->
+    <select id="selectList" resultType="decimal">
+        SELECT
+            IFNULL(SUM( pay_amount ), 0) AS count
+        FROM
+            ${tableName}
+        WHERE
+            pay_type = 0 AND del_flag = 0
+    </select>
+
+
+    <!-- 今年物业费收益 -->
+    <select id="estateIncomeMonthStatisticByThisYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bpl.pay_time,'%m') AS month,SUM(bpl.pay_amount) AS amount FROM
+            xccj_community.bus_property_log bpl
+        WHERE YEAR(bpl.pay_time) = YEAR(now()) AND bpl.del_flag = '0' AND bpl.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bpl.pay_time,'%Y-%m')
+    </select>
+
+    <!-- 去年物业费收益 -->
+    <select id="estateIncomeMonthStatisticByLastYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bpl.pay_time,'%m') AS month,SUM(bpl.pay_amount) AS amount FROM
+            xccj_community.bus_property_log bpl
+        WHERE YEAR(bpl.pay_time) = YEAR(date_sub(now(),interval 1 year)) AND bpl.del_flag = '0' AND bpl.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bpl.pay_time,'%Y-%m')
+    </select>
+
+    <!-- 今年场馆费收益 -->
+    <select id="venueIncomeMonthStatisticByThisYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bvp.create_time,'%m') AS month,SUM(bvp.deposit)+SUM(bvp.pay_amount)-SUM(bvp.refund_amount) AS amount FROM
+            xccj_community.bus_venue_appoint bvp
+        WHERE YEAR(bvp.create_time) = YEAR(now()) AND bvp.del_flag = '0' AND bvp.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bvp.create_time,'%Y-%m')
+    </select>
+
+    <!-- 去年场馆费收益 -->
+    <select id="venueIncomeMonthStatisticByLastYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bvp.create_time,'%m') AS month,SUM(bvp.deposit)+SUM(bvp.pay_amount)-SUM(bvp.refund_amount) AS amount FROM
+            xccj_community.bus_venue_appoint bvp
+        WHERE YEAR(bvp.create_time) = YEAR(date_sub(now(),interval 1 year)) AND bvp.del_flag = '0' AND bvp.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bvp.create_time,'%Y-%m')
+    </select>
+
+    <!-- 今年合同费收益按月统计 -->
+    <select id="serverIncomeMonthStatisticByThisYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bsc.create_time,'%m') AS month,SUM(bsc.server_amount) AS amount FROM
+            xccj_community.bus_server_contract bsc
+        WHERE YEAR(bsc.create_time) = YEAR(now()) AND bsc.del_flag = '0' AND bsc.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bsc.create_time,'%Y-%m')
+    </select>
+
+    <!-- 去年合同费收益按月统计 -->
+    <select id="serverIncomeMonthStatisticByLastYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bsc.create_time,'%m') AS month,SUM(bsc.server_amount) AS amount FROM
+            xccj_community.bus_server_contract bsc
+        WHERE YEAR(bsc.create_time) = YEAR(date_sub(now(),interval 1 year)) AND bsc.del_flag = '0' AND bsc.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bsc.create_time,'%Y-%m')
+    </select>
+
+    <!--今年支出按月统计-->
+    <select id="expendMonthStatisticByCurrentYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bp.create_time,'%m') AS month,SUM(bm.total_amount) AS amount FROM
+            xccj_community.bus_procurement bp
+                LEFT JOIN xccj_community.bus_material bm ON bp.procurement_id = bm.procurement_id AND bm.del_flag = '0'
+        WHERE YEAR(bp.create_time) = YEAR(now()) AND bp.del_flag = '0' AND bp.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bp.create_time,'%Y-%m')
+    </select>
+
+    <!-- 去年支出按月统计 -->
+    <select id="expendMonthStatisticByLastYear" resultType="com.wr.remote.estate.financial.dto.MonthStatisticDTO">
+        SELECT DATE_FORMAT(bp.create_time,'%m') AS month,SUM(bm.total_amount) AS amount FROM
+            xccj_community.bus_procurement bp
+                LEFT JOIN xccj_community.bus_material bm ON bp.procurement_id = bm.procurement_id AND bm.del_flag = '0'
+        WHERE YEAR(bp.create_time) = YEAR(date_sub(now(),interval 1 year)) AND bp.del_flag = '0' AND bp.community_id = #{communityId}
+        GROUP BY DATE_FORMAT(bp.create_time,'%Y-%m')
+    </select>
+
+</mapper>

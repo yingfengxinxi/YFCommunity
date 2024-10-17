@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.CommunitysMapper">
+
+    <select id="getCommunityById" resultType="com.wr.remote.domain.Community">
+        SELECT community_id, community_name, community_alias, estate_id, area_id, latitude, longitude
+        FROM xccj_community.bus_community
+        WHERE community_id = #{communityId}
+    </select>
+
+    <select id="getEstate" resultType="com.wr.remote.domain.Estate">
+        SELECT estate_id, parent_id, ancestors, estate_name, dept_id, estate_code
+        FROM xccj_community.bus_estate
+        WHERE estate_id = #{estateId}
+    </select>
+
+    <select id="selectWechatByCommunityId" resultType="com.wr.remote.domain.CommunityWechat">
+        SELECT
+            wechat_id, community_id, wechat_name, app_id
+        FROM xccj_community.bus_wechat
+        WHERE del_flag = '0' AND wechat_status = '0' AND community_id = #{communityId}
+    </select>
+
+    <select id="selectWechatById" resultType="com.wr.remote.domain.CommunityWechat">
+        SELECT
+            wechat_id, community_id, wechat_name, app_id, app_secret, mch_id, serial_no, private_url,
+            api_key, refund_url, wechat_status, create_by, create_time, update_by, update_time, del_flag
+        FROM xccj_community.bus_wechat
+        WHERE del_flag = '0' AND wechat_status = '0' AND wechat_id = #{wechatId}
+    </select>
+    <select id="selectAliByCommunityId" resultType="com.wr.remote.domain.CommunityAli">
+        SELECT
+            alipay_id, community_id, alipay_name, app_id
+        FROM xccj_community.bus_alipay
+        WHERE del_flag = '0' AND ali_status = '0' AND community_id = #{communityId}
+    </select>
+
+    <select id="selectAliById" resultType="com.wr.remote.domain.CommunityAli">
+        SELECT
+            alipay_id, community_id, alipay_name, app_id, public_key, private_key,
+            ali_status, create_by, create_time, update_by, update_time, del_flag
+        FROM xccj_community.bus_alipay
+        WHERE del_flag = '0' AND ali_status = '0' AND alipay_id = #{alipayId}
+    </select>
+    <select id="getCommunityAll" resultType="com.wr.remote.domain.Community">
+        SELECT community_id, community_name, community_alias, estate_id, area_id, latitude, longitude
+        FROM xccj_community.bus_community
+        WHERE del_flag = '0'
+    </select>
+
+</mapper>

@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.deviceorder.DeviceOrderMapper">
+
+    <resultMap type="com.wr.estate.entity.vo.DeviceOrderVO" id="DeviceOrderResult">
+        <result property="orderId" column="order_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="orderName" column="order_name"/>
+        <result property="deviceType" column="device_type"/>
+        <result property="indexCode" column="index_code"/>
+        <result property="planStart" column="plan_start"/>
+        <result property="planEnd" column="plan_end"/>
+        <result property="allotWay" column="allot_way"/>
+        <result property="staffId" column="staff_id"/>
+        <result property="assistNum" column="assist_num"/>
+        <result property="transferStatus" column="transfer_status"/>
+        <result property="allotStatus" column="allot_status"/>
+        <result property="acceptStatus" column="accept_status"/>
+        <result property="executeStatus" column="execute_status"/>
+        <result property="assessResult" column="assess_result"/>
+        <result property="executeId" column="execute_id"/>
+        <result property="executeTime" column="execute_time"/>
+        <result property="finishTime" column="finish_time"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="staffName" column="staff_name"/>
+    </resultMap>
+
+    <sql id="selectDeviceOrderVo">
+        select bo.order_id,
+               bo.community_id,
+               bo.order_no,
+               bo.order_name,
+               bo.device_type,
+               bo.index_code,
+               bo.plan_start,
+               bo.plan_end,
+               bo.allot_way,
+               bo.staff_id,
+               bo.assist_num,
+               bo.transfer_status,
+               bo.allot_status,
+               bo.accept_status,
+               bo.execute_status,
+               bo.assess_result,
+               bo.execute_id,
+               bo.execute_time,
+               bo.finish_time,
+               bo.image_url,
+               bo.remark,
+               bo.create_by,
+               bo.create_time,
+               bo.update_by,
+               bo.update_time,
+               bo.del_flag,
+               bs.staff_name
+        from xccj_work.bus_device_order bo
+        LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+    </sql>
+
+    <select id="selectDeviceOrderList" parameterType="com.wr.estate.entity.vo.DeviceOrderVO"
+            resultType="com.wr.estate.entity.vo.DeviceOrderVO">
+        SELECT
+        bo.order_id,
+        bo.community_id,
+        bo.order_no,
+        bo.order_name,
+        bo.device_type,
+        bo.index_code,
+        bo.plan_start,
+        bo.plan_end,
+        bo.allot_way,
+        bo.staff_id,
+        bo.assist_num,
+        bo.transfer_status,
+        bo.allot_status,
+        bo.accept_status,
+        bo.execute_status,
+        bo.assess_result,
+        bo.execute_id,
+        bo.execute_time,
+        bo.finish_time,
+        bo.image_url,
+        bo.remark,
+        bo.create_by,
+        bo.create_time,
+        bo.update_by,
+        bo.update_time,
+        bo.del_flag,
+        bs.staff_name
+        FROM
+        xccj_work.bus_device_order bo
+        LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+        <where>
+            bo.del_flag = '0'
+            <if test="communityId != null ">and bo.community_id = #{communityId}</if>
+            <if test="orderNo != null  and orderNo != ''">and bo.order_no = #{orderNo}</if>
+            <if test="orderName != null  and orderName != ''">and bo.order_name like concat('%', #{orderName}, '%')</if>
+            <if test="deviceType != null  and deviceType != ''">and bo.device_type = #{deviceType}</if>
+            <if test="indexCode != null ">and bo.index_code = #{indexCode}</if>
+            <if test="planStart != null ">and bo.plan_start = #{planStart}</if>
+            <if test="planEnd != null ">and bo.plan_end = #{planEnd}</if>
+            <if test="allotWay != null  and allotWay != ''">and bo.allot_way = #{allotWay}</if>
+            <if test="staffId != null ">and bo.staff_id = #{staffId}</if>
+            <if test="assistNum != null ">and bo.assist_num = #{assistNum}</if>
+            <if test="transferStatus != null  and transferStatus != ''">and bo.transfer_status = #{transferStatus}</if>
+            <if test="allotStatus != null  and allotStatus != ''">and bo.allot_status = #{allotStatus}</if>
+            <if test="acceptStatus != null  and acceptStatus != ''">and bo.accept_status = #{acceptStatus}</if>
+            <if test="null != executeStatus and '' != executeStatus">
+                AND bo.execute_status = #{executeStatus}
+            </if>
+            <if test="assessResult != null  and assessResult != ''">and bo.assess_result = #{assessResult}</if>
+            <if test="executeId != null ">and bo.execute_id = #{executeId}</if>
+        </where>
+        ORDER BY bo.create_time DESC
+    </select>
+    <select id="selectDeviceOrderCodeList" resultType="com.wr.estate.entity.vo.DeviceCodeVO">
+        <if test="deviceType == 'camera'">
+            select index_code as indexCode,camera_name as deviceName from xccj_device.bus_camera
+        </if>
+
+        <if test="deviceType == 'cloud'">
+            select access_serial as indexCode,access_name as deviceName from xccj_device.bus_cloud_access
+        </if>
+
+        <if test="deviceType == 'barrier'">
+            select index_code as indexCode,barrier_name as deviceName from xccj_device.bus_barrier
+        </if>
+
+        <if test="deviceType == 'acsDevice'">
+            select index_code as indexCode,access_name as deviceName from xccj_device.bus_access
+        </if>
+
+        <if test="deviceType == 'visDevice'">
+            select index_code as indexCode,visual_name as deviceName from xccj_device.bus_visual
+        </if>
+
+        where
+
+        del_flag = '0' AND community_id = #{communityId}
+    </select>
+    <select id="selectDeviceOrderByOrderId" parameterType="Long" resultMap="DeviceOrderResult">
+        <include refid="selectDeviceOrderVo"/>
+        where bo.order_id = #{orderId}
+    </select>
+
+    <insert id="insertDeviceOrder" parameterType="com.wr.remote.work.deviceorder.DeviceOrder" useGeneratedKeys="true"
+            keyProperty="orderId">
+        insert into xccj_work.bus_device_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="orderNo != null and orderNo != ''">order_no,</if>
+            <if test="orderName != null and orderName != ''">order_name,</if>
+            <if test="deviceType != null and deviceType != ''">device_type,</if>
+            <if test="indexCode != null">index_code,</if>
+            <if test="planStart != null">plan_start,</if>
+            <if test="planEnd != null">plan_end,</if>
+            <if test="allotWay != null and allotWay != ''">allot_way,</if>
+            <if test="staffId != null">staff_id,</if>
+            assist_num,
+            transfer_status,
+            allot_status,
+            accept_status,
+            execute_status,
+            <if test="assessResult != null and assessResult != ''">assess_result,</if>
+            <if test="executeId != null">execute_id,</if>
+            <if test="executeTime != null">execute_time,</if>
+            <if test="finishTime != null">finish_time,</if>
+            <if test="imageUrl != null and imageUrl != ''">image_url,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time,
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            update_time,
+            del_flag,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="orderNo != null and orderNo != ''">#{orderNo},</if>
+            <if test="orderName != null and orderName != ''">#{orderName},</if>
+            <if test="deviceType != null and deviceType != ''">#{deviceType},</if>
+            <if test="indexCode != null">#{indexCode},</if>
+            <if test="planStart != null">#{planStart},</if>
+            <if test="planEnd != null">#{planEnd},</if>
+            <if test="allotWay != null and allotWay != ''">#{allotWay},</if>
+            <if test="staffId != null">#{staffId},</if>
+            0,
+            0,
+            0,
+            0,
+            0,
+            <if test="assessResult != null and assessResult != ''">#{assessResult},</if>
+            <if test="executeId != null">#{executeId},</if>
+            <if test="executeTime != null">#{executeTime},</if>
+            <if test="finishTime != null">#{finishTime},</if>
+            <if test="imageUrl != null and imageUrl != ''">#{imageUrl},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate(),
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            sysdate(),
+            0,
+        </trim>
+    </insert>
+
+    <update id="updateDeviceOrder" parameterType="com.wr.remote.work.deviceorder.DeviceOrder">
+        update xccj_work.bus_device_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="orderNo != null and orderNo != ''">order_no = #{orderNo},</if>
+            <if test="orderName != null and orderName != ''">order_name = #{orderName},</if>
+            <if test="deviceType != null and deviceType != ''">device_type = #{deviceType},</if>
+            <if test="indexCode != null">index_code = #{indexCode},</if>
+            <if test="planStart != null">plan_start = #{planStart},</if>
+            <if test="planEnd != null">plan_end = #{planEnd},</if>
+            <if test="allotWay != null and allotWay != ''">allot_way = #{allotWay},</if>
+            <if test="staffId != null">staff_id = #{staffId},</if>
+            <if test="assistNum != null">assist_num = #{assistNum},</if>
+            <if test="transferStatus != null and transferStatus != ''">transfer_status = #{transferStatus},</if>
+            <if test="allotStatus != null and allotStatus != ''">allot_status = #{allotStatus},</if>
+            <if test="acceptStatus != null and acceptStatus != ''">accept_status = #{acceptStatus},</if>
+            <if test="executeStatus != null and executeStatus != ''">execute_status = #{executeStatus},</if>
+            <if test="assessResult != null and assessResult != ''">assess_result = #{assessResult},</if>
+            <if test="executeId != null">execute_id = #{executeId},</if>
+            <if test="executeTime != null">execute_time = #{executeTime},</if>
+            <if test="finishTime != null">finish_time = #{finishTime},</if>
+            <if test="imageUrl != null and imageUrl != ''">image_url = #{imageUrl},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="createBy != null and createBy != ''">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = sysdate(),</if>
+            <if test="delFlag != null and delFlag != ''">del_flag = #{delFlag},</if>
+        </trim>
+        where order_id = #{orderId}
+    </update>
+
+    <delete id="deleteDeviceOrderByOrderId" parameterType="Long">
+        delete
+        from xccj_work.bus_device_order
+        where order_id = #{orderId}
+    </delete>
+
+    <update id="deleteDeviceOrderByOrderIds" parameterType="String">
+        update xccj_work.bus_device_order
+        <trim prefix="SET" suffixOverrides=",">
+            del_flag = '1'
+        </trim>
+        where order_id in
+        <foreach item="orderId" collection="array" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </update>
+
+    <select id="getAbnormalCount" resultType="integer">
+        SELECT count(1)
+        from xccj_work.bus_abnormal
+        WHERE order_id = #{orderId}
+          and order_type = #{orderType}
+          and del_flag = '0'
+    </select>
+    <select id="selectAssistList" resultType="com.wr.remote.estate.manage.Staff">
+        select *
+        from xccj_community.bus_staff as bs
+        where bs.staff_id in
+              (
+                  select boas.staff_id
+                  from xccj_work.bus_order_assist as boas
+                           left join xccj_work.bus_order_audit as boa on boas.audit_id = boa.audit_id
+                  where boa.audit_status = '1'
+                    and boa.audit_type = '1'
+                    and boa.del_flag = '0'
+                    and boa.order_type = #{orderType}
+                    and boa.order_id = #{orderId})
+          and bs.audit_status = '1'
+          and bs.del_flag = '0'
+
+    </select>
+</mapper>

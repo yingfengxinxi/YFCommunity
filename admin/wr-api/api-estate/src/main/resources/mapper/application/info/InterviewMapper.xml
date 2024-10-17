@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.info.InterviewMapper">
+    <!--    访客列表-->
+    <select id="getList" resultType="com.wr.remote.domain.vo.InterviewVo">
+        SELECT
+        id AS "visitorId",
+        visitor_name AS "visitorName",
+        visitor_phone AS "visitorPhone",
+        begin_time AS "beginTime"
+        FROM
+        xccj_community.bus_interview
+        WHERE
+        del_flag = '0'
+        <if test="visitorName!=null and visitorName !=''">
+            AND visitor_name LIKE CONCAT('%', #{visitorName}, '%')
+        </if>
+        AND community_id = #{communityId}
+        ORDER BY
+        create_time DESC
+    </select>
+
+
+    <!--根据通行表id查询详情-->
+    <select id="getVisitorById" resultType="com.wr.remote.domain.vo.InterviewVo">
+        SELECT
+            id AS "visitorId",
+            visitor_name AS "visitorName",
+            visitor_phone AS "visitorPhone",
+            with_num AS "withNum",
+            plant_no AS "plantNo",
+            begin_time AS "beginTime",
+            end_time AS "endTime",
+            CONCAT( com.community_name, bui.building_name, uni.unit_name, oom.room_name ) AS "address",
+            bo.owner_name AS "ownerName",
+            bo.owner_phone AS "ownerPhone"
+        FROM
+            xccj_community.bus_interview AS bl
+                LEFT JOIN xccj_community.bus_owner AS bo ON bo.owner_id = bl.owner_id
+                LEFT JOIN xccj_community.bus_room AS oom ON bl.room_id = oom.room_id
+                LEFT JOIN xccj_community.bus_community AS com ON oom.community_id = com.community_id
+                LEFT JOIN xccj_community.bus_building AS bui ON oom.building_id = bui.building_id
+                LEFT JOIN xccj_community.bus_unit AS uni ON oom.unit_id = uni.unit_id
+        WHERE
+            bl.id = #{visitorId}
+    </select>
+
+    <select id="getVisitCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "count"
+        FROM
+            xccj_community.bus_interview
+        WHERE
+            del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+</mapper>

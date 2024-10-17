@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.CameraMapper">
+    <sql id="cameraColumns">
+        dbc
+        .
+        camera_id
+        , dbc.index_code, dbc.camera_name, dbc.camera_type, dbc.chan_num, dbc.capability,
+        dbc.channel_type, dbc.decode_tag, dbc.camera_relate_talk, dbc.trans_type, dbc.treaty_type,
+        dbc.record_location, dbc.dac_index_code, dbc.create_time, dbc.update_time, dbc.online,
+        dbc.manufacturer, dbc.renewal_by, dbc.renewal_time, dbc.update_by, dbc.operate_time,
+        dbc.community_id, dbc.building_id, dbc.unit_id, dbc.address, dbc.device_qr, dbc.device_type, dbc.del_flag
+    </sql>
+
+    <select id="selectCameraList" resultType="com.wr.remote.aiot.Camera">
+        SELECT
+        cbb.building_name, cbu.unit_name,
+        <include refid="cameraColumns"/>
+        FROM xccj_device.bus_camera dbc
+        LEFT JOIN xccj_community.bus_building cbb ON cbb.building_id = dbc.building_id
+        LEFT JOIN xccj_community.bus_unit cbu ON cbu.unit_id = dbc.unit_id
+        WHERE dbc.del_flag = '0' AND dbc.community_id = #{communityId}
+        <if test="cameraName != null and cameraName != ''">
+            AND dbc.camera_name LIKE concat('%', #{cameraName}, '%')
+        </if>
+        <if test="indexCode != null and indexCode != ''">
+            AND dbc.index_code LIKE concat('%', #{indexCode}, '%')
+        </if>
+        <if test="cameraType != null and cameraType != ''">
+            AND dbc.camera_type = #{cameraType}
+        </if>
+        <if test="deviceType != null and deviceType != ''">
+            AND dbc.device_type = #{deviceType}
+        </if>
+        <if test="online != null and online != ''">
+            AND dbc.online = #{online}
+        </if>
+        ORDER BY dbc.operate_time DESC
+    </select>
+
+    <!--UPDATE xccj_device.bus_camera SET `online` = #{online} WHERE camera_id = #{cameraId}-->
+    <update id="updateCameraOnline">
+        INSERT INTO xccj_device.bus_camera (index_code, `online`) VALUES
+        <foreach item="item" index="index" collection="cameraList" separator=",">
+            ( #{item.indexCode}, #{item.online} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        index_code = values(index_code), online = values(online)
+    </update>
+
+    <insert id="insert">
+        INSERT INTO xccj_device.bus_camera (index_code, camera_name, camera_type, chan_num, capability, channel_type,
+                                            decode_tag,
+                                            camera_relate_talk, trans_type, treaty_type, record_location,
+                                            dac_index_code,
+                                            create_time, update_time, manufacturer, renewal_by, renewal_time,
+                                            community_id)
+        VALUES (#{indexCode},
+                #{cameraName},
+                #{cameraType},
+                #{chanNum},
+                #{capability},
+                #{channelType},
+                #{decodeTag},
+                #{cameraRelateTalk},
+                #{transType},
+                #{treatyType},
+                #{recordLocation},
+                #{dacIndexCode},
+                #{createTime},
+                #{updateTime},
+                #{manufacturer},
+                #{renewalBy},
+                sysdate(),
+                #{communityId})
+    </insert>
+
+    <update id="update">
+        UPDATE `xccj_device`.`bus_camera`
+        SET `index_code`         = #{indexCode},
+            `camera_name`        =#{cameraName},
+            `camera_type`        = #{cameraType},
+            `chan_num`           = #{chanNum},
+            `capability`         = #{capability},
+            `channel_type`       = #{channelType},
+            `decode_tag`         = #{decodeTag},
+            `camera_relate_talk` = #{cameraRelateTalk},
+            `trans_type`         = #{transType},
+            `treaty_type`        = #{treatyType},
+            `record_location`    = #{recordLocation},
+            `dac_index_code`     = #{dacIndexCode},
+            `update_time`        = NOW(),
+            `online`             = #{online},
+            `manufacturer`       = #{manufacturer},
+            `renewal_by`         = #{renewalBy},
+            `renewal_time`       = NOW(),
+            `update_by`          = #{updateBy},
+            `operate_time`       = #{operateTime},
+            `building_id`        = #{buildingId},
+            `unit_id`            = #{unitId},
+            `address`            = #{address},
+            `device_qr`          = #{deviceQr},
+            `device_type`        = #{deviceType}
+        WHERE `camera_id` = #{cameraId}
+    </update>
+
+    <select id="getByIndexCodeInfo" resultType="com.wr.remote.aiot.Camera">
+        select
+        <include refid="cameraColumns"></include>
+        FROM xccj_device.bus_camera dbc where index_code=#{indexCode}
+    </select>
+
+    <delete id="delete">
+        delete
+        from xccj_device.bus_camera
+        where DATE_FORMAT(renewal_time, "%Y-%m-%d") != DATE_FORMAT(NOW(), "%Y-%m-%d")
+    </delete>
+
+    <select id="selectCameraById" resultType="com.wr.remote.aiot.Camera">
+        SELECT
+        cbc.community_name AS "communityName",cbb.building_name, cbu.unit_name,
+        <include refid="cameraColumns"/>
+        FROM xccj_device.bus_camera dbc
+        LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dbc.community_id
+        LEFT JOIN xccj_community.bus_building cbb ON cbb.building_id = dbc.building_id
+        LEFT JOIN xccj_community.bus_unit cbu ON cbu.unit_id = dbc.unit_id
+        WHERE dbc.del_flag = '0' AND dbc.camera_id = #{cameraId}
+    </select>
+
+    <update id="updateCamera">
+        UPDATE xccj_device.bus_camera SET
+        device_type = #{deviceType}, address = #{address},
+        update_by = #{updateBy}, operate_time = sysdate()
+        <if test="buildingId != null">
+            ,building_id = #{buildingId}
+        </if>
+        <if test="unitId != null">
+            ,unit_id = #{unitId}
+        </if>
+        WHERE camera_id = #{cameraId}
+    </update>
+
+    <select id="selectIdsOfNotQrCode" resultType="com.wr.remote.aiot.Camera">
+        SELECT camera_id, index_code, camera_name
+        FROM xccj_device.bus_camera
+        WHERE del_flag = '0'
+          AND (device_qr IS NULL OR device_qr = '')
+    </select>
+
+    <update id="batchUpdateDeviceQr">
+        INSERT INTO xccj_device.bus_camera ( camera_id, device_qr ) VALUES
+        <foreach item="item" index="index" collection="cameraList" separator=",">
+            ( #{item.cameraId}, #{item.deviceQr} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        camera_id = values(camera_id), device_qr = values(device_qr)
+    </update>
+
+    <!-- 根据ids查询监控信息 -->
+    <select id="selectCameraByIds" resultType="com.wr.remote.aiot.Camera">
+        SELECT camera_id,index_code, camera_name FROM xccj_device.bus_camera
+        <where>
+            <foreach collection="list" item="id" open="AND camera_id IN(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+</mapper>

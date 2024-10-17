@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.owner.OwnerCommitteeMapper">
+
+	<resultMap type="com.wr.remote.govern.autonomy.owner.OwnerCommittee" id="BusCommitteeResult">
+		<id     property="committeeId"     column="committee_id"     />
+		<result property="communityId"   column="community_id"   />
+		<result property="committeeName"  column="committee_name"   />
+		<result property="createBy"   column="create_by"   />
+		<result property="createTime" column="create_time" />
+		<result property="updateBy"   column="update_by"   />
+		<result property="updateTime" column="update_time" />
+		<result property="delFlag" column="del_flag" />
+	</resultMap>
+
+	<sql id="selectBusCommitteeVo">
+		select d.committee_id, d.community_id,b.community_name ,d.committee_name,d.create_by, d.create_time,d.update_by,d.update_time,d.del_flag
+		from xccj_govern.bus_committee d left join xccj_community.bus_community
+	   as b on d.community_id=b.community_id
+	</sql>
+
+	<select id="selectBusCommitteeList" parameterType="com.wr.remote.govern.autonomy.owner.OwnerCommittee" resultMap="BusCommitteeResult">
+		<include refid="selectBusCommitteeVo"/>
+		<where>
+			d.del_flag = '0'
+			<if test="committeeName != null and committeeName !=''">
+				and d.committee_name like concat('%', #{committeeName}, '%')
+			</if>
+			<if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+				AND date_format(d.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+			</if>
+			<if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+				AND date_format(d.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+			</if>
+			<if test="communityId != null and communityId != 0"><!-- 所属小区 -->
+		        AND d.community_id=#{communityId}
+			</if>
+		</where>
+		group by d.committee_id
+		order by d.create_time desc
+	</select>
+
+
+	<select id="selectBusCommitteeById" parameterType="Long" resultMap="BusCommitteeResult">
+		<include refid="selectBusCommitteeVo"/>
+		where committee_id = #{committeeId}
+		group by d.committee_id
+	</select>
+	<select id="selectBusCommitteeByCommunityId" parameterType="Long" resultMap="BusCommitteeResult">
+		<include refid="selectBusCommitteeVo"/>
+		where d.community_id = #{communityId}
+		and d.del_flag = '0'
+	</select>
+
+	<select id="selectBusCommittee" resultMap="BusCommitteeResult">
+		<include refid="selectBusCommitteeVo"/>
+	</select>
+
+    <insert id="insertBusCommittee" parameterType="com.wr.remote.govern.autonomy.owner.OwnerCommittee" useGeneratedKeys="true" keyProperty="committeeId">
+		insert into xccj_govern.bus_committee(
+		<if test="committeeId != null and committeeId != 0">committee_id,</if>
+		<if test="communityId != null and communityId != 0">community_id,</if>
+		<if test="committeeName != null and committeeName != ''">committee_name,</if>
+		<if test="createBy != null and createBy != ''">create_by,</if>
+		create_time
+		)values(
+		<if test="committeeId != null and committeeId != 0">#{committeeId},</if>
+		<if test="communityId != null and communityId != 0">#{communityId},</if>
+		<if test="committeeName != null and committeeName != ''">#{committeeName},</if>
+		<if test="createBy != null and createBy != ''">#{createBy},</if>
+		sysdate()
+		)
+	</insert>
+
+	<update id="updateBusCommittee" parameterType="com.wr.remote.govern.autonomy.owner.OwnerCommittee">
+		update xccj_govern.bus_committee
+		<set>
+			<if test="committeeId != null and committeeId != 0">committee_id = #{committeeId},</if>
+			<if test="communityId != null and communityId != 0">community_id = #{communityId},</if>
+			<if test="committeeName != null and committeeName != ''">committee_name = #{committeeName},</if>
+			<if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+			update_time = sysdate()
+		</set>
+		where committee_id = #{committeeId}
+	</update>
+	<select id="queryByCommunityId" resultType="java.util.LinkedHashMap">
+		SELECT o.*,a.login_name,r.delivery_time,
+		(select count(1) from xccj_community.bus_vehicle where del_flag='0' and account_id=a.account_id and audit_status='1') as catnum,
+		(SELECT count(1) from xccj_community.bus_tenant WHERE owner_id=o.owner_id and audit_status='1') as 'space',
+		r.room_status,c.community_name,b.building_name,
+		u.unit_name,r.room_name,o.owner_phone,d.dict_label
+		from xccj_community.bus_owner o,xccj_community.bus_account a,xccj_community.bus_room r,xccj_community.bus_community c
+		,xccj_community.bus_building b,xccj_community.bus_unit u,xccj_estate_sys.sys_dict_data d
+		,xccj_govern.bus_committee_owner as ch
+		WHERE o.del_flag='0' and o.account_id=a.account_id and o.room_id=r.room_id and o.audit_status='1'
+		and o.community_id=c.community_id and o.building_id=b.building_id and o.unit_id=u.unit_id
+		and o.owner_id=ch.owner_id
+		and d.dict_type='sys_certificate' and o.card_type=d.dict_value
+		<if test="communityId != '' and communityId != null">
+			and o.community_id=#{communityId,jdbcType=BIGINT}
+		</if>
+		<if test="name != '' and name != null">
+			and o.owner_name like concat('%',#{name},'%')
+		</if>
+		<if test="phone != '' and phone != null">
+			and o.owner_phone like concat('%',#{phone},'%')
+		</if>
+		<if test="ids!='' and ids != null">
+			and o.owner_id in
+			<foreach collection="ids" item="i" separator="," close=")" open="(">
+				#{i}
+			</foreach>
+		</if>
+	</select>
+
+	<select id="queryByCommunityIds" resultType="java.util.LinkedHashMap">
+		SELECT o.*,a.login_name,r.delivery_time,
+		(select count(1) from xccj_community.bus_vehicle where del_flag='0' and account_id=a.account_id and audit_status='1') as catnum,
+		(SELECT count(1) from xccj_community.bus_tenant WHERE owner_id=o.owner_id and audit_status='1') as 'space',
+		r.room_status,c.community_name,b.building_name,
+		u.unit_name,r.room_name,o.owner_phone,d.dict_label
+		from xccj_community.bus_owner o,xccj_community.bus_account a,xccj_community.bus_room r,xccj_community.bus_community c
+		,xccj_community.bus_building b,xccj_community.bus_unit u,xccj_estate_sys.sys_dict_data d
+		WHERE o.del_flag='0' and o.account_id=a.account_id and o.room_id=r.room_id and o.audit_status='1'
+		and o.community_id=c.community_id and o.building_id=b.building_id and o.unit_id=u.unit_id
+		and d.dict_type='sys_certificate' and o.card_type=d.dict_value
+		and o.owner_relation='0'
+		and o.owner_id not in (select owner_id from xccj_govern.bus_committee_owner)
+		<if test="communityId != '' and communityId != null">
+			and o.community_id=#{communityId,jdbcType=BIGINT}
+		</if>
+		<if test="name != '' and name != null">
+			and o.owner_name like concat('%',#{name},'%')
+		</if>
+		<if test="phone != '' and phone != null">
+			and o.owner_phone like concat('%',#{phone},'%')
+		</if>
+		<if test="ids!='' and ids != null">
+			and o.owner_id in
+			<foreach collection="ids" item="i" separator="," close=")" open="(">
+				#{i}
+			</foreach>
+		</if>
+	</select>
+	<select id="queryByRoomId" resultType="java.util.LinkedHashMap">
+		SELECT o.owner_name,o.owner_phone,o.card_no,o.gender,o.owner_relation,c.community_name,a.login_name,a.account_id from xccj_community.bus_owner o,xccj_community.bus_community c,xccj_community.bus_account a
+		WHERE o.del_flag='0' and o.community_id=c.community_id and o.audit_status='1'
+		  and o.community_id=#{community_id} and o.building_id=#{building_id} and o.unit_id=#{unit_id} and o.room_id=#{room_id} and o.account_id=a.account_id
+	</select>
+
+	<select id="getDictData" resultType="java.util.LinkedHashMap">
+		SELECT dict_value,dict_label from xccj_estate_sys.sys_dict_data WHERE dict_type='sys_certificate'
+	</select>
+
+	<select id="queryRoomByOwnerId" resultType="java.util.LinkedHashMap">
+		SELECT c.community_name,CONCAT(b.building_name,u.unit_name,r.room_name) as "room",o.owner_name,r.room_status,r.delivery_time
+		from xccj_community.bus_room r,xccj_community.bus_community c,xccj_community.bus_building b,xccj_community.bus_unit u,xccj_community.bus_owner o
+		WHERE r.del_flag='0' and r.community_id=c.community_id and r.building_id=b.building_id and r.unit_id=u.unit_id and r.owner_id=#{id} and o.owner_id=r.owner_id
+	</select>
+	<delete id="deleteBusCommitteeById" parameterType="java.lang.Long">
+		update xccj_govern.bus_committee set del_flag = '1'    WHERE committee_id IN
+		<foreach item="committeeId" collection="array" open="(" separator="," close=")">
+			#{committeeId}
+		</foreach>
+	</delete>
+
+</mapper> 

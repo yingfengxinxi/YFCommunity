@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.patrol.PointMapper">
+    <select id="selectList" parameterType="com.wr.remote.work.patrol.Point"
+            resultType="com.wr.remote.work.patrol.Point">
+        select point_id,
+        community_id,
+        point_name,
+        (CASE
+        WHEN point_type = '0' THEN '巡查点、巡更点'
+        WHEN point_type = '1' THEN '巡查点'
+        WHEN point_type = '2' THEN '巡更点' END) AS pointType,
+        point_site,
+        point_status,
+        point_url,
+        create_by,
+        create_time
+        from xccj_work.bus_point
+        <where>
+            <if test="communityId != null">
+                community_id = #{communityId}
+            </if>
+            <if test="pointName != null and pointName !=''">
+                and point_name LIKE CONCAT('%', #{pointName}, '%')
+            </if>
+            <if test="pointStatus != null">
+                and point_status = #{pointStatus}
+            </if>
+            <if test="createBy != null">
+                and create_by LIKE CONCAT('%', #{createBy}, '%')
+            </if>
+            and del_flag = '0'
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectList2" parameterType="com.wr.remote.work.patrol.Point"
+            resultType="com.wr.remote.work.patrol.Point">
+        select point_id,
+        community_id,
+        point_name,
+        (CASE
+        WHEN point_type = '0' THEN '巡查点、巡更点'
+        WHEN point_type = '1' THEN '巡查点'
+        WHEN point_type = '2' THEN '巡更点' END) AS pointType,
+        point_site,
+        point_status,
+        point_url,
+        create_by,
+        create_time
+        from xccj_work.bus_point
+        <where>
+            <if test="communityId != null">
+                community_id = #{communityId}
+            </if>
+            <if test="pointName != null and pointName !=''">
+                and point_name LIKE CONCAT('%', #{pointName}, '%')
+            </if>
+            <if test="pointStatus != null">
+                and point_status = #{pointStatus}
+            </if>
+            <if test="createBy != null">
+                and create_by LIKE CONCAT('%', #{createBy}, '%')
+            </if>
+            AND point_type IN ('0', '1')
+            and del_flag = '0'
+            AND point_status = '0'
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectById" resultType="com.wr.remote.work.patrol.Point" parameterType="long">
+        select point_id,
+               community_id,
+               point_name,
+               (CASE
+                    WHEN point_type = '0' THEN '巡查点、巡更点'
+                    WHEN point_type = '1' THEN '巡查点'
+                    WHEN point_type = '2' THEN '巡更点' END) AS pointTypeStr,
+               point_type,
+               point_site,
+               point_status,
+               point_url,
+               create_by,
+               create_time
+        from xccj_work.bus_point
+        where point_id = #{poindId}
+    </select>
+
+
+    <!--    删除-->
+    <delete id="delete">
+        UPDATE xccj_work.bus_point
+        SET del_flag = '1'
+        WHERE point_id = #{pointId}
+    </delete>
+
+
+    <!--    根据id修改状态-->
+    <update id="updateStatus" parameterType="com.wr.remote.work.patrol.Point">
+        update xccj_work.bus_point
+        set point_status= #{pointStatus}
+        WHERE point_id = #{pointId}
+    </update>
+
+
+    <!--    修改-->
+    <update id="updatePoint">
+        UPDATE xccj_work.bus_point
+        <set>
+            <if test="pointName != null and pointName!=''">
+                point_name = #{pointName},
+            </if>
+            <if test="pointType != null ">
+                point_type = #{pointType},
+            </if>
+            <if test="pointSite != null and pointSite != ''">
+                point_site = #{pointSite},
+            </if>
+            <if test="pointStatus != null ">
+                point_status = #{pointStatus},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by = #{updateBy},
+            </if>
+            update_time = sysdate()
+        </set>
+        WHERE point_id = #{pointId}
+    </update>
+
+
+    <!--    新增巡点-->
+    <insert id="insertPoint" parameterType="com.wr.remote.work.patrol.Point" useGeneratedKeys="true" keyProperty="pointId">
+        insert into xccj_work.bus_point(
+
+        <if test="pointName != null and pointName != ''">
+            point_name,
+        </if>
+        <if test="pointType != null ">
+            point_type,
+        </if>
+        <if test="communityId != null ">
+            community_id,
+        </if>
+        <if test="pointSite != null and pointSite != ''">
+            point_site,
+        </if>
+        <if test="pointStatus != null">
+            point_status,
+        </if>
+        <if test="createBy != null and createBy != ''">
+            create_by,
+        </if>
+        create_time
+        )values(
+
+        <if test="pointName != null and pointName != ''">
+            #{pointName},
+        </if>
+        <if test="pointType != null">
+            #{pointType},
+        </if>
+        <if test="communityId != null">
+            #{communityId},
+        </if>
+        <if test="pointSite != null and pointSite != ''">
+            #{pointSite},
+        </if>
+        <if test="pointStatus != null">
+            #{pointStatus},
+        </if>
+        <if test="createBy != null and createBy != ''">
+            #{createBy},
+        </if>
+        sysdate()
+        )
+    </insert>
+
+    <update id="updatePointUrl" >
+        UPDATE xccj_work.bus_point
+        <set>
+            <if test="pointUrl != null and pointUrl!=''">
+                point_url = #{pointUrl},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by = #{updateBy}
+            </if>
+        </set>
+        WHERE point_id = #{pointId}
+    </update>
+
+
+
+    <select id="selectName" parameterType="long" resultType="string">
+        select community_name
+        from xccj_community.bus_community
+        where community_id = #{communityId}
+    </select>
+
+    <!-- 根据巡更路线查询巡点列表 -->
+    <select id="listByRouteId" resultType="com.wr.remote.work.nightPatrol.vo.NightPatrolPlanPointListVO">
+        SELECT bp.point_name, bp.point_site
+        FROM xccj_work.bus_route_point brp
+                 LEFT JOIN xccj_work.bus_point bp ON brp.point_id = bp.point_id
+        WHERE brp.route_id = #{routeId}
+    </select>
+
+    <!--校验巡点名称是否存在-->
+    <select id="isExist" resultType="java.lang.Integer">
+        select count(*) from xccj_work.bus_point where community_id = #{communityId} and point_name = #{pointName} and del_flag = '0'
+    </select>
+</mapper>

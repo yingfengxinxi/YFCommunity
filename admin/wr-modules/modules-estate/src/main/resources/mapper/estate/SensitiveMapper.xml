@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.sensitive.SensitiveMapper">
+
+    <select id="getListBusSensitive" resultType="com.wr.remote.domain.Sensitive">
+        SELECT bs.sensitive_id,
+               bs.phrases,
+               bs.order_num,
+               bs.create_by,
+               bs.create_time,
+               bs.update_by,
+               bs.update_time,
+               bs.del_flag
+        FROM xccj_community.bus_sensitive as bs
+    </select>
+
+</mapper> 

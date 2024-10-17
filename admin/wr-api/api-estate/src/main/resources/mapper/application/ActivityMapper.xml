@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.ActivityMapper">
+
+    <select id="searchByCommunityId" resultType="com.wr.api.estate.entity.vo.application.ActivityVO">
+        SELECT
+        activity_id,
+        activity_name as "title_name",
+        act_url as "img_url",
+        start_time,
+        join_num,
+        (IF(now()>end_time,'2',IF(now()>start_time,'0','1'))) state
+        from xccj_community.bus_activity a WHERE del_flag='0' and community_id=#{communityId}
+        <if test="state != '' and state != null ">
+            HAVING `state`=#{state}
+        </if>
+       order by `state` asc
+    </select>
+    <select id="detailByActivityId" resultType="com.wr.api.estate.entity.vo.application.ActivityVO">
+        SELECT
+            a.act_url AS "imgUrl",
+            a.activity_name AS "titleName",
+            a.address as "address",
+            (IF(now()> a.end_time,'2',IF( now()> a.start_time, '0', '1' ))) as "state",
+            a.start_time as "startTime",
+            a.end_time as "endTime",
+            a.view_number as "viewNumber",
+            a.act_intro as "actIntro"
+        FROM
+            xccj_community.bus_activity a
+        WHERE
+            a.del_flag = '0'
+          AND a.activity_id = #{activityId}
+    </select>
+
+    <update id="updateByIdViewNumber">
+        update xccj_community.bus_activity a set  view_number=(view_number+1) where activity_id = #{activityId}
+    </update>
+
+    <!--参与人列表-->
+    <select id="selectJoinPeopleList" resultType="com.wr.remote.estate.activity.ActiviteManage">
+        SELECT
+        bo.owner_name AS "ownerName",
+        bao.owner_remark AS "remark",
+        bo.owner_phone AS "ownerPhone"
+        FROM
+        xccj_community.bus_activity_owner bao
+        LEFT JOIN xccj_community.bus_owner bo ON bao.owner_id = bo.owner_id
+        WHERE
+        bao.activity_id = #{activityId}
+        <if test="searchValue != null  and searchValue != ''">
+            and (bo.owner_name like concat('%', #{searchValue}, '%') or
+            bo.owner_phone like concat('%', #{searchValue}, '%'))
+        </if>
+        ORDER BY
+        bao.sign_in_time DESC
+    </select>
+</mapper>
+

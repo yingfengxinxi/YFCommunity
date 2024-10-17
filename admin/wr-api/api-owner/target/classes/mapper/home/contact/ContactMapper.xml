@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.contact.ContactMapper">
+    <resultMap type="com.wr.api.owner.entity.home.contact.Contact" id="ContactResult">
+        <result property="contactId" column="contact_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="companyName" column="company_name"/>
+        <result property="address" column="address"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectContactVo">
+        select contact_id,
+               community_id,
+               contact_name,
+               contact_phone,
+               company_name,
+               address,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        from xccj_community.bus_contact
+    </sql>
+
+    <select id="selectContactList" parameterType="com.wr.api.owner.entity.home.contact.Contact"
+            resultMap="ContactResult">
+        <include refid="selectContactVo"/>
+        <where>
+            del_flag = '0'
+            and community_id = #{communityId}
+        </where>
+        order by create_time DESC
+    </select>
+</mapper>

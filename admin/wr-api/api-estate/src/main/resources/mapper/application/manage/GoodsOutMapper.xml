@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.manage.GoodsOutMapper">
+    <select id="getList" resultType="com.wr.api.estate.entity.application.manage.GoodsOut">
+        SELECT
+            bgo.*,bp.passage_name
+        FROM xccj_community.bus_goods_out bgo
+        LEFT JOIN xccj_community.bus_passage bp ON bp.passage_id = bgo.passage_id
+        WHERE bgo.del_flag = '0' AND bgo.community_id = #{communityId}
+        order by bgo.out_status,bgo.out_time desc
+    </select>
+    <select id="getById" resultType="com.wr.api.estate.entity.application.manage.GoodsOut">
+        SELECT
+            bgo.*,ba.account_name,ba.login_name
+        FROM xccj_community.bus_goods_out bgo
+                 LEFT JOIN xccj_community.bus_account ba ON bgo.account_id = ba.account_id
+        WHERE bgo.del_flag = '0' AND bgo.out_id = #{outId}
+    </select>
+
+    <select id="getImage" resultType="com.wr.api.estate.entity.application.manage.GoodsOut">
+        SELECT
+           bi.image_url
+        FROM xccj_community.bus_image bi
+        WHERE  bi.del_flag = '0' AND bi.image_type = '0'  AND bi.table_id = #{outId}
+    </select>
+
+    <update id="updateGoodsOut">
+        UPDATE xccj_community.bus_goods_out SET out_status = '1' , out_time = sysdate() WHERE out_id = #{outId}
+    </update>
+
+    <select id="goodsOutCount" resultType="int">
+        SELECT
+            count(*)
+        FROM xccj_community.bus_goods_out bgo
+        WHERE bgo.del_flag = '0' AND bgo.out_status = '1' AND bgo.community_id = #{communityId} and left(bgo.out_time,10)=left(sysdate(),10)
+    </select>
+
+</mapper>

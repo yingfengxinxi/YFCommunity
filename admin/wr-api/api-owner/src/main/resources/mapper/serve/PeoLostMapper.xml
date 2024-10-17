@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.PeoLostMapper">
+
+    <sql id="selectPeopleLostVo">
+        SELECT  lost_id, community_id, account_id, thumbnail, lost_name, (CASE
+  WHEN gender = "0" THEN '男'
+  WHEN gender = "1" THEN '女'
+  ELSE '未知'
+END ) gender, birthday, lost_age, lost_height, hometown, lost_date, lost_address, contact_name, contact_phone, lost_info, publish_time, lost_status,del_flag FROM xccj_community.bus_people_lost
+    </sql>
+
+    <!-- 发布寻人启示-->
+    <insert id="addPeoLost">
+        insert into xccj_community.bus_people_lost
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="accountId != null and accountId != ''">account_id,</if>
+            <if test="thumbnail != null and thumbnail != ''">thumbnail,</if>
+            <if test="lostName != null and lostName != ''">lost_name,</if>
+            <if test="gender != null and gender != ''">gender,</if>
+            <if test="birthday != null">birthday,</if>
+            <if test="lostAge != null and lostAge != ''">lost_age,</if>
+            <if test="lostHeight != null and lostHeight != ''">lost_height,</if>
+            <if test="hometown != null and hometown != ''">hometown,</if>
+            <if test="lostDate != null">lost_date,</if>
+            <if test="lostAddress != null and lostAddress != ''">lost_address,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone,</if>
+            <if test="lostInfo != null and lostInfo != ''">lost_info,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="lostStatus != null and lostStatus != ''">lost_status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="accountId != null and accountId != ''">#{accountId},</if>
+            <if test="thumbnail != null and thumbnail != ''">#{thumbnail},</if>
+            <if test="lostName != null and lostName != ''">#{lostName},</if>
+            <if test="gender != null and gender != ''">#{gender,jdbcType=CHAR},</if>
+            <if test="birthday != null">#{birthday},</if>
+            <if test="lostAge != null and lostAge != ''">#{lostAge},</if>
+            <if test="lostHeight != null and lostHeight != ''">#{lostHeight},</if>
+            <if test="hometown != null and hometown != ''">#{hometown},</if>
+            <if test="lostDate != null">#{lostDate},</if>
+            <if test="lostAddress != null and lostAddress != ''">#{lostAddress},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="lostInfo != null and lostInfo != ''">#{lostInfo},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="lostStatus != null and lostStatus != ''">#{lostStatus},</if>
+        </trim>
+    </insert>
+    <!--修改发布状态-->
+    <update id="updateByStatus">
+        update xccj_community.bus_people_lost
+        set lost_status=#{lostStatus} where lost_id=#{lostId}
+    </update>
+
+    <!--查询寻人列表-->
+    <select id="getPeoLost" resultType="com.wr.api.owner.entity.dto.PeoLostDTO">
+        <include refid="selectPeopleLostVo"/>
+        WHERE del_flag = '0'
+        <if test="lostName != null and lostName != ''">AND lost_name = #{lostName}</if>
+        <if test="communityId != null and communityId != ''">AND community_id = #{communityId}</if>
+        <if test="lostId != null and lostId != ''">AND lost_id = #{lostId}</if>
+        <if test="contactName != null and contactName != ''">AND contact_name = #{contactName}</if>
+        <if test="contactPhone != null and contactPhone != ''">AND contact_phone = #{contactPhone}</if>
+        <if test="accountId != null and accountId != ''">AND account_id = #{accountId}</if>
+        and lost_status='0'
+        ORDER BY publish_time DESC
+    </select>
+
+    <!-- 查询寻人列表详情-->
+    <select id="getInfoById" resultType="com.wr.api.owner.entity.vo.serve.PeoLostVo">
+        <include refid="selectPeopleLostVo"/>
+        WHERE del_flag = '0'
+        AND lost_id = #{lostId}
+    </select>
+    <!-- 查询我得寻人启示-->
+    <select id="getMyById" resultType="com.wr.api.owner.entity.vo.serve.PeoLostVo">
+        <include refid="selectPeopleLostVo"/>
+        WHERE del_flag = '0'
+        and account_id = #{accountId}
+    </select>
+
+
+</mapper>
+

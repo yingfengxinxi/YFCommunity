@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.disasterOrder.DisasterLedgerMapper">
+    <insert id="insertBusDisaster" parameterType="com.wr.remote.estate.base.BusDisaster">
+insert into xccj_work.bus_disaster(
+        <if test="estateId != null and estateId != ''">estate_id,</if>
+        <if test="disasterId != null and disasterId != ''">disaster_id,</if>
+        <if test="disasterName != null ">disaster_name,</if>
+        <if test="remark != null ">remark,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        <if test="updateBy != null and updateBy != ''">update_by,</if>
+        create_time
+        )values(
+        <if test="disasterId != null and disasterId != ''">#{disasterId},</if>
+        <if test="estateId != null and estateId != ''">#{estateId},</if>
+        <if test="disasterName != null">#{disasterName},</if>
+        <if test="remark != null">#{remark},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        <if test="updateBy != null and updateBy != ''">#{createBy},</if>
+        sysdate()
+        )
+    </insert>
+    <update id="updateById">
+         UPDATE xccj_work.bus_disaster
+        SET disaster_name=#{disasterName},
+            remark=#{remark},
+            update_by = #{updateBy},
+            update_time =#{updateTime},
+            disaster_status=#{disasterStatus}
+        WHERE disaster_id = #{disasterId}
+          AND del_flag = '0'
+    </update>
+    <update id="updateByDisaster">
+         UPDATE xccj_work.bus_disaster
+        SET disaster_name =#{disasterName}
+        WHERE disaster_id = #{disasterId}
+    </update>
+
+    <delete id="deleteById">
+          UPDATE xccj_work.bus_disaster
+        SET del_flag = '1'
+        WHERE disaster_id = #{disasterId}
+    </delete>
+
+
+    <select id="listDisasterLedger" resultType="com.wr.remote.estate.base.BusDisaster" >
+          select d.disaster_id, d.estate_id, d.disaster_name, d.disaster_status,d.del_flag,d.remark,d.update_time,d.update_by
+        from xccj_work.bus_disaster d
+        WHERE
+        d.del_flag = '0'
+        <if test="estateId != null ">
+            and d.estate_id = #{estateId}
+        </if>
+        <if test="disasterName != null and disasterName != ''">
+            AND d.disaster_name  like  CONCAT('%',#{disasterName},'%')
+        </if>
+        <if test="disasterStatus != null and disasterStatus != ''">
+            AND d.disaster_status = #{disasterStatus}
+        </if>
+    </select>
+    <select id="getType" resultType="com.wr.remote.estate.base.BusDisaster">
+        select disaster_id, disaster_name from xccj_work.bus_disaster where del_flag='0' AND disaster_status = 0 AND estate_id = #{estateId}
+    </select>
+    <select id="getDisasterName" resultType="java.lang.Integer">
+        select count(1) from xccj_work.bus_disaster
+        where del_flag='0' AND estate_id=#{estateId} AND disaster_name=#{disasterName}
+    </select>
+    <select id="getUpdateDisasterName" resultType="java.lang.Integer">
+        select count(1) from xccj_work.bus_disaster
+        where del_flag='0' AND estate_id=#{estateId} AND disaster_name=#{disasterName} and disaster_id != #{disasterId}
+    </select>
+
+</mapper>

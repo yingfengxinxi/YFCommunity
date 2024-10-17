@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.center.audit.BusOwnerMapper">
+    <resultMap id="BaseResultMap" type="com.wr.estate.entity.BusOwner">
+        <id column="owner_id" jdbcType="BIGINT" property="ownerId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="building_id" jdbcType="BIGINT" property="buildingId"/>
+        <result column="unit_id" jdbcType="BIGINT" property="unitId"/>
+        <result column="room_id" jdbcType="BIGINT" property="roomId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="owner_relation" jdbcType="CHAR" property="ownerRelation"/>
+        <result column="owner_name" jdbcType="VARCHAR" property="ownerName"/>
+        <result column="owner_phone" jdbcType="VARCHAR" property="ownerPhone"/>
+        <result column="gender" jdbcType="CHAR" property="gender"/>
+        <result column="card_type" jdbcType="CHAR" property="cardType"/>
+        <result column="card_no" jdbcType="VARCHAR" property="cardNo"/>
+        <result column="card_font" jdbcType="VARCHAR" property="cardFont"/>
+        <result column="card_back" jdbcType="VARCHAR" property="cardBack"/>
+        <result column="face_url" jdbcType="VARCHAR" property="faceUrl"/>
+        <result column="domicile_address" jdbcType="VARCHAR" property="domicileAddress"/>
+        <result column="politics_status" jdbcType="CHAR" property="politicsStatus"/>
+        <result column="nation" jdbcType="VARCHAR" property="nation"/>
+        <result column="native_place" jdbcType="VARCHAR" property="nativePlace"/>
+        <result column="religion" jdbcType="VARCHAR" property="religion"/>
+        <result column="edu_level" jdbcType="VARCHAR" property="eduLevel"/>
+        <result column="military" jdbcType="VARCHAR" property="military"/>
+        <result column="marriage_status" jdbcType="CHAR" property="marriageStatus"/>
+        <result column="nationality" jdbcType="VARCHAR" property="nationality"/>
+        <result column="population" jdbcType="CHAR" property="population"/>
+        <result column="career" jdbcType="VARCHAR" property="career"/>
+        <result column="qq_number" jdbcType="VARCHAR" property="qqNumber"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="data_source" jdbcType="CHAR" property="dataSource"/>
+        <result column="self_intro" jdbcType="VARCHAR" property="selfIntro"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="own_remarks" jdbcType="VARCHAR" property="ownRemarks"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <resultMap id="OwneAuditMap" type="com.wr.estate.entity.vo.OwneAuditVo">
+        <id column="owner_id" jdbcType="BIGINT" property="ownerId"/>
+        <result column="community_name" jdbcType="VARCHAR" property="communityName"/>
+        <result column="building_name" jdbcType="VARCHAR" property="buildingName"/>
+        <result column="unit_name" jdbcType="VARCHAR" property="unitName"/>
+        <result column="room_name" jdbcType="VARCHAR" property="roomName"/>
+        <result column="license_url" jdbcType="VARCHAR" property="licenseUrl"/>
+        <result column="room_status" jdbcType="BIGINT" property="roomStatus"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="parent_id" jdbcType="BIGINT" property="parentId"/>
+        <result column="owner_relation" jdbcType="CHAR" property="ownerRelation"/>
+        <result column="owner_name" jdbcType="VARCHAR" property="ownerName"/>
+        <result column="owner_phone" jdbcType="VARCHAR" property="ownerPhone"/>
+        <result column="gender" jdbcType="CHAR" property="gender"/>
+        <result column="card_type" jdbcType="CHAR" property="cardType"/>
+        <result column="card_no" jdbcType="VARCHAR" property="cardNo"/>
+        <result column="card_font" jdbcType="VARCHAR" property="cardFont"/>
+        <result column="card_back" jdbcType="VARCHAR" property="cardBack"/>
+        <result column="face_url" jdbcType="VARCHAR" property="faceUrl"/>
+        <result column="domicile_address" jdbcType="VARCHAR" property="domicileAddress"/>
+        <result column="politics_status" jdbcType="CHAR" property="politicsStatus"/>
+        <result column="nation" jdbcType="VARCHAR" property="nation"/>
+        <result column="native_place" jdbcType="VARCHAR" property="nativePlace"/>
+        <result column="religion" jdbcType="VARCHAR" property="religion"/>
+        <result column="edu_level" jdbcType="VARCHAR" property="eduLevel"/>
+        <result column="military" jdbcType="VARCHAR" property="military"/>
+        <result column="marriage_status" jdbcType="CHAR" property="marriageStatus"/>
+        <result column="nationality" jdbcType="VARCHAR" property="nationality"/>
+        <result column="population" jdbcType="CHAR" property="population"/>
+        <result column="career" jdbcType="VARCHAR" property="career"/>
+        <result column="qq_number" jdbcType="VARCHAR" property="qqNumber"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="data_source" jdbcType="CHAR" property="dataSource"/>
+        <result column="self_intro" jdbcType="VARCHAR" property="selfIntro"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="own_remarks" jdbcType="VARCHAR" property="ownRemarks"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+        <result column="house_address" jdbcType="VARCHAR" property="houseAddress"/>
+        <result column="room_area" jdbcType="VARCHAR" property="roomArea"/>
+        <result column="total_area" jdbcType="VARCHAR" property="totalArea"/>
+        <result column="room_type" jdbcType="CHAR" property="roomType"/>
+        <result column="floor" jdbcType="VARCHAR" property="floor"/>
+        <result column="delivery_time" jdbcType="TIMESTAMP" property="deliveryTime"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" prefixOverrides="and" suffix=")">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach close=")" collection="criterion.value" item="listItem" open="("
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        owner_id
+        , community_id, building_id, unit_id, room_id, account_id, owner_relation,
+    owner_name, owner_phone, gender, card_type, card_no, card_font, card_back, face_url,
+    domicile_address, politics_status, nation, native_place, religion, edu_level, military,
+    marriage_status, nationality, population, career, qq_number, email, data_source,
+    self_intro, audit_status, audit_time, reject_reason, create_by, create_time, update_by,
+    update_time, del_flag
+    </sql>
+
+    <select id="selectByExample" parameterType="com.wr.estate.entity.BusOwnerExample" resultMap="BaseResultMap">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_owner
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_owner
+        where owner_id = #{ownerId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from xccj_community.bus_owner
+        where owner_id = #{ownerId,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.wr.estate.entity.BusOwnerExample">
+        delete from xccj_community.bus_owner
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <update id="deleteByPrimaryKeys">
+        update xccj_community.bus_owner
+        set del_flag    = 1,
+            update_by   = #{updateBy},
+            update_time = NOW()
+        where owner_id = #{ownerId,jdbcType=BIGINT}
+    </update>
+    <insert id="insert" parameterType="com.wr.estate.entity.BusOwner">
+        insert into xccj_community.bus_owner (owner_id, community_id, building_id,
+                                              unit_id, room_id, account_id,
+                                              owner_relation, owner_name, owner_phone,
+                                              gender, card_type, card_no,
+                                              card_font, card_back, face_url,
+                                              domicile_address, politics_status, nation,
+                                              native_place, religion, edu_level,
+                                              military, marriage_status, nationality,
+                                              population, career, qq_number,
+                                              email, data_source, self_intro,
+                                              audit_status, audit_time, reject_reason,
+                                              create_by, create_time, update_by,
+                                              update_time, del_flag)
+        values (#{ownerId,jdbcType=BIGINT}, #{communityId,jdbcType=BIGINT}, #{buildingId,jdbcType=BIGINT},
+                #{unitId,jdbcType=BIGINT}, #{roomId,jdbcType=BIGINT}, #{accountId,jdbcType=BIGINT},
+                #{ownerRelation,jdbcType=CHAR}, #{ownerName,jdbcType=VARCHAR}, #{ownerPhone,jdbcType=VARCHAR},
+                #{gender,jdbcType=CHAR}, #{cardType,jdbcType=CHAR}, #{cardNo,jdbcType=VARCHAR},
+                #{cardFont,jdbcType=VARCHAR}, #{cardBack,jdbcType=VARCHAR}, #{faceUrl,jdbcType=VARCHAR},
+                #{domicileAddress,jdbcType=VARCHAR}, #{politicsStatus,jdbcType=CHAR}, #{nation,jdbcType=VARCHAR},
+                #{nativePlace,jdbcType=VARCHAR}, #{religion,jdbcType=VARCHAR}, #{eduLevel,jdbcType=VARCHAR},
+                #{military,jdbcType=VARCHAR}, #{marriageStatus,jdbcType=CHAR}, #{nationality,jdbcType=VARCHAR},
+                #{population,jdbcType=CHAR}, #{career,jdbcType=VARCHAR}, #{qqNumber,jdbcType=VARCHAR},
+                #{email,jdbcType=VARCHAR}, #{dataSource,jdbcType=CHAR}, #{selfIntro,jdbcType=VARCHAR},
+                #{auditStatus,jdbcType=CHAR}, #{auditTime,jdbcType=TIMESTAMP}, #{rejectReason,jdbcType=VARCHAR},
+                #{createBy,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateBy,jdbcType=VARCHAR},
+                #{updateTime,jdbcType=TIMESTAMP}, #{delFlag,jdbcType=CHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.wr.estate.entity.BusOwner">
+        insert into xccj_community.bus_owner
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ownerId != null">
+                owner_id,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="buildingId != null">
+                building_id,
+            </if>
+            <if test="unitId != null">
+                unit_id,
+            </if>
+            <if test="roomId != null">
+                room_id,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="ownerRelation != null">
+                owner_relation,
+            </if>
+            <if test="ownerName != null">
+                owner_name,
+            </if>
+            <if test="ownerPhone != null">
+                owner_phone,
+            </if>
+            <if test="gender != null">
+                gender,
+            </if>
+            <if test="cardType != null">
+                card_type,
+            </if>
+            <if test="cardNo != null">
+                card_no,
+            </if>
+            <if test="cardFont != null">
+                card_font,
+            </if>
+            <if test="cardBack != null">
+                card_back,
+            </if>
+            <if test="faceUrl != null">
+                face_url,
+            </if>
+            <if test="domicileAddress != null">
+                domicile_address,
+            </if>
+            <if test="politicsStatus != null">
+                politics_status,
+            </if>
+            <if test="nation != null">
+                nation,
+            </if>
+            <if test="nativePlace != null">
+                native_place,
+            </if>
+            <if test="religion != null">
+                religion,
+            </if>
+            <if test="eduLevel != null">
+                edu_level,
+            </if>
+            <if test="military != null">
+                military,
+            </if>
+            <if test="marriageStatus != null">
+                marriage_status,
+            </if>
+            <if test="nationality != null">
+                nationality,
+            </if>
+            <if test="population != null">
+                population,
+            </if>
+            <if test="career != null">
+                career,
+            </if>
+            <if test="qqNumber != null">
+                qq_number,
+            </if>
+            <if test="email != null">
+                email,
+            </if>
+            <if test="dataSource != null">
+                data_source,
+            </if>
+            <if test="selfIntro != null">
+                self_intro,
+            </if>
+            <if test="auditStatus != null">
+                audit_status,
+            </if>
+            <if test="auditTime != null">
+                audit_time,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ownerId != null">
+                #{ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="buildingId != null">
+                #{buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="unitId != null">
+                #{unitId,jdbcType=BIGINT},
+            </if>
+            <if test="roomId != null">
+                #{roomId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="ownerRelation != null">
+                #{ownerRelation,jdbcType=CHAR},
+            </if>
+            <if test="ownerName != null">
+                #{ownerName,jdbcType=VARCHAR},
+            </if>
+            <if test="ownerPhone != null">
+                #{ownerPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null">
+                #{gender,jdbcType=CHAR},
+            </if>
+            <if test="cardType != null">
+                #{cardType,jdbcType=CHAR},
+            </if>
+            <if test="cardNo != null">
+                #{cardNo,jdbcType=VARCHAR},
+            </if>
+            <if test="cardFont != null">
+                #{cardFont,jdbcType=VARCHAR},
+            </if>
+            <if test="cardBack != null">
+                #{cardBack,jdbcType=VARCHAR},
+            </if>
+            <if test="faceUrl != null">
+                #{faceUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="domicileAddress != null">
+                #{domicileAddress,jdbcType=VARCHAR},
+            </if>
+            <if test="politicsStatus != null">
+                #{politicsStatus,jdbcType=CHAR},
+            </if>
+            <if test="nation != null">
+                #{nation,jdbcType=VARCHAR},
+            </if>
+            <if test="nativePlace != null">
+                #{nativePlace,jdbcType=VARCHAR},
+            </if>
+            <if test="religion != null">
+                #{religion,jdbcType=VARCHAR},
+            </if>
+            <if test="eduLevel != null">
+                #{eduLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="military != null">
+                #{military,jdbcType=VARCHAR},
+            </if>
+            <if test="marriageStatus != null">
+                #{marriageStatus,jdbcType=CHAR},
+            </if>
+            <if test="nationality != null">
+                #{nationality,jdbcType=VARCHAR},
+            </if>
+            <if test="population != null">
+                #{population,jdbcType=CHAR},
+            </if>
+            <if test="career != null">
+                #{career,jdbcType=VARCHAR},
+            </if>
+            <if test="qqNumber != null">
+                #{qqNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="dataSource != null">
+                #{dataSource,jdbcType=CHAR},
+            </if>
+            <if test="selfIntro != null">
+                #{selfIntro,jdbcType=VARCHAR},
+            </if>
+            <if test="auditStatus != null">
+                #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.wr.estate.entity.BusOwnerExample" resultType="java.lang.Integer">
+        select count(*) from xccj_community.bus_owner
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update xccj_community.bus_owner
+        <set>
+            <if test="record.ownerId != null">
+                owner_id = #{record.ownerId,jdbcType=BIGINT},
+            </if>
+            <if test="record.communityId != null">
+                community_id = #{record.communityId,jdbcType=BIGINT},
+            </if>
+            <if test="record.buildingId != null">
+                building_id = #{record.buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="record.unitId != null">
+                unit_id = #{record.unitId,jdbcType=BIGINT},
+            </if>
+            <if test="record.roomId != null">
+                room_id = #{record.roomId,jdbcType=BIGINT},
+            </if>
+            <if test="record.accountId != null">
+                account_id = #{record.accountId,jdbcType=BIGINT},
+            </if>
+            <if test="record.ownerRelation != null">
+                owner_relation = #{record.ownerRelation,jdbcType=CHAR},
+            </if>
+            <if test="record.ownerName != null">
+                owner_name = #{record.ownerName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.ownerPhone != null">
+                owner_phone = #{record.ownerPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="record.gender != null">
+                gender = #{record.gender,jdbcType=CHAR},
+            </if>
+            <if test="record.cardType != null">
+                card_type = #{record.cardType,jdbcType=CHAR},
+            </if>
+            <if test="record.cardNo != null">
+                card_no = #{record.cardNo,jdbcType=VARCHAR},
+            </if>
+            <if test="record.cardFont != null">
+                card_font = #{record.cardFont,jdbcType=VARCHAR},
+            </if>
+            <if test="record.cardBack != null">
+                card_back = #{record.cardBack,jdbcType=VARCHAR},
+            </if>
+            <if test="record.faceUrl != null">
+                face_url = #{record.faceUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="record.domicileAddress != null">
+                domicile_address = #{record.domicileAddress,jdbcType=VARCHAR},
+            </if>
+            <if test="record.politicsStatus != null">
+                politics_status = #{record.politicsStatus,jdbcType=CHAR},
+            </if>
+            <if test="record.nation != null">
+                nation = #{record.nation,jdbcType=VARCHAR},
+            </if>
+            <if test="record.nativePlace != null">
+                native_place = #{record.nativePlace,jdbcType=VARCHAR},
+            </if>
+            <if test="record.religion != null">
+                religion = #{record.religion,jdbcType=VARCHAR},
+            </if>
+            <if test="record.eduLevel != null">
+                edu_level = #{record.eduLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.military != null">
+                military = #{record.military,jdbcType=VARCHAR},
+            </if>
+            <if test="record.marriageStatus != null">
+                marriage_status = #{record.marriageStatus,jdbcType=CHAR},
+            </if>
+            <if test="record.nationality != null">
+                nationality = #{record.nationality,jdbcType=VARCHAR},
+            </if>
+            <if test="record.population != null">
+                population = #{record.population,jdbcType=CHAR},
+            </if>
+            <if test="record.career != null">
+                career = #{record.career,jdbcType=VARCHAR},
+            </if>
+            <if test="record.qqNumber != null">
+                qq_number = #{record.qqNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="record.email != null">
+                email = #{record.email,jdbcType=VARCHAR},
+            </if>
+            <if test="record.dataSource != null">
+                data_source = #{record.dataSource,jdbcType=CHAR},
+            </if>
+            <if test="record.selfIntro != null">
+                self_intro = #{record.selfIntro,jdbcType=VARCHAR},
+            </if>
+            <if test="record.auditStatus != null">
+                audit_status = #{record.auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="record.auditTime != null">
+                audit_time = #{record.auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.rejectReason != null">
+                reject_reason = #{record.rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createBy != null">
+                create_by = #{record.createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateBy != null">
+                update_by = #{record.updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.delFlag != null">
+                del_flag = #{record.delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update xccj_community.bus_owner
+        set owner_id = #{record.ownerId,jdbcType=BIGINT},
+        community_id = #{record.communityId,jdbcType=BIGINT},
+        building_id = #{record.buildingId,jdbcType=BIGINT},
+        unit_id = #{record.unitId,jdbcType=BIGINT},
+        room_id = #{record.roomId,jdbcType=BIGINT},
+        account_id = #{record.accountId,jdbcType=BIGINT},
+        owner_relation = #{record.ownerRelation,jdbcType=CHAR},
+        owner_name = #{record.ownerName,jdbcType=VARCHAR},
+        owner_phone = #{record.ownerPhone,jdbcType=VARCHAR},
+        gender = #{record.gender,jdbcType=CHAR},
+        card_type = #{record.cardType,jdbcType=CHAR},
+        card_no = #{record.cardNo,jdbcType=VARCHAR},
+        card_font = #{record.cardFont,jdbcType=VARCHAR},
+        card_back = #{record.cardBack,jdbcType=VARCHAR},
+        face_url = #{record.faceUrl,jdbcType=VARCHAR},
+        domicile_address = #{record.domicileAddress,jdbcType=VARCHAR},
+        politics_status = #{record.politicsStatus,jdbcType=CHAR},
+        nation = #{record.nation,jdbcType=VARCHAR},
+        native_place = #{record.nativePlace,jdbcType=VARCHAR},
+        religion = #{record.religion,jdbcType=VARCHAR},
+        edu_level = #{record.eduLevel,jdbcType=VARCHAR},
+        military = #{record.military,jdbcType=VARCHAR},
+        marriage_status = #{record.marriageStatus,jdbcType=CHAR},
+        nationality = #{record.nationality,jdbcType=VARCHAR},
+        population = #{record.population,jdbcType=CHAR},
+        career = #{record.career,jdbcType=VARCHAR},
+        qq_number = #{record.qqNumber,jdbcType=VARCHAR},
+        email = #{record.email,jdbcType=VARCHAR},
+        data_source = #{record.dataSource,jdbcType=CHAR},
+        self_intro = #{record.selfIntro,jdbcType=VARCHAR},
+        audit_status = #{record.auditStatus,jdbcType=CHAR},
+        audit_time = #{record.auditTime,jdbcType=TIMESTAMP},
+        reject_reason = #{record.rejectReason,jdbcType=VARCHAR},
+        create_by = #{record.createBy,jdbcType=VARCHAR},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_by = #{record.updateBy,jdbcType=VARCHAR},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        del_flag = #{record.delFlag,jdbcType=CHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.estate.entity.BusOwner">
+        update xccj_community.bus_owner
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="buildingId != null">
+                building_id = #{buildingId,jdbcType=BIGINT},
+            </if>
+            <if test="unitId != null">
+                unit_id = #{unitId,jdbcType=BIGINT},
+            </if>
+            <if test="roomId != null">
+                room_id = #{roomId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="ownerRelation != null">
+                owner_relation = #{ownerRelation,jdbcType=CHAR},
+            </if>
+            <if test="ownerName != null">
+                owner_name = #{ownerName,jdbcType=VARCHAR},
+            </if>
+            <if test="ownerPhone != null">
+                owner_phone = #{ownerPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="gender != null">
+                gender = #{gender,jdbcType=CHAR},
+            </if>
+            <if test="cardType != null">
+                card_type = #{cardType,jdbcType=CHAR},
+            </if>
+            <if test="cardNo != null">
+                card_no = #{cardNo,jdbcType=VARCHAR},
+            </if>
+            <if test="cardFont != null">
+                card_font = #{cardFont,jdbcType=VARCHAR},
+            </if>
+            <if test="cardBack != null">
+                card_back = #{cardBack,jdbcType=VARCHAR},
+            </if>
+            <if test="faceUrl != null">
+                face_url = #{faceUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="domicileAddress != null">
+                domicile_address = #{domicileAddress,jdbcType=VARCHAR},
+            </if>
+            <if test="politicsStatus != null">
+                politics_status = #{politicsStatus,jdbcType=CHAR},
+            </if>
+            <if test="nation != null">
+                nation = #{nation,jdbcType=VARCHAR},
+            </if>
+            <if test="nativePlace != null">
+                native_place = #{nativePlace,jdbcType=VARCHAR},
+            </if>
+            <if test="religion != null">
+                religion = #{religion,jdbcType=VARCHAR},
+            </if>
+            <if test="eduLevel != null">
+                edu_level = #{eduLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="military != null">
+                military = #{military,jdbcType=VARCHAR},
+            </if>
+            <if test="marriageStatus != null">
+                marriage_status = #{marriageStatus,jdbcType=CHAR},
+            </if>
+            <if test="nationality != null">
+                nationality = #{nationality,jdbcType=VARCHAR},
+            </if>
+            <if test="population != null">
+                population = #{population,jdbcType=CHAR},
+            </if>
+            <if test="career != null">
+                career = #{career,jdbcType=VARCHAR},
+            </if>
+            <if test="qqNumber != null">
+                qq_number = #{qqNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="dataSource != null">
+                data_source = #{dataSource,jdbcType=CHAR},
+            </if>
+            <if test="selfIntro != null">
+                self_intro = #{selfIntro,jdbcType=VARCHAR},
+            </if>
+            <if test="auditStatus != null">
+                audit_status = #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                audit_time = #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where owner_id = #{ownerId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.wr.estate.entity.BusOwner">
+        update xccj_community.bus_owner
+        set community_id     = #{communityId,jdbcType=BIGINT},
+            building_id      = #{buildingId,jdbcType=BIGINT},
+            unit_id          = #{unitId,jdbcType=BIGINT},
+            room_id          = #{roomId,jdbcType=BIGINT},
+            account_id       = #{accountId,jdbcType=BIGINT},
+            owner_relation   = #{ownerRelation,jdbcType=CHAR},
+            owner_name       = #{ownerName,jdbcType=VARCHAR},
+            owner_phone      = #{ownerPhone,jdbcType=VARCHAR},
+            gender           = #{gender,jdbcType=CHAR},
+            card_type        = #{cardType,jdbcType=CHAR},
+            card_no          = #{cardNo,jdbcType=VARCHAR},
+            card_font        = #{cardFont,jdbcType=VARCHAR},
+            card_back        = #{cardBack,jdbcType=VARCHAR},
+            face_url         = #{faceUrl,jdbcType=VARCHAR},
+            domicile_address = #{domicileAddress,jdbcType=VARCHAR},
+            politics_status  = #{politicsStatus,jdbcType=CHAR},
+            nation           = #{nation,jdbcType=VARCHAR},
+            native_place     = #{nativePlace,jdbcType=VARCHAR},
+            religion         = #{religion,jdbcType=VARCHAR},
+            edu_level        = #{eduLevel,jdbcType=VARCHAR},
+            military         = #{military,jdbcType=VARCHAR},
+            marriage_status  = #{marriageStatus,jdbcType=CHAR},
+            nationality      = #{nationality,jdbcType=VARCHAR},
+            population       = #{population,jdbcType=CHAR},
+            career           = #{career,jdbcType=VARCHAR},
+            qq_number        = #{qqNumber,jdbcType=VARCHAR},
+            email            = #{email,jdbcType=VARCHAR},
+            data_source      = #{dataSource,jdbcType=CHAR},
+            self_intro       = #{selfIntro,jdbcType=VARCHAR},
+            audit_status     = #{auditStatus,jdbcType=CHAR},
+            audit_time       = #{auditTime,jdbcType=TIMESTAMP},
+            reject_reason    = #{rejectReason,jdbcType=VARCHAR},
+            create_by        = #{createBy,jdbcType=VARCHAR},
+            create_time      = #{createTime,jdbcType=TIMESTAMP},
+            update_by        = #{updateBy,jdbcType=VARCHAR},
+            update_time      = #{updateTime,jdbcType=TIMESTAMP},
+            del_flag         = #{delFlag,jdbcType=CHAR}
+        where owner_id = #{ownerId,jdbcType=BIGINT}
+    </update>
+    <select id="getListOwnerAudit" resultMap="OwneAuditMap">
+        SELECT * from xccj_community.view_owner_audit voa
+        <where>
+            voa.audit_status!='1'
+            <if test="estateId !=null">
+                AND voa.estate_id = #{estateId}
+            </if>
+            <if test="ownerName != null">
+                and voa.owner_name like concat('%', #{ownerName}, '%')
+            </if>
+            <if test="ownerPhone != null">
+                and voa.owner_phone like concat('%', #{ownerPhone}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(voa.audit_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(voa.audit_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            <if test="communityId != null">
+                and voa.community_id = #{communityId}
+            </if>
+            <if test="auditStatus != null and auditStatus != ''">
+                and voa.audit_status = #{auditStatus}
+            </if>
+        </where>
+    </select>
+
+    <select id="roomSearchListPage" parameterType="com.wr.estate.entity.BusOwner"
+            resultType="com.wr.remote.estate.center.vo.RoomSearchOwnerVO">
+        select
+        bo.owner_id,bo.owner_name,bo.owner_phone,bo.card_no,bc.community_name
+        from xccj_community.bus_owner bo
+        LEFT JOIN xccj_community.bus_community bc on bc.community_id = bo.community_id
+        WHERE
+        bo.audit_status = 1
+        AND bo.del_flag = '0'
+        <if test="estateId != null">
+            AND bo.community_id in (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND
+            estate_id = #{estateId})
+        </if>
+        <if test="ownerName != null">
+            and bo.owner_name like concat('%', #{ownerName}, '%')
+        </if>
+        <if test="ownerPhone != null">
+            and bo.owner_phone like concat('%', #{ownerPhone}, '%')
+        </if>
+        <if test="cardNo != null">
+            and bo.card_no like concat('%', #{cardNo}, '%')
+        </if>
+        <if test="communityId != null">
+            and bo.community_id = #{communityId}
+        </if>
+        <if test="roomId != null">
+            AND bo.owner_id NOT IN (SELECT owner_id FROM xccj_community.bus_room WHERE room_id = #{roomId})
+        </if>
+        GROUP BY bo.owner_id
+    </select>
+
+    <!--  查询单个业主审核信息-->
+    <select id="selectoneOwneAuditVo" parameterType="java.lang.Long" resultMap="OwneAuditMap">
+        SELECT *
+        from xccj_community.view_owner_audit voa
+        where
+           voa.room_id = #{roomId}
+          AND voa.owner_id = #{ownerId}
+    </select>
+    <select id="getByOwnerIdCount" resultType="java.lang.Integer">
+        SELECT
+            count( 1 )
+        FROM
+            xccj_community.bus_owner bo
+        WHERE
+            bo.owner_id = #{ownerId}
+          AND bo.audit_status = '1'
+    </select>
+
+    <update id="updataByownerIdAndAuditStatus">
+        update xccj_community.bus_owner set audit_status = #{auditStatus} , audit_time = NOW() ,update_by =
+        #{updateBy} , update_time = NOW()
+        <if test="rejectReason != null">
+            ,reject_reason = #{rejectReason,jdbcType=VARCHAR}
+        </if>
+        where owner_id = #{ownerId}
+    </update>
+
+
+    <update id="updateaccountType">
+        update xccj_community.bus_account
+        set account_type = '0',
+            update_by    = #{updateBy}
+        where account_id = #{accountId}
+    </update>
+
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.disasterOrder.OrderRecordBusMapper">
+    <insert id="insertBusRecord" parameterType="com.wr.remote.work.vo.OrderRecordVo">
+        insert into xccj_work.bus_order_record(
+        <if test="orderType != null and orderType != ''">order_type,</if>
+        <if test="orderId != null and orderId != '' ">order_id,</if>
+        <if test="dataType != null and dataType != '' ">data_type,</if>
+        <if test="orderResult != null and orderResult != '' ">order_result,</if>
+        <if test="userName != null and userName != '' ">user_name,</if>
+        <if test="relevant != null and relevant != ''">relevant,</if>
+        create_time
+        )values(
+        <if test="orderType != null and orderType != ''">#{orderType},</if>
+        <if test="orderId != null and orderId != ''">#{orderId},</if>
+        <if test="dataType != null and dataType != ''">#{dataType},</if>
+        <if test="orderResult != null and orderResult != ''">#{orderResult},</if>
+        <if test="userName != null and userName != ''">#{userName},</if>
+        <if test="relevant != null and relevant != ''">#{relevant},</if>
+        sysdate()
+        )
+    </insert>
+</mapper>

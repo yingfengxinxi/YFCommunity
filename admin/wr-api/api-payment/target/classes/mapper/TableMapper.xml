@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.payment.mapper.TableMapper">
+
+    <!--检查是否存在表-->
+    <select id="existTable" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM information_schema.TABLES
+        WHERE table_schema = 'xccj_log' AND table_name=#{tableName}
+    </select>
+
+    <update id="createPayLogTable">
+        CREATE TABLE ${tableName} (
+            log_id BIGINT auto_increment comment '主键',
+            pay_type CHAR default '0' not null comment '缴费类型：0=停车缴费，2=水费，3=电费，4=其他',
+            pay_amount DECIMAL(10,2) default 0.00 not null comment '缴费金额',
+            pay_time DATETIME default current_timestamp not null comment '缴费时间',
+            user_type CHAR default '0' not null comment '人员类型：0=业主，1=租客，2=临时车',
+            user_name VARCHAR(64) default '' not null comment '缴费人姓名',
+            user_phone VARCHAR(20) default '' not null comment '缴费人手机号',
+            plate_no VARCHAR(20) default '' not null comment '缴费人车牌号',
+            community_id BIGINT default 0 not null comment '所属小区',
+            community_name VARCHAR(64) DEFAULT '' NOT NULL COMMENT '小区名称',
+            building_id BIGINT default 0 not null comment '所属楼栋id',
+            unit_id BIGINT default 0 not null comment '所属单元id',
+            room_id BIGINT default 0 not null comment '所属房间id',
+            pay_way CHAR default '0' not null comment '支付类型：0=支付宝，1=微信，2=农行，3=其它，4=线下',
+            pay_status CHAR default '1' not null comment '缴费状态：1 正常  2 预缴  3 补缴',
+            out_trade_no VARCHAR(64) default '' not null comment '交易订单号',
+            transaction_id VARCHAR(64) default '' not null comment '微信返回支付订单号',
+            agent_sign_no VARCHAR(64) default '' not null comment '农行签约成功后返回的签约编号',
+            bill_no VARCHAR(64) default '' not null comment '农行账单编号',
+            trace_no VARCHAR(64) default '' not null comment '农行流水号',
+            trade_status CHAR default '0' not null comment '农行扣款状态:0=默认状态，1=扣款成功，2=扣款失败，3=扣款异常',
+            del_flag CHAR default '0' not null comment '删除标记：0=未删除，1=已删除',
+            constraint bus_pay_log_pk
+                primary key (log_id)
+        ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '缴费记录' ROW_FORMAT = DYNAMIC;
+    </update>
+
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.CashUseMapper">
+    <resultMap type="com.wr.remote.estate.financial.EstateCash" id="estateCashTypeResult">
+        <id     property="communityId"       column="community_id"      />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <select id="selectList" resultMap="estateCashTypeResult">
+        SELECT
+        bfv.vote_id,
+        bfv.community_id,
+        bo.owner_name,
+        bfv.vote_title,
+        bfv.owner_id,
+        bfv.apply_time,
+        bfv.vote_type,
+        bfg.grant_type,
+        bfg.grant_amount,
+        bfg.grant_time,
+        bfg.create_time
+        FROM
+        xccj_community.bus_fund_vote bfv
+        LEFT JOIN xccj_community.bus_fund_grant bfg on bfv.vote_id = bfg.vote_id
+        LEFT JOIN xccj_community.bus_owner bo on bfv.owner_id = bo.owner_id
+        WHERE
+        bfv.audit_status = 1 and bfv.del_flag = 0
+        <if test="communityId != null  and communityId != ''"> and bfv.community_id = #{communityId}</if>
+        <if test="applyTime != null"> and bfv.apply_time like concat('%', #{years}, '%')</if>
+        <if test="voteTitle != null  and voteTitle != ''"> and bfv.vote_title like concat('%', #{voteTitle}, '%')</if>
+        <if test="ownerName != null  and ownerName != ''"> and bo.owner_name like concat('%', #{ownerName}, '%')</if>
+        <if test="grantStatus != null  and grantStatus != '' and grantStatus == 1"> and (select count(*) FROM xccj_community.bus_fund_grant bfg WHERE bfv.vote_id = bfg.vote_id) != 0</if>
+        <if test="grantStatus != null  and grantStatus != '' and grantStatus == 0"> and (select count(*) FROM xccj_community.bus_fund_grant bfg WHERE bfv.vote_id = bfg.vote_id) = 0</if>
+        <if test="null != estateId">
+            AND bfv.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+    </select>
+
+
+    <select id="infoByVoteId" resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+            bfv.vote_id,
+            bfv.community_id,
+            bfv.vote_title,
+            bfv.vote_type,
+            bfv.apply_time,
+            bfg.grant_type,
+            bfg.annex_url,
+            bfg.grant_amount,
+            bfg.grant_time,
+            bfg.create_time,
+            bo.owner_name
+        FROM
+            xccj_community.bus_fund_vote bfv
+                LEFT JOIN xccj_community.bus_fund_grant bfg on bfv.vote_id = bfg.vote_id
+                LEFT JOIN xccj_community.bus_owner bo on bfv.owner_id = bo.owner_id
+        WHERE
+            bfv.del_flag = 0 AND bfv.vote_id = #{voteId}
+    </select>
+
+    <!--通过主键修改数据-->
+    <insert id="updateGrant" parameterType="com.wr.remote.estate.financial.EstateCash">
+        insert into xccj_community.bus_fund_grant(
+        <if test="voteId != null">vote_id,</if>
+        <if test="grantType != null">grant_type,</if>
+        <if test="grantTime != null">grant_time,</if>
+        <if test="grantAmount != null">grant_amount,</if>
+        <if test="annexUrl != null">annex_url,</if>
+        <if test="createBy != null">create_by,</if>
+        create_time
+        )values(
+        <if test="voteId != null">#{voteId},</if>
+        <if test="grantType != null">#{grantType},</if>
+        <if test="grantTime != null">#{grantTime},</if>
+        <if test="grantAmount != null">#{grantAmount},</if>
+        <if test="annexUrl != null">#{annexUrl},</if>
+        <if test="createBy != null">#{createBy},</if>
+        sysdate()
+        )
+    </insert>
+    <!--通过voteID判断拨款没-->
+    <select id="voteIDCount" resultType="int">
+        SELECT
+            count(*)
+        FROM
+            xccj_community.bus_fund_grant
+        WHERE
+            vote_id = #{voteId}
+    </select>
+
+
+</mapper>

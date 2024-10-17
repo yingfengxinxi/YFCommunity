@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.device.VisualSecordMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.VisualSecordVo">
+        SELECT
+        vs.id as "id",
+        bv.`online` as "online",
+        bv.community_id as "communityId",
+        bc.community_name as "communityName",
+        bv.building_id as "buildingId",
+        bb.building_name as "buildingName",
+        bv.unit_id as "unitId",
+        bu.unit_name as "unitName",
+        vs.event_type as "eventType",
+        vs.event_name as "eventName",
+        vs.event_time as "eventTime",
+        vs.person_name as "personName",
+        vs.gender as "gender",
+        vs.certificate_type as "certificateType",
+        vs.certificate_no as "certificateNo",
+        vs.phone_no as "phoneNo",
+        vs.device_name as "deviceName"
+        FROM
+        xccj_device.bus_visual_secord vs
+        LEFT JOIN xccj_device.bus_visual bv ON bv.index_code = vs.device_index_code
+        LEFT JOIN xccj_community.bus_community bc on bc.community_id=bv.community_id
+        LEFT JOIN xccj_community.bus_building bb on bb.building_id=bv.building_id
+        LEFT JOIN xccj_community.bus_unit bu on bu.unit_id=bv.unit_id
+        <where>
+            <if test="deviceName !=null and deviceName !=''">
+                and vs.device_name like CONCAT('%',#{deviceName},'%')
+            </if>
+            <if test="eventType !=null and eventType !=''">
+                and vs.event_type=#{eventType}
+            </if>
+            <if test="startTime !=null and startTime !='' and endTime !=null and endTime !=''">
+                and DATE_FORMAT(vs.event_time,'%Y-%m-%d') BETWEEN #{startTime} AND #{endTime}
+            </if>
+            <if test="personName !=null and personName !=''">
+                and vs.person_name like CONCAT('%',#{personName},'%')
+            </if>
+            <if test="phoneNo !=null and phoneNo !=''">
+                and vs.phone_no like CONCAT('%',#{phoneNo},'%')
+            </if>
+            <if test="communityId !=null">
+                and bv.community_id=#{communityId}
+            </if>
+            <if test="buildingId !=null">
+                and bv.building_id=#{buildingId}
+            </if>
+            <if test="unitId !=null">
+                and bv.unit_id=#{unitId}
+            </if>
+        </where>
+        ORDER BY vs.event_time desc
+
+    </select>
+
+</mapper>

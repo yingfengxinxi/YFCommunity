@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.pay.LiveMapper">
+
+    <select id="getPropertyFee" resultType="com.wr.api.owner.entity.vo.home.PropertyFeeVO">
+        SELECT
+               community_id, fee_status, fee_type, fee_amount
+        FROM xccj_community.bus_property_fee
+        WHERE community_id = #{communityId}
+    </select>
+
+    <select id="getRoomAreaByRoomId" resultType="java.math.BigDecimal">
+        SELECT ifnull(total_area, 0) FROM xccj_community.bus_room
+        WHERE del_flag ='0' AND room_id = #{roomId}
+    </select>
+
+    <select id="getEstateNameById" resultType="java.lang.String">
+        SELECT estate_name FROM xccj_community.bus_estate
+        WHERE del_flag ='0' AND estate_id = #{estateId}
+    </select>
+
+    <select id="getBuildNameById" resultType="java.lang.String">
+        SELECT building_name FROM xccj_community.bus_building
+        WHERE del_flag ='0' AND building_id = #{buildingId}
+    </select>
+
+    <select id="getUnitNameById" resultType="java.lang.String">
+        SELECT unit_name FROM xccj_community.bus_unit
+        WHERE del_flag ='0' AND unit_id = #{unitId}
+    </select>
+
+    <select id="getRoomNameById" resultType="java.lang.String">
+        SELECT room_name FROM xccj_community.bus_room
+        WHERE del_flag ='0' AND room_id = #{roomId}
+    </select>
+
+    <select id="selectPropertyLogByRoom" resultType="com.wr.api.owner.entity.vo.home.PropertyLogVO">
+        SELECT
+               log_id, room_id, fee_amount, pay_amount, pay_time,order_no,pay_status,fee_type,yj_amount,pay_method,discount_amount,paid_amount
+        FROM xccj_community.bus_property_log
+        WHERE del_flag ='0' AND room_id = #{roomId}
+        ORDER BY pay_year DESC
+    </select>
+
+    <insert id="insertPropertyLog">
+        INSERT INTO xccj_community.bus_property_log(
+            community_id, building_id, unit_id, room_id, room_area, fee_type,
+            fee_amount, pay_amount, pay_year, pay_way, pay_time, del_flag
+        ) VALUES (
+            #{communityId}, #{buildingId}, #{unitId}, #{roomId}, #{roomArea}, #{feeType},
+            #{feeAmount}, #{payAmount}, #{payYear}, #{payWay}, sysdate(), '0'
+        )
+    </insert>
+
+    <select id="findDetilProperty" resultType="com.wr.remote.domain.PropertyLog" parameterType="Long">
+        SELECT
+            *
+        FROM xccj_community.bus_property_log
+        WHERE del_flag ='0' AND log_id = #{logId}
+    </select>
+
+    <update id="updateStatusPropertyByNo" parameterType="Map">
+        UPDATE xccj_community.bus_property_log SET pay_status = '2',pay_amount = paid_amount,pay_time = now() WHERE order_no = #{orderNo} AND del_flag = '0'
+    </update>
+
+    <select id="findListHouseByOwnId" resultType="Map" parameterType="Long">
+        SELECT building_id buildingId,
+               unit_id unitId,
+               room_id roomId
+        FROM xccj_community.bus_house
+        WHERE owner_id = #{ownerId} AND audit_status = '1' AND del_flag = '0'
+    </select>
+
+    <select id="findListPropertyLog" parameterType="com.wr.api.owner.entity.dto.LiveDTO" resultType="com.wr.api.owner.entity.vo.pay.PropertyLogPageVO">
+        SELECT
+            log.*,
+            co.community_name communityName,
+            bu.building_name buildingName,
+            un.unit_name unitName,
+            ro.room_name roomName,
+            CASE
+                WHEN log.pay_status = '0' THEN
+                    '账单待发送'
+                WHEN log.pay_status = '1' THEN
+                    '待支付'
+                WHEN log.pay_status = '2' THEN
+                    '已付款' ELSE '订单状态异常'
+                END showStatus,
+        ro.room_attribute,
+        ro.room_type
+        FROM
+        xccj_community.bus_house ho
+                LEFT JOIN xccj_community.bus_property_log log ON ho.room_id = log.room_id
+                LEFT JOIN xccj_community.bus_community co ON log.community_id = co.community_id
+                LEFT JOIN xccj_community.bus_building bu ON log.building_id = bu.building_id
+                LEFT JOIN xccj_community.bus_unit un ON un.unit_id = log.unit_id
+                LEFT JOIN xccj_community.bus_room ro ON ro.room_id = log.room_id
+        WHERE
+            ho.del_flag = '0'
+          AND log.del_flag = '0'
+          AND log.pay_status != '0'
+          AND ho.owner_id = #{ownerId}
+          AND ho.audit_status = '1'
+        <if test="communityId != null">
+            AND ho.community_id = #{communityId}
+        </if>
+    </select>
+
+    <!--  根据订单号查询物业费价格  -->
+    <select id="findFeeByOrderNo" resultType="String">
+        SELECT
+            paid_amount
+        FROM xccj_community.bus_property_log
+        WHERE order_no = #{orderNo} AND del_flag = '0'
+    </select>
+
+    <!--  更新订单号  -->
+    <update id="updateOrderNoByNo" parameterType="Map">
+        UPDATE xccj_community.bus_property_log SET order_no = #{orderNo} WHERE order_no = #{orderNoOld} AND del_flag = '0'
+    </update>
+</mapper>

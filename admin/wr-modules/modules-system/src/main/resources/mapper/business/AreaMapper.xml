@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.business.mapper.AreaMapper">
+    <sql id="areaColumns">
+        area_id, parent_id, ancestors,
+        area_name, create_by, create_time,
+        update_by, update_time, del_flag
+    </sql>
+    <resultMap id="areaVoResult" type="com.wr.system.business.domain.AreaVo">
+    <result property="areaId" column="area_id"/>
+    <result property="parentId" column="parent_id"/>
+    <result property="ancestors" column="ancestors"/>
+    <result property="areaName" column="area_name"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="delFlag" column="del_flag"/>
+    </resultMap>
+    <select id="selectAreaList" resultMap="areaVoResult">
+        SELECT
+        <include refid="areaColumns"/>
+        ,(select COUNT(*) from  xccj_community.bus_community bc where bc.area_id = ba.area_id ) num
+        FROM xccj_community.bus_area ba
+        WHERE del_flag='0'
+        <if test="areaName != null and areaName != ''">
+            AND area_name LIKE concat('%', #{areaName}, '%')
+        </if>
+    </select>
+
+    <select id="checkAreaNameUnique" resultMap="areaVoResult">
+        SELECT
+        <include refid="areaColumns"/>
+        FROM xccj_community.bus_area
+        WHERE del_flag='0'
+        AND area_name=#{areaName} AND parent_id = #{parentId} LIMIT 1
+    </select>
+
+    <select id="selectAreaById" resultMap="areaVoResult">
+        SELECT
+        <include refid="areaColumns"/>
+        FROM xccj_community.bus_area
+        WHERE del_flag='0' AND area_id = #{areaId}
+    </select>
+
+    <insert id="insertArea">
+        INSERT INTO xccj_community.bus_area(
+            parent_id, area_name,
+            <if test="ancestors != null and ancestors != ''">ancestors,</if>
+            create_by, create_time, update_by, update_time, del_flag
+        )VALUES(
+            #{parentId}, #{areaName},
+            <if test="ancestors != null and ancestors != ''">#{ancestors},</if>
+            #{createBy}, sysdate(), #{createBy}, sysdate(), '0'
+        )
+    </insert>
+
+    <select id="selectChildrenAreaById" resultMap="areaVoResult">
+        SELECT
+        <include refid="areaColumns"/>
+        FROM xccj_community.bus_area
+        WHERE del_flag = '0'
+        AND find_in_set(#{areaId}, ancestors)
+    </select>
+
+    <update id="updateAreaChildren">
+        update xccj_community.bus_area set ancestors =
+        <foreach collection="children" item="item" index="index"
+                 separator=" " open="case area_id" close="end">
+            when #{item.areaId} then #{item.ancestors}
+        </foreach>
+        where area_id in
+        <foreach collection="children" item="item" index="index"
+                 separator="," open="(" close=")">
+            #{item.areaId}
+        </foreach>
+    </update>
+
+    <update id="updateArea">
+        UPDATE xccj_community.bus_area SET
+            parent_id = #{parentId},ancestors = #{ancestors},
+            area_name = #{areaName},update_by = #{updateBy},
+            update_time = sysdate()
+        WHERE area_id = #{areaId}
+    </update>
+
+    <select id="hasChildByAreaId" resultType="java.lang.Integer">
+        SELECT count(1) FROM xccj_community.bus_area
+        WHERE del_flag = '0' and parent_id = #{areaId}
+    </select>
+
+    <select id="checkAreaExistCommunity" resultType="java.lang.Integer">
+        SELECT count(1) FROM xccj_community.bus_community
+        WHERE del_flag = '0'  AND area_id = #{areaId}
+    </select>
+
+    <update id="deleteAreaById">
+        UPDATE xccj_community.bus_area SET del_flag = '1' WHERE area_id = #{areaId}
+    </update>
+
+</mapper>

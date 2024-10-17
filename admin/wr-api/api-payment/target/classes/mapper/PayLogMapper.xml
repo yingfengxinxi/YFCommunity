@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.payment.mapper.PayLogMapper">
+
+    <insert id="insertPayLog">
+        INSERT INTO ${tableName} (
+            pay_type,pay_amount,pay_time, user_type,user_name, user_phone, plate_no,
+            community_id, building_id, unit_id, room_id, pay_way,out_trade_no,del_flag
+            <if test="transactionId != null and transactionId !=''">
+                ,community_name
+            </if>
+            <if test="transactionId != null and transactionId !=''">
+                ,transaction_id
+            </if>
+        ) VALUES (
+            #{payType},#{payAmount},sysdate(), #{userType},#{userName}, #{userPhone}, #{plateNo},
+            #{communityId}, 0, 0, 0, #{payWay},#{outTradeNo},'0'
+            <if test="transactionId != null and transactionId !=''">
+                ,#{communityName}
+            </if>
+            <if test="transactionId != null and transactionId !=''">
+                ,#{transactionId}
+            </if>
+        )
+    </insert>
+</mapper>

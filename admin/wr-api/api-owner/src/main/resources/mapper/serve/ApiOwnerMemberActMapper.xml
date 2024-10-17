@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.ApiOwnerMemberActMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.MemberAct">
+        <id column="activity_id" jdbcType="BIGINT" property="activityId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="picture_url" jdbcType="VARCHAR" property="pictureUrl"/>
+        <result column="act_theme" jdbcType="VARCHAR" property="actTheme"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="status" jdbcType="CHAR" property="status"/>
+        <result column="plan_status" jdbcType="CHAR" property="planStatus"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        activity_id,
+        community_id,
+        account_id,
+        picture_url,
+        act_theme,
+        address,
+        start_time,
+        end_time,
+        close_time,
+        `status`,
+        plan_status,
+        content,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_member_act
+        where activity_id = #{activityId,jdbcType=BIGINT}
+          AND del_flag = '0'
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_govern.bus_member_act
+        <set>
+            del_flag = '1'
+        </set>
+        where activity_id = #{activityId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="activity_id" keyProperty="activityId"
+            parameterType="com.wr.api.owner.entity.serve.MemberAct" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_govern.bus_member_act
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="pictureUrl != null">
+                picture_url,
+            </if>
+            <if test="actTheme != null">
+                act_theme,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="startTime != null">
+                start_time,
+            </if>
+            <if test="endTime != null">
+                end_time,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="planStatus != null">
+                plan_status,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="pictureUrl != null">
+                #{pictureUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="actTheme != null">
+                #{actTheme,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="startTime != null">
+                #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=CHAR},
+            </if>
+            <if test="planStatus != null">
+                #{planStatus,jdbcType=CHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.MemberAct">
+        update xccj_govern.bus_member_act
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="pictureUrl != null">
+                picture_url = #{pictureUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="actTheme != null">
+                act_theme = #{actTheme,jdbcType=VARCHAR},
+            </if>
+            <if test="address != null">
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="status != null">
+                `status` = #{status,jdbcType=CHAR},
+            </if>
+            <if test="planStatus != null">
+                plan_status = #{planStatus,jdbcType=CHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where activity_id = #{activityId,jdbcType=BIGINT}
+    </update>
+
+    <select id="listPage" resultType="com.wr.api.owner.entity.vo.serve.MemberActVo">
+        SELECT *, IF(NOW() > end_time, 2, plan_status) AS planStatus
+        FROM xccj_govern.bus_member_act
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+        ORDER BY plan_status, act_theme
+    </select>
+
+    <insert id="signUp">
+        INSERT INTO xccj_govern.bus_member_join (activity_id, member_id,join_name,join_phone,remark,create_time)
+        VALUES (#{activityId}, #{memberId}, #{joinName}, #{joinPhone}, #{remark},sysdate());
+    </insert>
+
+    <select id="detail" resultType="com.wr.api.owner.entity.vo.serve.MemberActVo">
+        select bsa.activity_id,
+               bsa.community_id,
+               bsa.account_id,
+               bsa.picture_url,
+               bsa.act_theme,
+               bsa.address,
+               bsa.start_time,
+               bsa.end_time,
+               bsa.close_time,
+               bsa.`status`,
+               bsa.plan_status,
+               bsa.content,
+               bsa.create_by,
+               bsa.create_time,
+               bsa.update_by,
+               bsa.update_time,
+               bsa.del_flag,
+               IF(COUNT(bmj.member_id) = 0, '0', '1') AS hideText
+        from xccj_govern.bus_member_act AS bsa
+                 LEFT JOIN xccj_govern.bus_member_join AS bmj
+                           ON bmj.activity_id = bsa.activity_id
+                               AND bmj.member_id = #{memberId}
+        where bsa.activity_id = #{activityId}
+          AND bsa.del_flag = '0'
+    </select>
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.busQuestionnaire.BusQuestionnaireAccountMapper">
+
+
+    <select id="getList" resultType="com.wr.estate.entity.BusQuestionnaireAccount">
+        SELECT bqa.id                             AS "id",
+               bqa.community_id                   AS "communityId",
+               bqa.questionnaire_investigation_id AS "questionnaireInvestigationId",
+               bqa.account_id                     AS "accountId",
+               bqa.create_by                      AS "createBy",
+               bqa.update_time                    AS "updateTime",
+               ba.account_name                    AS "userName",
+               ba.login_name                      AS "userPhone"
+        FROM xccj_community.bus_questionnaire_account bqa
+                 LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bqa.account_id
+        where bqa.questionnaire_investigation_id = #{questionnaireInvestigationId}
+        GROUP BY bqa.account_id
+        ORDER BY bqa.create_time DESC
+    </select>
+</mapper>

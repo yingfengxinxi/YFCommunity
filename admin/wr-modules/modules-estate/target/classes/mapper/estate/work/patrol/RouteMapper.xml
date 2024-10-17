@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.patrol.RouteMapper">
+
+
+    <!--    首页查询集合-->
+    <select id="selectList" parameterType="com.wr.remote.work.patrol.Route"
+            resultType="com.wr.remote.work.patrol.Route">
+        select p.* from (select
+        br.route_id,
+        community_id,
+        route_name,
+        route_status,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        count(brp.route_id) AS pointNumber
+        from xccj_work.bus_route as br
+        left join xccj_work.bus_route_point as brp on br.route_id = brp.route_id
+        <where>
+            <if test="communityId != null">
+                community_id = #{communityId}
+            </if>
+            <if test="routeName != null and routeName !=''">
+                and route_name LIKE CONCAT('%', #{routeName}, '%')
+            </if>
+            <if test="routeStatus != null">
+                and route_status = #{routeStatus}
+            </if>
+            <if test="createBy != null">
+                and create_by LIKE CONCAT('%', #{createBy}, '%')
+            </if>
+            and del_flag = '0'
+        </where>
+        GROUP BY route_name
+        ORDER BY br.update_time DESC)as p
+        <if test="pointNumber != null">
+            WHERE
+            p.pointNumber= #{pointNumber}
+        </if>
+    </select>
+
+    <!--    根据id查询巡更-->
+    <select id="selectById" resultType="com.wr.remote.work.patrol.Route" parameterType="long">
+        select br.route_id,
+               br.community_id,
+               route_name,
+               route_status,
+               count(brp.route_id)         AS pointNumber,
+               group_concat(bp.point_name) as pointName
+        from xccj_work.bus_route as br
+                 left join xccj_work.bus_route_point as brp on br.route_id = brp.route_id
+                 left join xccj_work.bus_point as bp on bp.point_id = brp.point_id
+        where br.route_id = #{routeId}
+    </select>
+
+
+    <!--    查看页面巡点表-->
+    <select id="selectPointList" parameterType="com.wr.remote.work.patrol.Route"
+            resultType="com.wr.remote.work.patrol.Point">
+        select bp.point_id,
+               community_id,
+               point_name,
+               point_site,
+               point_url
+        from xccj_work.bus_point as bp
+                 left join xccj_work.bus_route_point as brp on bp.point_id = brp.point_id
+        where brp.route_id = #{routeId}
+          and point_status = '0'
+          and bp.point_type !='1'
+    </select>
+
+    <!--    新增巡更-->
+    <insert id="insertRoute" parameterType="com.wr.remote.work.patrol.Route" useGeneratedKeys="true"
+            keyProperty="routeId">
+        insert into xccj_work.bus_route(
+        <if test="routeName != null and routeName != ''">route_name,</if>
+        <if test="communityId != null ">community_id,</if>
+        <if test="routeStatus != null">route_status,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        <if test="updateBy != null and updateBy != ''">update_by,</if>
+        create_time,
+        update_time
+        )values(
+
+        <if test="routeName != null and routeName != ''">#{routeName},</if>
+        <if test="communityId != null">#{communityId},</if>
+        <if test="routeStatus != null">#{routeStatus},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+        sysdate(),
+        sysdate()
+        )
+    </insert>
+
+    <!--    根据id修改状态-->
+    <update id="updateStatus" parameterType="com.wr.remote.work.patrol.Point">
+        update xccj_work.bus_route
+        set route_status= #{routeStatus}
+        WHERE route_id = #{routeId}
+    </update>
+
+
+    <!--巡点巡查关联表新增-->
+    <insert id="insertRoutePoint" parameterType="com.wr.remote.work.patrol.Route">
+        insert into xccj_work.bus_route_point(
+        <if test="routeId != null and routeId != 0">route_id,</if>
+        <if test="pointId != null and pointId != 0">point_id</if>
+        )values(
+        <if test="routeId != null and routeId != 0">#{routeId},</if>
+        <if test="pointId != null and pointId != 0">#{pointId}</if>
+        )
+    </insert>
+
+
+    <!--    删除-->
+    <delete id="delete">
+        UPDATE xccj_work.bus_route
+        SET del_flag = '1'
+        WHERE route_id = #{routeId}
+    </delete>
+
+    <!--    删除关联表数据-->
+    <delete id="deleteRoutePoint">
+        delete
+        from xccj_work.bus_route_point
+        WHERE route_id = #{routeId}
+    </delete>
+
+
+    <!--    修改-->
+    <update id="updateRoute">
+        UPDATE xccj_work.bus_route
+        <set>
+
+            <if test="routeName != null and routeName != ''">route_name= #{routeName},</if>
+            <if test="routeStatus != null">route_status = #{routeStatus},</if>
+            <if test="updateBy != null and updateBy != ''">update_by= #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        WHERE route_id = #{routeId}
+    </update>
+
+
+    <!--    新增巡点-->
+    <insert id="insertPoint" parameterType="com.wr.remote.work.patrol.Point">
+        insert into xccj_work.bus_point(
+
+        <if test="pointName != null and pointName != ''">point_name,</if>
+        <if test="pointType != null ">point_type,</if>
+        <if test="communityId != null ">community_id,</if>
+        <if test="pointSite != null and pointSite != ''">point_site,</if>
+        <if test="pointStatus != null">point_status,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        create_time
+        )values(
+
+        <if test="pointName != null and pointName != ''">#{pointName},</if>
+        <if test="pointType != null">#{pointType},</if>
+        <if test="communityId != null">#{communityId},</if>
+        <if test="pointSite != null and pointSite != ''">#{pointSite},</if>
+        <if test="pointStatus != null">#{pointStatus},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        sysdate()
+        )
+    </insert>
+
+
+
+
+    <!--    查看页面巡点表-->
+    <select id="selectPointList1"
+            resultType="com.wr.remote.work.patrol.Point">
+        select bp.point_id,
+               point_name,
+               point_site
+        from xccj_work.bus_point as bp
+        where point_status = '0'
+          and bp.point_type !='1'
+          and bp.del_flag ='0'
+        and community_id=#{communityId}
+    </select>
+    <!--    查看页面巡点表-->
+    <select id="selectPoint"
+            resultType="com.wr.remote.work.patrol.Point" parameterType="long">
+        select bp.point_id,
+               point_name,
+               point_site
+        from xccj_work.bus_point as bp
+        where point_status = '0'
+          and bp.point_type !='1'
+        and bp.point_id= #{pointId}
+    </select>
+
+
+    <select id="selectPointId" parameterType="Long" resultType="Long">
+        select point_id
+        FROM xccj_work.bus_route_point
+        where route_id = #{routeId}
+    </select>
+
+    <!-- 巡更路线列表 -->
+    <select id="listRoutes" resultType="com.wr.remote.work.patrol.Route">
+        SELECT route_id, route_name
+        FROM xccj_work.bus_route
+        WHERE del_flag = '0' AND route_status = '0'
+        AND community_id = #{communityId}
+    </select>
+
+
+
+
+    <!--    查看页面巡点表-->
+    <select id="selectPointListUrl" parameterType="long"
+            resultType="com.wr.remote.work.patrol.Point">
+        select bp.point_id,
+               community_id,
+               point_name,
+               point_site,
+               point_url
+        from xccj_work.bus_point as bp
+                 left join xccj_work.bus_route_point as brp on bp.point_id = brp.point_id
+        where brp.route_id = #{routeId}
+          and point_status = '0'
+          and bp.point_type !='1'
+    </select>
+
+    <!--校验巡更路线名称不能重复-->
+    <select id="checkRouteNameUnique" resultType="java.lang.Integer">
+        select count(*) from xccj_work.bus_route where route_name = #{routeName} and del_flag = '0'
+    </select>
+</mapper>

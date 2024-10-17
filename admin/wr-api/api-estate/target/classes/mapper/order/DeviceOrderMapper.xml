@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.DeviceOrderMapper">
+    <resultMap id="detailMap" type="com.wr.api.estate.entity.vo.order.DeviceOrderDetailVO">
+        <result column="orderNo" property="orderNo"/>
+        <result column="orderName" property="orderName"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <result column="remark" property="finishRemark"/>
+        <result column="orderTypeName" property="orderTypeName"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <result column="execute_time" property="executeTime"/>
+        <result column="finish_time" property="finishTime"/>
+        <result column="image_url" property="finishImageUrl"/>
+        <result column="device_name" property="deviceName"/>
+        <result column="deviceAddress" property="deviceAddress"/>
+        <result column="index_code" property="indexCode"/>
+        <result column="device_type" property="deviceType"/>
+    </resultMap>
+
+    <!-- 设备维修工单移动端列表查询 -->
+    <select id="listDeviceOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bdo.order_id AS orderId,
+        bdo.order_no AS orderNo,
+        bdo.order_name AS orderName,
+        bdo.plan_start AS startTime,
+        bdo.plan_end AS endTime,
+        device.address AS address,
+        '设备维修工单' AS orderTypeName,
+        6 AS orderType,
+        IF(bdo.allot_way = '2' AND bdo.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bdo.transfer_status = '1' THEN 4
+        WHEN bdo.allot_status = '0' THEN 1
+        WHEN bdo.accept_status = '0' THEN 2
+        WHEN bdo.execute_status = '0' THEN 3
+        WHEN bdo.execute_status = '2' THEN 6
+        WHEN bdo.execute_status = '3' THEN 8
+        WHEN bdo.execute_status = '1' AND NOW()>bdo.plan_end THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_device_order bdo
+        LEFT JOIN xccj_device.view_all_device device ON bdo.index_code = device.index_code AND device.type =
+        bdo.device_type
+        LEFT JOIN xccj_work.bus_order_audit audit ON bdo.order_id = audit.order_id AND audit.order_type = '6' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bdo.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bdo.staff_id = #{staffId} OR (bdo.allot_way = '2' AND bdo.allot_status = '0' AND bdo.accept_status = '0')
+            OR assist.staff_id = #{staffId})
+        </if>
+        AND bdo.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bdo.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bdo.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bdo.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bdo.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bdo.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bdo.execute_status = 2
+        </if>
+        order by bdo.plan_start desc
+    </select>
+
+    <!-- 设备维修工单详情 -->
+    <select id="detailDeviceOrders" resultMap="detailMap">
+        SELECT bdo.order_no   AS orderNo,
+               bdo.order_name AS orderName,
+               bdo.plan_start AS startTime,
+               bdo.plan_end   AS endTime,
+               bdo.remark,
+               bdo.execute_time,
+               bdo.finish_time,
+               bdo.image_url,
+               device.device_name,
+               device.address AS deviceAddress,
+               bdo.index_code,
+               bdo.device_type,
+               bdo.staff_id,
+               '设备维修工单' AS orderTypeName,
+               CASE
+                   WHEN bdo.transfer_status = '1' THEN 4
+                   WHEN bdo.allot_status = '0' THEN 1
+                   WHEN bdo.accept_status = '0' THEN 2
+                   WHEN bdo.execute_status = '0' THEN 3
+                   WHEN bdo.execute_status = '2' THEN 6
+                   WHEN bdo.execute_status = '3' THEN 8
+                   WHEN bdo.execute_status = '1' AND bdo.plan_end > NOW() THEN 7
+                   ELSE 5 END AS orderStatus
+        FROM xccj_work.bus_device_order bdo
+                 LEFT JOIN xccj_device.view_all_device device ON bdo.index_code = device.index_code AND device.type =
+                                                                                                        bdo.device_type
+        WHERE bdo.order_id = #{orderId}
+    </select>
+
+    <!-- 抢单 -->
+    <update id="robOrder">
+        UPDATE xccj_work.bus_device_order
+        SET allot_status  = '1',
+            accept_status = '1',
+            staff_id      = #{staffId}
+        WHERE allot_status = '0'
+          AND accept_status = '0'
+          AND allot_way = '2'
+          AND order_id = #{orderId}
+    </update>
+
+    <!-- 接单 -->
+    <update id="receiveOrder">
+        UPDATE xccj_work.bus_device_order
+        SET accept_status = '1'
+        WHERE allot_status = '1'
+          AND accept_status = '0'
+          AND order_id = #{orderId}
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 开始执行 -->
+    <update id="startPerform">
+        UPDATE xccj_work.bus_device_order
+        SET execute_status = '1',
+            execute_time   = NOW()
+        WHERE order_id = #{orderId}
+          AND allot_status = '1'
+          AND accept_status = '1'
+          AND execute_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 完成工单 -->
+    <update id="finish">
+        UPDATE xccj_work.bus_device_order
+        SET execute_status = IF(NOW() > plan_end, 3, 2),
+            finish_time    = NOW(),
+            image_url      = #{finishImageUrl},
+            remark         = #{remark},
+            execute_id     = #{staffId}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 转交工单 -->
+    <update id="transfer">
+        UPDATE xccj_work.bus_device_order
+        SET transfer_status = '1'
+        WHERE order_id = #{orderId}
+          AND execute_status IN ('1', '0')
+          AND transfer_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+</mapper>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.vote.BusVoteMapper">
+
+    <select id="getList" resultType="com.wr.remote.estate.vote.BusVote">
+        SELECT *
+        FROM (SELECT bv.id AS "id",
+        bv.vote_no AS "voteNo",
+        bv.community_id AS "communityId",
+        bv.vote_name AS "voteName",
+        bv.start_time AS "startTime",
+        bv.end_time AS "endTime",
+        IF(DATE_FORMAT(now(),'%Y-%m-%d %H:%i:%s') > DATE_FORMAT(bv.end_time,'%Y-%m-%d %H:%i:%s'),'已结束',IF(DATE_FORMAT(now(),'%Y-%m-%d %H:%i:%s') > DATE_FORMAT(bv.start_time,'%Y-%m-%d %H:%i:%s'), '投票中', '未开始')) AS "state",
+        bv.is_yq AS "isYq",
+        bv.estate_id AS "estateId"
+        FROM xccj_community.bus_vote bv
+        WHERE bv.del_flag = "0" order by bv.create_time desc) a
+        <where>
+            estateId=#{estateId}
+            <if test="state !=null and state !=''">
+                and a.state = #{state}
+            </if>
+            <if test="communityId !=null">
+                and a.communityId = #{communityId}
+            </if>
+            <if test="voteNo !=null and voteNo !=''">
+                and a.voteNo like CONCAT('%',#{voteNo},'%')
+            </if>
+            <if test="voteName !=null and voteName !=''">
+                and a.voteName like CONCAT('%',#{voteName},'%')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getByIdCount" resultType="com.wr.remote.domain.vo.BusVoteResultVo">
+        SELECT
+            bvo.owner_status AS "ownerStatus",
+            count( 1 ) AS "number"
+        FROM
+            xccj_community.bus_vote bv
+                LEFT JOIN xccj_community.bus_vote_scope bvs ON bv.id = bvs.vote_id
+                LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        WHERE
+            bvs.del_flag = "0"
+          AND bv.del_flag = "0"
+          AND bvo.del_flag = "0"
+          and bv.id=#{id}
+        and bvo.owner_status=#{ownerStatus}
+        GROUP BY
+            bv.id,
+            bvo.owner_status
+    </select>
+
+    <select id="getVoteIdIds" resultType="String">
+        SELECT DISTINCT bvs.id
+        FROM xccj_community.bus_vote bv
+                 INNER JOIN xccj_community.bus_vote_scope bvs ON bvs.vote_id = bv.id
+                 INNER JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        WHERE bvs.del_flag = "0"
+          AND bv.del_flag = "0"
+          AND bv.id = #{voteId}
+        GROUP BY bvs.room_id;
+    </select>
+
+    <select id="getByVoteIdYtCount" resultType="Integer">
+        SELECT
+            count( 1 )
+        FROM
+            (
+                SELECT
+                    bvs.vote_id,
+                    bvs.room_id AS "roomId",
+                    GROUP_CONCAT( DISTINCT bvo.account_id ) AS "ownerName"
+                FROM
+                    xccj_community.bus_vote_scope bvs
+                        LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+                WHERE
+                    bvs.vote_id = #{voteId}
+                  AND bvo.owner_status IN ( '1', '2', '3' )
+                GROUP BY
+                    bvs.room_id
+                ORDER BY
+                    bvs.create_time DESC
+            ) AS a
+    </select>
+
+    <select id="getByVoteIdStatusCount" resultType="Integer">
+        SELECT
+            count( 1 )
+        FROM
+            (
+                SELECT
+                    bvs.vote_id,
+                    bvs.room_id AS "roomId",
+                    GROUP_CONCAT( DISTINCT bvo.account_id ) AS "ownerName"
+                FROM
+                    xccj_community.bus_vote_scope bvs
+                        LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+                WHERE
+                    bvs.vote_id = #{voteId}
+                  AND bvo.owner_status =#{ownerStatus}
+                GROUP BY
+                    bvs.room_id
+                ORDER BY
+                    bvs.create_time DESC
+            ) AS a
+
+    </select>
+
+    <select id="getVoteScopeIdAreaTotal"  resultType="java.math.BigDecimal">
+        SELECT
+            SUM( br.total_area ) AS "area"
+        FROM
+            (
+                SELECT DISTINCT
+                    bvs.*
+                FROM
+                    xccj_community.bus_vote_scope bvs
+                WHERE
+                    bvs.del_flag = "0"
+                  AND bvs.del_flag = "0"
+                  AND bvs.id IN
+                 <foreach collection="voteScopeIds" item="voteScopeId" open="(" separator="," close=")">
+                     #{voteScopeId}
+                 </foreach>
+            ) a
+                INNER JOIN xccj_community.bus_room br ON br.room_id = a.room_id;
+
+    </select>
+
+    <select id="getVoteScopeIdYtAreaTotal"  resultType="java.math.BigDecimal">
+        SELECT
+            SUM( br.total_area ) AS "area"
+        FROM
+            (
+                SELECT DISTINCT
+                    bvs.room_id
+                FROM
+                    xccj_community.bus_vote_scope bvs
+                        LEFt JOIN xccj_community.bus_vote_owner bvo on bvo.vote_scope_id=bvs.id
+                WHERE
+                    bvs.del_flag = "0"
+                  AND bvs.del_flag = "0"
+                  AND bvs.id IN
+                    <foreach collection="voteScopeIds" item="voteScopeId" open="(" separator="," close=")">
+                        #{voteScopeId}
+                    </foreach>
+                  and bvo.owner_status in ('1','2','3')
+                GROUP BY bvs.room_id
+            ) a
+                INNER JOIN xccj_community.bus_room br ON br.room_id = a.room_id;
+    </select>
+
+    <select id="getByIdStatusArea" resultType="java.math.BigDecimal">
+        SELECT
+        SUM(br.total_area) as "area"
+        FROM
+        xccj_community.bus_vote bv
+        LEFT JOIN xccj_community.bus_vote_scope bvs ON bv.id = bvs.vote_id
+        LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        LEFt JOIN xccj_community.bus_room br on br.room_id=bvs.room_id
+        WHERE
+        bvs.del_flag = "0"
+        AND bv.del_flag = "0"
+        AND bvo.del_flag = "0"
+        and bv.id=#{id}
+        <if test="ownerStatusList!=null and ownerStatusList.size()>0">
+            and bvo.owner_status in
+            <foreach collection="ownerStatusList" item="ownerStatus" open="(" separator="," close=")">
+                #{ownerStatus}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

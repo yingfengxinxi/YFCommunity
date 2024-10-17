@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.NightPatrolOrderMapper">
+    <resultMap id="detailMap" type="com.wr.api.estate.entity.vo.order.NightPatrolOrderDetailVO">
+        <result column="orderNo" property="orderNo"/>
+        <result column="orderName" property="orderName"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <result column="orderType" property="orderTypeName"/>
+        <result column="orderSource" property="orderSource"/>
+        <result column="nightPatrolType" property="nightPatrolType"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <result column="remark" property="finishRemark"/>
+        <result column="execute_time" property="executeTime"/>
+        <result column="finish_time" property="finishTime"/>
+        <result column="image_url" property="finishImageUrl"/>
+        <result column="otherOrderNo" property="otherOrderNo"/>
+        <result column="watchman_type" property="watchmanType"/>
+        <collection property="points" ofType="com.wr.api.estate.entity.vo.order.NightPatrolOrderPointVO">
+            <result column="point_name" property="pointName"/>
+            <result column="pointAddress" property="pointAddress"/>
+            <result column="watchman_result" property="result"/>
+            <result column="result_info" property="resultInfo"/>
+        </collection>
+        <collection property="abnormalImages" ofType="java.lang.String">
+            <result column="abnormalImage"/>
+        </collection>
+    </resultMap>
+
+    <resultMap type="com.wr.remote.work.nightPatrol.Watchman" id="WatchmanResult">
+        <result property="watchmanId" column="watchman_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="watchmanNo" column="watchman_no"/>
+        <result property="watchmanName" column="watchman_name"/>
+        <result property="tourId" column="tour_id"/>
+        <result property="routeId" column="route_id"/>
+        <result property="dataSource" column="data_source"/>
+        <result property="planId" column="plan_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="allotWay" column="allot_way"/>
+        <result property="patrolNum" column="patrol_num"/>
+        <result property="gapTime" column="gap_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="staffId" column="staff_id"/>
+        <result property="assistNum" column="assist_num"/>
+        <result property="transferStatus" column="transfer_status"/>
+        <result property="allotStatus" column="allot_status"/>
+        <result property="acceptStatus" column="accept_status"/>
+        <result property="executeStatus" column="execute_status"/>
+        <result property="executeId" column="execute_id"/>
+        <result property="executeTime" column="execute_time"/>
+        <result property="finishTime" column="finish_time"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectWatchmanVo">
+        select watchman_id,
+               community_id,
+               watchman_no,
+               watchman_name,
+               tour_id,
+               route_id,
+               data_source,
+               plan_id,
+               order_no,
+               allot_way,
+               patrol_num,
+               gap_time,
+               start_time,
+               end_time,
+               staff_id,
+               assist_num,
+               transfer_status,
+               allot_status,
+               accept_status,
+               execute_status,
+               execute_id,
+               execute_time,
+               finish_time,
+               image_url,
+               remark,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        from xccj_work.bus_watchman
+    </sql>
+
+    <!-- 巡更工单移动端列表查询 -->
+    <select id="listNightPatrolOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bw.watchman_id AS orderId,
+        bw.watchman_no AS orderNo,
+        bw.watchman_name AS orderName,
+        bw.start_time AS startTime,
+        bw.end_time AS endTime,
+        bt.tour_name AS orderTypeName,
+        1 AS orderType,
+        IF(bw.allot_way = '2' AND bw.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bw.transfer_status = '1' THEN 4
+        WHEN bw.allot_status = '0' THEN 1
+        WHEN bw.accept_status = '0' THEN 2
+        WHEN bw.execute_status = '0' THEN 3
+        WHEN bw.execute_status = '2' THEN 6
+        WHEN bw.execute_status = '3' THEN 8
+        WHEN bw.execute_status = '1' AND NOW()>bw.end_time THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_watchman bw
+        LEFT JOIN xccj_work.bus_tour bt ON bt.tour_id = bw.tour_id AND bt.tour_type = '1'
+        LEFT JOIN xccj_work.bus_order_audit audit ON bw.watchman_id = audit.order_id AND audit.order_type = '1' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bw.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bw.staff_id = #{staffId} OR (bw.allot_way = '2' AND bw.allot_status = '0' AND bw.accept_status = '0') OR
+            assist.staff_id = #{staffId})
+        </if>
+        AND bw.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bw.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bw.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bw.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bw.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bw.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bw.execute_status = 2
+        </if>
+        order by bw.start_time desc
+    </select>
+
+    <!-- 巡更详情移动端查询 -->
+    <select id="detailNightPatrolOrders" resultMap="detailMap">
+        SELECT bw.watchman_no   AS orderNo,
+               bw.watchman_name AS orderName,
+               bw.start_time    AS startTime,
+               bw.end_time      AS endTime,
+               '巡更工单'       AS orderType,
+               CASE bw.data_source
+                   WHEN '0' THEN '计划生成'
+                   WHEN '1' THEN '后台添加'
+                   WHEN '2' THEN '其他工单' END AS orderSource,
+               bw.execute_time,
+               bw.finish_time,
+               bw.image_url,
+               bw.staff_id,
+               bt.tour_name     AS nightPatrolType,
+               bw.order_no      AS otherOrderNo,
+               bai.image_url    AS abnormalImage,
+               CASE
+                   WHEN bw.transfer_status = '1' THEN 4
+                   WHEN bw.allot_status = '0' THEN 1
+                   WHEN bw.accept_status = '0' THEN 2
+                   WHEN bw.execute_status = '0' THEN 3
+                   WHEN bw.execute_status = '2' THEN 6
+                   WHEN bw.execute_status = '3' THEN 8
+                   WHEN bw.execute_status = '1' AND bw.end_time > NOW() THEN 7
+                   ELSE 5 END   AS orderStatus,
+               bw.remark,
+               bw.watchman_type,
+               point.point_name,
+               point.point_site AS pointAddress,
+               watchmanPoint.watchman_result,
+               watchmanPoint.result_info
+        FROM xccj_work.bus_watchman bw
+                 LEFT JOIN xccj_work.bus_abnormal ba ON bw.watchman_id = ba.order_id AND ba.order_type = '1' AND ba.del_flag = '0'
+                 LEFT JOIN xccj_work.bus_abnormal_img bai ON ba.abnormal_id = bai.abnormal_id AND bai.del_flag = '0'
+                 LEFT JOIN xccj_work.bus_tour bt ON bt.tour_id = bw.tour_id AND bt.tour_type = '1'
+                 LEFT JOIN xccj_work.bus_watchman_point watchmanPoint ON watchmanPoint.watchman_id = bw.watchman_id
+                 LEFT JOIN xccj_work.bus_point point ON watchmanPoint.point_id = point.point_id
+        WHERE bw.watchman_id = #{orderId}
+    </select>
+
+
+    <!-- 抢单 -->
+    <update id="robOrder">
+        UPDATE xccj_work.bus_watchman
+        SET allot_status  = '1',
+            accept_status = '1',
+            staff_id      = #{staffId}
+        WHERE allot_status = '0'
+          AND accept_status = '0'
+          AND allot_way = '2'
+          AND watchman_id = #{orderId}
+    </update>
+
+    <!-- 接单 -->
+    <update id="receiveOrder">
+        UPDATE xccj_work.bus_watchman
+        SET accept_status = '1'
+        WHERE allot_status = '1'
+          AND accept_status = '0'
+          AND watchman_id = #{orderId}
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 开始执行 -->
+    <update id="startPerform">
+        UPDATE xccj_work.bus_watchman
+        SET execute_status = '1',
+            execute_time   = NOW()
+        WHERE watchman_id = #{orderId}
+          AND allot_status = '1'
+          AND accept_status = '1'
+          AND execute_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 完成工单 -->
+    <update id="finish">
+        UPDATE xccj_work.bus_watchman
+        SET execute_status = IF(NOW() > end_time, 3, 2),
+        finish_time = NOW(),
+        <if test="finishImageUrl != null and finishImageUrl != ''">
+            image_url = #{finishImageUrl},
+        </if>
+        <if test="remark != null and remark != ''">
+            remark = #{remark},
+        </if>
+        execute_id = #{staffId}
+        WHERE watchman_id = #{orderId}
+    </update>
+
+    <!-- 转交工单 -->
+    <update id="transfer">
+        UPDATE xccj_work.bus_watchman
+        SET transfer_status = '1'
+        WHERE watchman_id = #{orderId}
+          AND execute_status IN ('1', '0')
+          AND transfer_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+
+    <select id="selectWatchmanByWatchmanId" parameterType="Long" resultMap="WatchmanResult">
+        <include refid="selectWatchmanVo"/>
+        where watchman_id = #{watchmanId}
+    </select>
+
+    <!-- 查询巡更点 -->
+    <select id="selectWatchmanPoint" resultType="com.wr.api.estate.entity.vo.order.NightPatrolOrderPointVO">
+        SELECT point_id, watchman_result AS result, result_info
+        FROM xccj_work.bus_watchman_point
+        WHERE watchman_id = #{watchmanId}
+    </select>
+
+    <!-- 获取巡更路线的点 -->
+    <select id="watchmanPointCount" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_work.bus_watchman_point
+        WHERE watchman_id = #{watchmanId}
+    </select>
+
+    <!-- 巡点签到 -->
+    <update id="signInPoint">
+        UPDATE xccj_work.bus_watchman_point SET watchman_result = #{signInStatus}
+        <if test="remark != null and remark != ''">
+            ,result_info = #{remark}
+        </if>
+        WHERE watchman_id = #{orderId} AND point_id = #{id}
+    </update>
+</mapper>

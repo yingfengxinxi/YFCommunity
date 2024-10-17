@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.log.PeoplesMapper">
+
+
+    <sql id="peoples">
+        log_id
+        ,user_name,user_phone,id_card,user_type,community_id,community_name,room_name,device_name,index_code,io_type,health_level,discern_time,pic_url
+    </sql>
+
+    <select id="selectList" parameterType="com.wr.remote.estate.peoples.Peoples"
+            resultType="com.wr.remote.estate.peoples.Peoples">
+        select
+        <include refid="peoples"/>
+        from ${tableName}
+        where del_flag ='0'
+        <if test="userName != null and userName != ''">
+            AND user_name like concat('%',#{userName},'%')
+        </if>
+        <if test="userType != null and userType != ''">
+            AND user_type = #{userType}
+        </if>
+        <if test="discernTime != null">
+            AND left(discern_time,10) = #{time}
+        </if>
+    </select>
+
+    <select id="selectCommunityIdList" resultType="com.wr.remote.estate.peoples.Peoples">
+        select community_id, community_name
+        from xccj_community.bus_community
+        where del_flag = '0'
+    </select>
+
+    <select id="selectPeoplesById" parameterType="com.wr.remote.estate.peoples.Peoples"
+            resultType="com.wr.remote.estate.peoples.Peoples">
+        select
+        <include refid="peoples"></include>
+        from ${tableName}
+        where log_id = #{logId}
+    </select>
+
+    <select id="selectMinId" resultType="com.wr.remote.estate.peoples.Peoples">
+        select min(community_id) as communityId
+        from xccj_community.bus_community
+        where del_flag = '0'
+    </select>
+</mapper>

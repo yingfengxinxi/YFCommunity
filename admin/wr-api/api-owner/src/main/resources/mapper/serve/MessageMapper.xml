@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.MessageMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.domain.ApiMessage">
+        <id column="message_id" jdbcType="BIGINT" property="messageId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="msg_title" jdbcType="VARCHAR" property="msgTitle"/>
+        <result column="skip_url" jdbcType="VARCHAR" property="skipUrl"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="look_number" jdbcType="BIGINT" property="lookNumber"/>
+        <result column="sort_number" jdbcType="BIGINT" property="sortNumber"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        message_id,
+        community_id,
+        msg_title,
+        skip_url,
+        content,
+        look_number,
+        sort_number,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_message
+        where message_id = #{messageId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        <!--@mbg.generated-->
+        delete
+        from xccj_govern.bus_message
+        where message_id = #{messageId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="message_id" keyProperty="messageId"
+            parameterType="com.wr.remote.domain.ApiMessage" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_govern.bus_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="msgTitle != null">
+                msg_title,
+            </if>
+            <if test="skipUrl != null">
+                skip_url,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="lookNumber != null">
+                look_number,
+            </if>
+            <if test="sortNumber != null">
+                sort_number,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="msgTitle != null">
+                #{msgTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="skipUrl != null">
+                #{skipUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="lookNumber != null">
+                #{lookNumber,jdbcType=BIGINT},
+            </if>
+            <if test="sortNumber != null">
+                #{sortNumber,jdbcType=BIGINT},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.remote.domain.ApiMessage">
+        update xccj_govern.bus_message
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="msgTitle != null">
+                msg_title = #{msgTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="skipUrl != null">
+                skip_url = #{skipUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="lookNumber != null">
+                look_number = #{lookNumber,jdbcType=BIGINT},
+            </if>
+            <if test="sortNumber != null">
+                sort_number = #{sortNumber,jdbcType=BIGINT},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where message_id = #{messageId,jdbcType=BIGINT}
+    </update>
+
+    <select id="listPage" resultMap="BaseResultMap">
+        SELECT *
+        FROM xccj_govern.bus_message
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+        ORDER BY top DESC,
+                 create_time DESC
+    </select>
+
+    <insert id="addReadNum">
+        UPDATE xccj_govern.bus_message set look_number = look_number + 1 WHERE message_id = #{messageId,jdbcType=BIGINT}
+    </insert>
+
+    <select id="detail" resultType="com.wr.remote.domain.vo.ApiMessageVo">
+        select bm.*, bp.party_name AS partyName
+        from xccj_govern.bus_message AS bm
+                 LEFT JOIN xccj_govern.bus_msg_party AS bmp ON bmp.message_id = bm.message_id
+                 LEFT JOIN xccj_govern.bus_party AS bp ON bmp.party_id = bp.party_id
+        where bm.message_id = #{messageId}
+          AND bm.del_flag = '0'
+    </select>
+</mapper>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.PassageMapper">
+
+    <resultMap type="com.wr.remote.estate.manage.Passage" id="PassageResult">
+        <result property="passageId"    column="passage_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="passageName"    column="passage_name"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectPassageVo">
+        select passage_id, community_id, passage_name, create_by, create_time, update_by, update_time, del_flag from xccj_community.bus_passage
+    </sql>
+
+    <select id="selectPassageList" resultMap="PassageResult">
+        <include refid="selectPassageVo"/>
+        where del_flag = '0'
+        <if test="communityId != null "> and community_id = #{communityId}</if>
+        <if test="passageName != null  and passageName != ''"> and passage_name like concat('%', #{passageName}, '%')</if>
+    </select>
+
+    <select id="selectPassageById" parameterType="Long" resultMap="PassageResult">
+        <include refid="selectPassageVo"/>
+        where passage_id = #{passageId}
+    </select>
+
+    <insert id="insertPassage" parameterType="com.wr.remote.estate.manage.Passage">
+        insert into xccj_community.bus_passage (community_id,passage_name,create_by,create_time,del_flag)
+        VALUES (#{communityId},#{passageName},#{createBy},sysdate(),'0')
+
+    </insert>
+
+    <update id="updatePassage" parameterType="com.wr.remote.estate.manage.Passage">
+        update xccj_community.bus_passage
+        set passage_name=#{passageName},update_by=#{updateBy},update_time=sysdate()
+        where passage_id = #{passageId}
+    </update>
+
+    <update id="deletePassageByIds">
+        update xccj_community.bus_passage set del_flag = '1' where passage_id in
+        <foreach collection="array" item="passageId" open="(" separator="," close=")">
+            #{passageId}
+        </foreach>
+    </update>
+
+    <select id="checkPassageNameUnique" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM xccj_community.bus_passage
+        WHERE del_flag = '0'
+          AND passage_name = #{passageName}
+        <if test="passageId != null and passageId != 0">  AND passage_id != #{passageId} </if>
+        <if test="communityId != null and communityId != 0">  AND community_id = #{communityId} </if>
+    </select>
+</mapper>

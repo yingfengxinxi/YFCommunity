@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.location.ApiOrderImageMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.home.location.ApiOrderImage">
+        <id column="image_id" jdbcType="BIGINT" property="imageId"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="image_type" jdbcType="CHAR" property="imageType"/>
+        <result column="table_id" jdbcType="BIGINT" property="tableId"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        image_id,
+        image_url,
+        image_type,
+        table_id,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_work.bus_order_image
+        where image_id = #{imageId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        UPDATE xccj_work.bus_order_image
+        SET del_flag = '1'
+        WHERE image_id = #{imageId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="image_id" keyProperty="imageId"
+            parameterType="com.wr.api.owner.entity.home.location.ApiOrderImage" useGeneratedKeys="true">
+        insert into xccj_work.bus_order_image
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="imageUrl != null">
+                image_url,
+            </if>
+            <if test="imageType != null">
+                image_type,
+            </if>
+            <if test="tableId != null">
+                table_id,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="imageUrl != null">
+                #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="imageType != null">
+                #{imageType,jdbcType=CHAR},
+            </if>
+            <if test="tableId != null">
+                #{tableId,jdbcType=BIGINT},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.home.location.ApiOrderImage">
+        update xccj_work.bus_order_image
+        <set>
+            <if test="imageUrl != null">
+                image_url = #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="imageType != null">
+                image_type = #{imageType,jdbcType=CHAR},
+            </if>
+            <if test="tableId != null">
+                table_id = #{tableId,jdbcType=BIGINT},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where image_id = #{imageId,jdbcType=BIGINT}
+    </update>
+
+    <insert id="insertList">
+        insert into xccj_work.bus_order_image(image_url, image_type, table_id) values
+        <foreach collection="list" item="orderImages" separator=",">
+            (#{orderImages.imageUrl}, #{orderImages.imageType}, #{orderImages.tableId})
+        </foreach>
+    </insert>
+</mapper>

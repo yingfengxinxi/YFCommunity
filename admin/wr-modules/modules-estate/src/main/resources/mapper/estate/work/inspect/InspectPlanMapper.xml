@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.inspect.InspectPlanMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.work.vo.InspectPlanVo">
+        <!--@mbg.generated-->
+        <!--@Table bus_inspect_plan-->
+        <id column="plan_id" jdbcType="BIGINT" property="planId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="plan_name" jdbcType="VARCHAR" property="planName"/>
+        <result column="tour_id" jdbcType="BIGINT" property="tourId"/>
+        <result column="plan_order" jdbcType="CHAR" property="planOrder"/>
+        <result column="plan_model" jdbcType="CHAR" property="planModel"/>
+        <result column="watchman_type" jdbcType="CHAR" property="watchmanType"/>
+        <result column="plan_num" jdbcType="INTEGER" property="planNum"/>
+        <result column="start_time" jdbcType="VARCHAR" property="startTime"/>
+        <result column="end_time" jdbcType="VARCHAR" property="endTime"/>
+        <result column="gap_time" jdbcType="DECIMAL" property="gapTime"/>
+        <result column="allot_way" jdbcType="CHAR" property="allotWay"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <resultMap id="detailResultMap" type="com.wr.remote.work.vo.InspectPlanVo">
+        <!--@mbg.generated-->
+        <!--@Table bus_inspect_plan-->
+        <id column="plan_id" jdbcType="BIGINT" property="planId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="plan_name" jdbcType="VARCHAR" property="planName"/>
+        <result column="tour_id" jdbcType="BIGINT" property="tourId"/>
+        <result column="plan_order" jdbcType="CHAR" property="planOrder"/>
+        <result column="plan_model" jdbcType="CHAR" property="planModel"/>
+        <result column="watchman_type" jdbcType="CHAR" property="watchmanType"/>
+        <result column="plan_num" jdbcType="INTEGER" property="planNum"/>
+        <result column="start_time" jdbcType="VARCHAR" property="startTime"/>
+        <result column="end_time" jdbcType="VARCHAR" property="endTime"/>
+        <result column="gap_time" jdbcType="DECIMAL" property="gapTime"/>
+        <result column="allot_way" jdbcType="CHAR" property="allotWay"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+        <collection property="tourListValueTwos" ofType="com.wr.remote.work.inspect.InspectDevice">
+            <result column="index_code" property="indexCode"/>
+            <result column="device_type" property="deviceType"/>
+            <result column="plan_id" property="planId"/>
+        </collection>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        plan_id,
+        community_id,
+        plan_name,
+        tour_id,
+        plan_order,
+        plan_model,
+        watchman_type,
+        plan_num,
+        start_time,
+        end_time,
+        gap_time,
+        allot_way,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM xccj_work.bus_inspect_plan
+        WHERE plan_id = #{planId,jdbcType=BIGINT}
+    </select>
+
+    <insert id="insert" keyColumn="plan_id" keyProperty="planId"
+            parameterType="com.wr.remote.work.vo.InspectPlanVo"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        INSERT INTO xccj_work.bus_inspect_plan (community_id, plan_name, tour_id,
+                                                plan_order, plan_model, watchman_type,
+                                                plan_num, start_time, end_time,
+                                                gap_time, allot_way, create_by)
+        VALUES (#{communityId}, #{planName}, #{tourId},
+                #{planOrder}, #{planModel}, #{watchmanType},
+                #{planNum}, #{startTime}, #{endTime},
+                #{gapTime}, #{allotWay}, #{createBy})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.wr.remote.work.vo.InspectPlanVo">
+        <!--@mbg.generated-->
+        UPDATE xccj_work.bus_inspect_plan
+        SET plan_name   = #{planName},
+            tour_id     = #{tourId},
+            plan_model  = #{planModel},
+            plan_num    = #{planNum},
+            start_time  = #{startTime},
+            end_time    = #{endTime},
+            gap_time    = #{gapTime},
+            update_by   = #{updateBy},
+            update_time = #{updateTime}
+        WHERE plan_id = #{planId}
+    </update>
+
+    <select id="listPage" resultType="com.wr.remote.work.vo.InspectPlanVo">
+        SELECT bip.*,
+               bip.plan_id                                  AS planid,
+               bip.plan_order                               AS planorder,
+               bt.tour_name                                 AS tourname,
+               (CASE
+                    WHEN bip.allot_way = '0' THEN '自动分配'
+                    WHEN bip.allot_way = '1' THEN '管理员分配'
+                    WHEN bip.allot_way = '2' THEN '抢单' END) AS allotwayname,
+               test.devicetypename                          AS deviceTypeName,
+               bip.plan_name                                AS planname,
+               CONCAT(bip.start_time, '-', bip.end_time)    AS startandendtime
+        FROM xccj_work.bus_inspect_plan AS bip
+                 LEFT JOIN xccj_work.bus_tour AS bt ON bip.tour_id = bt.tour_id
+                 LEFT JOIN (SELECT (CASE
+                                        WHEN bpd.index_code = test1.index_code THEN test1.access_name
+                                        WHEN bpd.index_code = test2.index_code THEN test2.door_name
+                                        WHEN bpd.index_code = test3.index_code THEN test3.visual_name
+                                        WHEN bpd.index_code = test4.index_code
+                                            THEN test4.camera_name END) AS devicetypename,
+                                   bpd.plan_id
+                            FROM xccj_work.bus_plan_device AS bpd
+                                     LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                                                FROM xccj_device.bus_access
+                                                WHERE del_flag = '0') AS test1 ON test1.index_code = bpd.index_code
+                                     LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                                                FROM xccj_device.bus_door
+                                                WHERE del_flag = '0') AS test2 ON test2.index_code = bpd.index_code
+                                     LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                                                FROM xccj_device.bus_visual
+                                                WHERE del_flag = '0') AS test3 ON test3.index_code = bpd.index_code
+                                     LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                                                FROM xccj_device.bus_camera
+                                                WHERE del_flag = '0') AS test4
+                                               ON test4.index_code = bpd.index_code) AS test
+                           ON test.plan_id = bip.plan_id
+        <where>
+            bip.del_flag = '0'
+            <if test="communityId != null and communityId != ''">
+                AND bip.community_id = #{communityId}
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                AND bip.allot_way = #{allotWay}
+            </if>
+            <if test="planOrder != null and planOrder != ''">
+                AND bip.plan_order = #{planOrder}
+            </if>
+            <if test="planName != null and planName != ''">
+                <bind name="planName" value="'%' + planName + '%'"/>
+                AND bip.plan_name LIKE #{planName}
+            </if>
+        </where>
+        GROUP BY bip.plan_id, bip.create_time
+        ORDER BY bip.create_time DESC
+    </select>
+
+    <update id="changeStatus">
+        UPDATE xccj_work.bus_inspect_plan
+        SET plan_order=#{planOrder}
+        WHERE plan_id = #{planId}
+    </update>
+
+    <select id="detail" resultType="com.wr.remote.work.vo.InspectPlanVo">
+        SELECT bip.plan_name,
+               bt.tour_name                                                  AS tourname,
+               IF(bip.plan_model = '0', '一日多检', '多日一检')                      AS planmodelname,
+               bip.plan_num,
+               bip.plan_id,
+               IF(bip.plan_model = '0', CONCAT(bip.gap_time, " h"), '超出24H') AS gaptimename,
+               bip.start_time,
+               bip.end_time,
+               bs.staff_name                                                 AS staffname,
+               bs.staff_phone                                                AS staffphone,
+               bs.card_no                                                    AS cardno,
+               IF(staff_type = '0', '内部人员', '入驻人员')                          AS stafftypename
+        FROM xccj_work.bus_inspect_plan AS bip
+                 LEFT JOIN xccj_work.bus_inspect AS bi ON bi.plan_id = bip.plan_id
+                 LEFT JOIN xccj_work.bus_tour AS bt ON bip.tour_id = bt.tour_id
+                 LEFT JOIN xccj_community.bus_staff AS bs ON bs.staff_id = bi.staff_id
+        WHERE bip.plan_id = #{planId}
+          AND bip.del_flag = '0'
+        LIMIT 1
+    </select>
+
+    <select id="detailList" resultType="com.wr.remote.work.vo.InspectPlanVo">
+        SELECT (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.dev_type_code
+                    WHEN bpd.index_code = test2.index_code THEN test2.door_no
+                    WHEN bpd.index_code = test3.index_code THEN test3.device_type
+                    WHEN bpd.index_code = test4.index_code THEN test4.chan_num END)     noname,
+               (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.dev_type_desc
+                    WHEN bpd.index_code = test2.index_code THEN test2.channel_type
+                    WHEN bpd.index_code = test3.index_code THEN test3.device_model
+                    WHEN bpd.index_code = test4.index_code THEN test4.channel_type END) typename,
+               (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.access_name
+                    WHEN bpd.index_code = test2.index_code THEN test2.door_name
+                    WHEN bpd.index_code = test3.index_code THEN test3.visual_name
+                    WHEN bpd.index_code = test4.index_code THEN test4.camera_name END)  facilityname,
+               (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.address
+                    WHEN bpd.index_code = test2.index_code THEN test2.address
+                    WHEN bpd.index_code = test3.index_code THEN test3.address
+                    WHEN bpd.index_code = test4.index_code THEN test4.address END) AS   addressName,
+               bpd.plan_id
+        FROM xccj_work.bus_plan_device AS bpd
+                 LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                            FROM xccj_device.bus_access
+                            WHERE del_flag = '0') AS test1 ON test1.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                            FROM xccj_device.bus_door
+                            WHERE del_flag = '0') AS test2 ON test2.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                            FROM xccj_device.bus_visual
+                            WHERE del_flag = '0') AS test3 ON test3.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                            FROM xccj_device.bus_camera
+                            WHERE del_flag = '0') AS test4 ON test4.index_code = bpd.index_code
+        WHERE bpd.plan_id = #{planId}
+    </select>
+
+    <select id="generateList" resultType="com.wr.remote.work.vo.InspectPlanVo">
+        SELECT (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.access_name
+                    WHEN bpd.index_code = test2.index_code THEN test2.door_name
+                    WHEN bpd.index_code = test3.index_code THEN test3.visual_name
+                    WHEN bpd.index_code = test4.index_code THEN test4.camera_name END) AS facilityName,
+               bi.inspect_no                                                           AS inspectNo,
+               bi.inspect_name                                                         AS inspectName,
+               IF(bip.plan_model = '0', '一日多检', '多日一检')                                AS planModelName,
+               (CASE
+                    WHEN bi.allot_way = '0' THEN '自动分配'
+                    WHEN bi.allot_way = '1' THEN '管理员分配'
+                    WHEN bi.allot_way = '2' THEN '抢单' END)                             AS allotWayName,
+               bi.create_time                                                          AS createTime
+        FROM xccj_work.bus_inspect_plan AS bip
+                 LEFT JOIN xccj_work.bus_plan_device AS bpd ON bip.plan_id = bpd.plan_id
+                 INNER JOIN xccj_work.bus_inspect AS bi ON bpd.plan_id = bi.plan_id
+                 LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                            FROM xccj_device.bus_access
+                            WHERE del_flag = '0') AS test1 ON test1.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                            FROM xccj_device.bus_door
+                            WHERE del_flag = '0') AS test2 ON test2.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                            FROM xccj_device.bus_visual
+                            WHERE del_flag = '0') AS test3 ON test3.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                            FROM xccj_device.bus_camera
+                            WHERE del_flag = '0') AS test4 ON test4.index_code = bpd.index_code
+        WHERE bip.plan_id = #{planId}
+          AND bi.data_source = '0'
+          AND bi.del_flag = '0'
+          AND bip.del_flag = '0'
+    </select>
+
+    <select id="getTourNameList" resultType="com.wr.remote.work.vo.InspectPlanVo">
+        SELECT bt.tour_id   AS tourid,
+               bt.tour_name AS tourname
+        FROM xccj_work.bus_tour AS bt
+        WHERE bt.tour_type = '2'
+          AND bt.estate_id = #{estateId}
+          AND bt.del_flag = '0'
+          AND bt.tour_status = '0'
+    </select>
+
+    <select id="deviceNo" resultMap="BaseResultMap">
+        SELECT device_name AS facilityname, index_code AS indexcode, type AS devicetype
+        FROM xccj_device.view_all_device
+        WHERE del_flag = '0' AND index_code != '' AND community_id = #{communityId}
+    </select>
+
+    <select id="updateDetail" resultMap="detailResultMap">
+        SELECT plan.*,device.index_code,device.device_type,device.plan_id
+        FROM xccj_work.bus_inspect_plan plan LEFT JOIN xccj_work.bus_plan_device device ON plan.plan_id = device.plan_id
+        WHERE plan.plan_id = #{planId}
+          AND del_flag = '0'
+    </select>
+
+    <delete id="remove">
+        UPDATE xccj_work.bus_inspect_plan
+        SET del_flag = '1'
+        WHERE plan_id = #{planId}
+    </delete>
+
+    <select id="setAllotWay" resultType="java.lang.String">
+        SELECT allot_way
+        FROM xccj_work.bus_allot
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+          AND allot_type = '2'
+        LIMIT 1
+    </select>
+
+    <select id="selectTimingList" resultType="com.wr.remote.work.inspect.Timing">
+        SELECT bip.community_id,
+               bip.plan_id,
+               bip.plan_num,
+               bip.plan_name,
+               bip.start_time,
+               bip.end_time,
+               bip.plan_model,
+               bip.tour_id
+        FROM xccj_work.bus_inspect_plan AS bip
+        WHERE bip.plan_order = '1'
+          AND bip.del_flag = '0';
+    </select>
+
+    <select id="selectRelationPlan" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT *
+        FROM xccj_work.bus_inspect
+        <where>
+            plan_id = #{planId}
+              AND del_flag = '0'
+        </where>
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+</mapper>

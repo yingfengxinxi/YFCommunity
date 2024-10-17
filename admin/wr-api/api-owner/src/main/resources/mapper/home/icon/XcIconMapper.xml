@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.icon.XcIconMapper">
+
+    <resultMap type="com.wr.api.owner.entity.home.icon.XcIcon" id="XcIconResult">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="url" column="url"/>
+        <result property="goTo" column="go_to"/>
+        <result property="goType" column="go_type"/>
+        <result property="miniAppId" column="mini_app_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="status" column="status"/>
+        <result property="miniAppName" column="mini_app_name"/>
+        <result property="isHot" column="is_hot"/>
+        <result property="sort" column="sort"/>
+        <result property="classify" column="classify"/>
+        <result property="viewStatus" column="view_status"/>
+        <result property="themeCode" column="theme_code"/>
+        <result property="topStatus" column="top_status"/>
+    </resultMap>
+
+    <sql id="selectXcIconVo">
+        select id,
+               name,
+               url,
+               go_to,
+               go_type,
+               mini_app_id,
+               create_time,
+               update_time,
+               create_by,
+               update_by,
+               status,
+               mini_app_name,
+               is_hot,
+               sort,
+               classify,
+               view_status,
+               theme_code,
+               top_status
+        from xccj_community.xc_icon
+    </sql>
+
+    <select id="selectXcIconList" parameterType="com.wr.api.owner.entity.home.icon.XcIcon" resultMap="XcIconResult">
+        <include refid="selectXcIconVo"/>
+        <where>
+            <if test="name != null  and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="url != null  and url != ''">
+                and url = #{url}
+            </if>
+            <if test="goTo != null  and goTo != ''">
+                and go_to = #{goTo}
+            </if>
+            <if test="goType != null ">
+                and go_type = #{goType}
+            </if>
+            <if test="miniAppId != null  and miniAppId != ''">
+                and mini_app_id = #{miniAppId}
+            </if>
+            <if test="status != null ">
+                and status = #{status}
+            </if>
+            <if test="miniAppName != null  and miniAppName != ''">
+                and mini_app_name like concat('%', #{miniAppName}, '%')
+            </if>
+            <if test="isHot != null ">
+                and is_hot = #{isHot}
+            </if>
+            <if test="sort != null ">
+                and sort = #{sort}
+            </if>
+            <if test="classify != null ">
+                and classify = #{classify}
+            </if>
+            <if test="viewStatus != null ">
+                and view_status = #{viewStatus}
+            </if>
+            <if test="themeCode != null ">
+                and theme_code = #{themeCode}
+            </if>
+            <if test="appId != null ">
+                and app_id = #{appId}
+            </if>
+        </where>
+        order by sort
+    </select>
+
+    <select id="selectXcIconById" parameterType="Long"
+            resultMap="XcIconResult">
+        <include refid="selectXcIconVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertXcIcon" parameterType="com.wr.api.owner.entity.home.icon.XcIcon" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into xccj_community.xc_icon
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,
+            </if>
+            <if test="url != null">url,
+            </if>
+            <if test="goTo != null">go_to,
+            </if>
+            <if test="goType != null">go_type,
+            </if>
+            <if test="miniAppId != null">mini_app_id,
+            </if>
+            <if test="createTime != null">create_time,
+            </if>
+            <if test="updateTime != null">update_time,
+            </if>
+            <if test="createBy != null">create_by,
+            </if>
+            <if test="updateBy != null">update_by,
+            </if>
+            <if test="status != null">status,
+            </if>
+            <if test="miniAppName != null">mini_app_name,
+            </if>
+            <if test="isHot != null">is_hot,
+            </if>
+            <if test="sort != null">sort,
+            </if>
+            <if test="classify != null">classify,
+            </if>
+            <if test="viewStatus != null ">
+                view_status,
+            </if>
+            <if test="themeCode != null ">
+                theme_code,
+            </if>
+            <if test="appId != null ">
+                app_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},
+            </if>
+            <if test="url != null">#{url},
+            </if>
+            <if test="goTo != null">#{goTo},
+            </if>
+            <if test="goType != null">#{goType},
+            </if>
+            <if test="miniAppId != null">#{miniAppId},
+            </if>
+            <if test="createTime != null">#{createTime},
+            </if>
+            <if test="updateTime != null">#{updateTime},
+            </if>
+            <if test="createBy != null">#{createBy},
+            </if>
+            <if test="updateBy != null">#{updateBy},
+            </if>
+            <if test="status != null">#{status},
+            </if>
+            <if test="miniAppName != null">#{miniAppName},
+            </if>
+            <if test="isHot != null">#{isHot},
+            </if>
+            <if test="sort != null">#{sort},
+            </if>
+            <if test="classify != null">#{classify},
+            </if>
+            <if test="viewStatus != null ">#{viewStatus},
+            </if>
+            <if test="themeCode != null ">#{themeCode},
+            </if>
+            <if test="appId != null ">
+                #{appId},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateXcIcon" parameterType="com.wr.api.owner.entity.home.icon.XcIcon">
+        update xccj_community.xc_icon
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name =
+                #{name},
+            </if>
+            <if test="url != null">url =
+                #{url},
+            </if>
+            <if test="goTo != null">go_to =
+                #{goTo},
+            </if>
+            <if test="goType != null">go_type =
+                #{goType},
+            </if>
+            <if test="miniAppId != null">mini_app_id =
+                #{miniAppId},
+            </if>
+            <if test="createTime != null">create_time =
+                #{createTime},
+            </if>
+            <if test="updateTime != null">update_time =
+                #{updateTime},
+            </if>
+            <if test="createBy != null">create_by =
+                #{createBy},
+            </if>
+            <if test="updateBy != null">update_by =
+                #{updateBy},
+            </if>
+            <if test="status != null">status =
+                #{status},
+            </if>
+            <if test="miniAppName != null">mini_app_name =
+                #{miniAppName},
+            </if>
+            <if test="isHot != null">is_hot =
+                #{isHot},
+            </if>
+            <if test="sort != null">sort =
+                #{sort},
+            </if>
+            <if test="classify != null">classify =
+                #{classify},
+            </if>
+            <if test="viewStatus != null ">
+                view_status = #{viewStatus},
+            </if>
+            <if test="themeCode != null ">
+                theme_code = #{themeCode},
+            </if>
+            <if test="appId != null ">
+                app_id = #{appId},
+            </if>
+            <if test="topStatus != null ">
+                top_status = #{topStatus},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteXcIconById" parameterType="Long">
+        delete
+        from xccj_community.xc_icon
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteXcIconByIds" parameterType="String">
+        delete from xccj_community.xc_icon where id = #{id}
+    </delete>
+</mapper>

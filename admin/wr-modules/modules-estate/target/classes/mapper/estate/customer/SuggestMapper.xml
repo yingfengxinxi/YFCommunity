@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.SuggestMapper">
+
+    <!--  查询所有意见箱数据  -->
+    <select id="getSuggestList" parameterType="com.wr.remote.estate.custom.vo.SuggestListVO" resultType="com.wr.remote.estate.custom.vo.SuggestListVO">
+        SELECT
+            xbs.suggest_id,
+            xba.account_nick,
+            xbb.building_name,
+            xbs.suggest_type,
+            xbs.remark,
+            xbs.create_time
+        FROM
+            xccj_community.bus_suggestion xbs
+                JOIN xccj_community.bus_account xba ON xbs.account_id = xba.account_id
+                JOIN xccj_community.bus_community xbc ON xbs.community_id = xbc.community_id
+                JOIN xccj_community.bus_building xbb ON xbs.building_id = xbb.building_id
+                JOIN xccj_community.bus_unit xbu ON xbs.unit_id = xbu.unit_id
+                JOIN xccj_community.bus_room xbr ON xbs.room_id = xbr.room_id
+        WHERE xbs.del_flag = '0'
+        <if test="accountNick != null and accountNick != ''">
+            AND xba.account_nick LIKE CONCAT('%',#{accountNick},'%')
+        </if>
+        <if test="suggestType != null and suggestType != ''">
+            AND xbs.suggest_type = #{suggestType}
+        </if>
+        <if test="communityId != null and communityId != ''">
+            AND xbs.community_id = #{communityId}
+        </if>
+    </select>
+
+
+    <!-- 根据ID查询意见详情   -->
+    <select id="getSuggestDeatilById" parameterType="com.wr.remote.estate.custom.vo.SuggestDeatilVO" resultType="com.wr.remote.estate.custom.vo.SuggestDeatilVO">
+        SELECT
+            xbs.suggest_id,
+            xba.account_nick,
+            xbc.community_name,
+            xbb.building_name,
+            xbs.suggest_type,
+            xbs.remark,
+            xbs.create_time,
+            xbb.building_name,
+            xbu.unit_name,
+            xbr.room_name
+        FROM
+            xccj_community.bus_suggestion xbs
+                JOIN xccj_community.bus_account xba ON xbs.account_id = xba.account_id
+                JOIN xccj_community.bus_community xbc ON xbs.community_id = xbc.community_id
+                JOIN xccj_community.bus_building xbb ON xbs.building_id = xbb.building_id
+                JOIN xccj_community.bus_unit xbu ON xbs.unit_id = xbu.unit_id
+                JOIN xccj_community.bus_room xbr ON xbs.room_id = xbr.room_id
+        WHERE xbs.del_flag = '0' AND xbs.suggest_id = #{suggestId}
+    </select>
+
+</mapper>

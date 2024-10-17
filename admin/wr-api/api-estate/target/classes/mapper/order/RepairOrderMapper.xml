@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.RepairOrderMapper">
+    <resultMap id="detailMap" type="com.wr.api.estate.entity.vo.order.RepairOrderDetailVO">
+        <result column="order_no" property="orderNo"/>
+        <result column="order_name" property="orderName"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <result column="address" property="address"/>
+        <result column="orderType" property="orderTypeName"/>
+        <result column="remark" property="finishRemark"/>
+        <result column="repairName" property="repairName"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <result column="appraise_status" property="appraiseStatus"/>
+        <result column="appraise_star" property="appraiseStar"/>
+        <result column="appraise_remark" property="appraiseRemark"/>
+        <result column="appoint_status" property="appointStatus"/>
+        <result column="pay_amount" property="payAmount"/>
+        <result column="finishImageUrl" property="finishImageUrl"/>
+        <result column="finish_time" property="finishTime"/>
+        <result column="execute_time" property="executeTime"/>
+        <result column="content" property="remark"/>
+        <result column="complaint_url" property="complaintUrl"/>
+        <result column="orderRemark" property="orderRemark"/>
+        <collection property="images" ofType="java.lang.String">
+            <result column="image_url"/>
+        </collection>
+    </resultMap>
+
+    <!-- 居家维修工单移动端列表查询 -->
+    <select id="listHomeOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        homeOrder.order_id,
+        homeOrder.order_no,
+        homeOrder.order_name,
+        homeOrder.plan_start AS startTime,
+        homeOrder.plan_end AS endTime,
+        homeOrder.address,
+        '居家维修工单' AS orderTypeName,
+        5 AS orderType,
+        IF(homeOrder.allot_way = '2' AND homeOrder.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN homeOrder.transfer_status = '1' THEN 4
+        WHEN homeOrder.allot_status = '0' THEN 1
+        WHEN homeOrder.accept_status = '0' THEN 2
+        WHEN homeOrder.execute_status = '0' THEN 3
+        WHEN homeOrder.execute_status = '2' THEN 6
+        WHEN homeOrder.execute_status = '3' THEN 8
+        WHEN homeOrder.execute_status = '1' AND NOW()>homeOrder.plan_end THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_home_order homeOrder
+        LEFT JOIN xccj_work.bus_order_audit audit ON homeOrder.order_id = audit.order_id AND audit.order_type = '5' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE
+        homeOrder.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (homeOrder.staff_id = #{staffId} OR (homeOrder.allot_way = '2' AND homeOrder.allot_status = '0' AND
+            homeOrder.accept_status = '0') OR assist.staff_id = #{staffId})
+        </if>
+        AND homeOrder.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND homeOrder.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND homeOrder.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND homeOrder.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND homeOrder.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND homeOrder.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND homeOrder.execute_status = 2
+        </if>
+        order by homeOrder.plan_start desc
+    </select>
+
+    <!-- 居家维修工单详情移动端查询 -->
+    <select id="detailHomeOrder" resultMap="detailMap">
+        SELECT homeOrder.order_no,
+               homeOrder.order_name,
+               homeOrder.plan_start AS startTime,
+               homeOrder.plan_end   AS endTime,
+               homeOrder.address,
+               homeOrder.staff_id,
+               '居家维修工单'       AS orderType,
+               homeOrder.remark,
+               homeRepair.repair_name AS repairName,
+               homeOrder.appraise_status,
+               homeOrder.appraise_star,
+               homeOrder.appraise_remark,
+               homeOrder.appoint_status,
+               homeOrder.pay_amount,
+               homeOrder.image_url AS finishImageUrl,
+               homeOrder.finish_time,
+               homeOrder.execute_time,
+               CASE
+                   WHEN homeOrder.transfer_status = '1' THEN 4
+                   WHEN homeOrder.allot_status = '0' THEN 1
+                   WHEN homeOrder.accept_status = '0' THEN 2
+                   WHEN homeOrder.execute_status = '0' THEN 3
+                   WHEN homeOrder.execute_status = '2' THEN 6
+                   WHEN homeOrder.execute_status = '3' THEN 8
+                   WHEN homeOrder.execute_status = '1' AND NOW()>homeOrder.plan_end THEN 7
+                   ELSE 5 END       AS orderStatus,
+               image.image_url,
+               bc.remark AS content,
+               bc.complaint_url
+        FROM xccj_work.bus_home_order homeOrder
+                 LEFT JOIN xccj_work.bus_home_repair homeRepair
+                           ON homeOrder.repair_id = homeRepair.repair_id
+                 LEFT JOIN xccj_work.bus_order_image image ON image.table_id = homeOrder.order_id AND image.image_type = '0'
+        LEFT JOIN xccj_community.bus_complaint bc ON homeOrder.order_id = bc.order_id AND bc.order_type = '1' AND bc.del_flag = '0'
+        WHERE homeOrder.order_id = #{orderId}
+    </select>
+
+
+    <!-- 园区报事工单移动端列表查询 -->
+    <select id="listParkOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bpo.order_id,
+        bpo.order_no,
+        bpo.order_name,
+        bpo.plan_start AS startTime,
+        bpo.plan_end AS endTime,
+        bpa.address,
+        '园区报事工单' AS orderTypeName,
+        7 AS orderType,
+        IF(bpo.allot_way = '2' AND bpo.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bpo.transfer_status = '1' THEN 4
+        WHEN bpo.allot_status = '0' THEN 1
+        WHEN bpo.accept_status = '0' THEN 2
+        WHEN bpo.execute_status = '0' THEN 3
+        WHEN bpo.execute_status = '2' THEN 6
+        WHEN bpo.execute_status = '3' THEN 8
+        WHEN bpo.execute_status = '1' AND NOW()>bpo.plan_end THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_park_order bpo
+        LEFT JOIN xccj_work.bus_park_audit bpa ON bpo.audit_id = bpa.audit_id
+        LEFT JOIN xccj_work.bus_order_audit audit ON bpo.order_id = audit.order_id AND audit.order_type = '7' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bpo.del_flag = '0'
+        AND bpa.audit_status = '1'
+        AND bpa.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bpo.staff_id = #{staffId} OR (bpo.allot_way = '2' AND bpo.allot_status = '0' AND bpo.accept_status = '0')
+            OR assist.staff_id = #{staffId})
+        </if>
+        AND bpo.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bpo.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bpo.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bpo.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bpo.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bpo.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bpo.execute_status = 2
+        </if>
+        order by bpo.plan_start desc
+    </select>
+
+    <!-- 园区报事工单详情移动端查询 -->
+    <select id="detailParkOrder" resultMap="detailMap">
+        SELECT bpo.order_no,
+               bpo.order_name,
+               bpo.plan_start AS startTime,
+               bpo.plan_end   AS endTime,
+               bpa.address,
+               bpa.remark AS orderRemark,
+               bpo.staff_id,
+               '园区报事工单' AS orderType,
+               bpo.remark,
+               parkmeRepair.repair_name AS repairName,
+               bpo.appraise_status,
+               bpo.appraise_star,
+               bpo.appraise_remark,
+               bpo.image_url AS finishImageUrl,
+               bpo.finish_time,
+               bpo.execute_time,
+               CASE
+                   WHEN transfer_status = '1' THEN 4
+                   WHEN allot_status = '0' THEN 1
+                   WHEN accept_status = '0' THEN 2
+                   WHEN execute_status = '0' THEN 3
+                   WHEN execute_status = '2' THEN 6
+                   WHEN execute_status = '3' THEN 8
+                   WHEN execute_status = '1' AND NOW() > plan_end THEN 7
+                   ELSE 5 END AS orderStatus,
+               image.image_url,
+               bc.remark AS content,
+               bc.complaint_url
+        FROM xccj_work.bus_park_order bpo
+                 LEFT JOIN xccj_work.bus_park_audit bpa ON bpo.audit_id = bpa.audit_id
+                 LEFT JOIN xccj_work.bus_park_repair parkmeRepair
+                           ON bpa.repair_id = parkmeRepair.repair_id
+                 LEFT JOIN xccj_work.bus_order_image image ON image.table_id = bpo.audit_id AND image.image_type = '1'
+                 LEFT JOIN xccj_community.bus_complaint bc ON bpo.order_id = bc.order_id AND bc.order_type = '2' and bc.del_flag = '0'
+        WHERE bpo.order_id = #{orderId}
+    </select>
+
+    <!-- 灾害报事工单移动端列表查询 -->
+    <select id="listDisasterOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bdo.order_id,
+        bdo.order_no,
+        bdo.order_name,
+        bdo.plan_start AS startTime,
+        bdo.plan_end AS endTime,
+        bda.address,
+        '园区报事工单' AS orderTypeName,
+        8 AS orderType,
+        IF(bdo.allot_way = '2' AND bdo.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bdo.transfer_status = '1' THEN 4
+        WHEN bdo.allot_status = '0' THEN 1
+        WHEN bdo.accept_status = '0' THEN 2
+        WHEN bdo.execute_status = '0' THEN 3
+        WHEN bdo.execute_status = '2' THEN 6
+        WHEN bdo.execute_status = '3' THEN 8
+        WHEN bdo.execute_status = '1' AND NOW() > bdo.plan_end THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_disaster_order bdo
+        LEFT JOIN xccj_work.bus_disaster_audit bda ON bdo.audit_id = bda.audit_id
+        LEFT JOIN xccj_work.bus_order_audit audit ON bdo.order_id = audit.order_id AND audit.order_type = '8' AND
+        audit.audit_status = '1' AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bdo.del_flag = '0'
+        AND bda.audit_status = '1'
+        AND bda.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bdo.staff_id = #{staffId} OR (bdo.allot_way = '2' AND bdo.allot_status = '0' AND bdo.accept_status = '0')
+            OR assist.staff_id = #{staffId})
+        </if>
+        AND bdo.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bdo.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bdo.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bdo.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bdo.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bdo.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bdo.execute_status = 2
+        </if>
+        order by bdo.plan_start desc
+    </select>
+
+    <!-- 灾害报事工单详情移动端查询 -->
+    <select id="detailDisasterOrder" resultMap="detailMap">
+        SELECT bdo.order_no,
+               bdo.order_name,
+               bdo.plan_start         AS startTime,
+               bdo.plan_end           AS endTime,
+               bda.address,
+               bda.remark AS orderRemark,
+               bdo.staff_id,
+               '灾害报事工单'         AS orderType,
+               bdo.remark,
+               disaster.disaster_name AS repairName,
+               bdo.appraise_status,
+               bdo.appraise_star,
+               bdo.appraise_remark,
+               bdo.image_url AS finishImageUrl,
+               bdo.finish_time,
+               bdo.execute_time,
+               CASE
+                   WHEN transfer_status = '1' THEN 4
+                   WHEN allot_status = '0' THEN 1
+                   WHEN accept_status = '0' THEN 2
+                   WHEN execute_status = '0' THEN 3
+                   WHEN execute_status = '2' THEN 6
+                   WHEN execute_status = '3' THEN 8
+                   WHEN execute_status = '1' AND plan_end > NOW() THEN 7
+                   ELSE 5 END         AS orderStatus,
+               image.image_url,
+               bc.remark AS content,
+               bc.complaint_url
+        FROM xccj_work.bus_disaster_order bdo
+                 LEFT JOIN xccj_work.bus_disaster_audit bda ON bdo.audit_id = bda.audit_id
+                 LEFT JOIN xccj_work.bus_disaster disaster
+                           ON disaster.disaster_id = bda.disaster_id
+                 LEFT JOIN xccj_work.bus_order_image image ON image.table_id = bda.audit_id AND image.image_type = '2'
+                 LEFT JOIN xccj_community.bus_complaint bc ON bdo.order_id = bc.order_id AND bc.order_type = '3' AND bc.del_flag = '0'
+        WHERE bdo.order_id = #{orderId}
+    </select>
+
+    <!-- 抢单 -->
+    <update id="robOrder">
+        <if test="orderType == 5">
+            UPDATE xccj_work.bus_home_order
+        </if>
+        <if test="orderType == 7">
+            UPDATE xccj_work.bus_park_order
+        </if>
+        <if test="orderType == 8">
+            UPDATE xccj_work.bus_disaster_order
+        </if>
+        SET allot_status = '1',
+        accept_status = '1',
+        staff_id = #{staffId}
+        WHERE allot_status = '0'
+        AND accept_status = '0'
+        AND allot_way = '2'
+        AND order_id = #{orderId}
+    </update>
+
+    <!-- 接单 -->
+    <update id="receiveOrder">
+        <if test="orderType == 5">
+            UPDATE xccj_work.bus_home_order
+        </if>
+        <if test="orderType == 7">
+            UPDATE xccj_work.bus_park_order
+        </if>
+        <if test="orderType == 8">
+            UPDATE xccj_work.bus_disaster_order
+        </if>
+        SET accept_status = '1'
+        WHERE allot_status = '1'
+        AND accept_status = '0'
+        AND order_id = #{orderId}
+        AND staff_id = #{staffId}
+    </update>
+
+    <!-- 开始执行 -->
+    <update id="startPerform">
+        <if test="orderType == 5">
+            UPDATE xccj_work.bus_home_order
+        </if>
+        <if test="orderType == 7">
+            UPDATE xccj_work.bus_park_order
+        </if>
+        <if test="orderType == 8">
+            UPDATE xccj_work.bus_disaster_order
+        </if>
+        SET execute_status = '1',
+        execute_time = NOW()
+        WHERE order_id = #{orderId}
+        AND allot_status = '1'
+        AND accept_status = '1'
+        AND execute_status = '0'
+        AND staff_id = #{staffId}
+    </update>
+
+    <!-- 完成工单 -->
+    <update id="finish">
+        <if test="orderType == 5">
+            UPDATE xccj_work.bus_home_order
+        </if>
+        <if test="orderType == 7">
+            UPDATE xccj_work.bus_park_order
+        </if>
+        <if test="orderType == 8">
+            UPDATE xccj_work.bus_disaster_order
+        </if>
+        SET execute_status = IF(NOW()>plan_end, 3, 2),
+        finish_time = NOW(),
+        image_url = #{finishImageUrl},
+        remark = #{remark},
+        execute_id = #{staffId}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <!-- 转交工单 -->
+    <update id="transfer">
+        <if test="orderType == 5">
+            UPDATE xccj_work.bus_home_order
+        </if>
+        <if test="orderType == 7">
+            UPDATE xccj_work.bus_park_order
+        </if>
+        <if test="orderType == 8">
+            UPDATE xccj_work.bus_disaster_order
+        </if>
+        SET transfer_status = '1'
+        WHERE order_id = #{orderId}
+        AND execute_status IN ('1', '0')
+        AND transfer_status = '0'
+        AND staff_id = #{staffId}
+    </update>
+</mapper>

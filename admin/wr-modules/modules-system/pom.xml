@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.wr</groupId>
+        <artifactId>wr-modules</artifactId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+	
+    <artifactId>modules-system</artifactId>
+
+    <description>modules-system系统模块</description>
+	
+    <dependencies>
+    	
+    	<!-- SpringCloud Alibaba Nacos -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        
+        <!-- SpringCloud Alibaba Nacos Config -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        
+    	<!-- SpringCloud Alibaba Sentinel -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+        </dependency>
+        
+    	<!-- SpringBoot Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+		
+        <!-- Swagger UI -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger.fox.version}</version>
+        </dependency>
+		
+        <!-- Mysql Connector -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        
+        <!-- wr Common DataSource -->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-datasource</artifactId>
+        </dependency>
+        
+        <!-- wr Common DataScope -->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-datascope</artifactId>
+        </dependency>
+        
+        <!-- wr Common Log -->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-log</artifactId>
+        </dependency>
+        
+        <!-- wr Common Swagger -->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-swagger</artifactId>
+        </dependency>
+
+        <!-- wr Common DataScope -->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-core</artifactId>
+        </dependency>
+
+        <!-- wr Common Customize -->
+        <dependency>
+            <groupId>com.wr</groupId>
+            <artifactId>common-customize</artifactId>
+        </dependency>
+        <!--加入mybatis plus-->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>system</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.5.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+   
+</project>

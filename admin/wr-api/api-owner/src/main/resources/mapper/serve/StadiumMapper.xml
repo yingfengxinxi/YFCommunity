@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.StadiumMapper">
+    <!--  预约场馆-->
+    <insert id="insertStadium">
+        insert into xccj_community.bus_venue_appoint
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="userName != null and userName != ''">user_name,</if>
+            <if test="userPhone != null and userPhone != ''">user_phone,</if>
+            <if test="activityId != null and activityId != ''">activity_id,</if>
+            <if test="activityName != null and activityName != ''">activity_name,</if>
+            <if test="venueId != null and venueId != ''">venue_id,</if>
+            <if test="cardNo != null and cardNo != ''">card_no,</if>
+            <if test="planStart != null ">plan_start,</if>
+            <if test="planEnd != null">plan_end,</if>
+            <if test="deposit != null and deposit != ''">deposit,</if>
+            <if test="currentEnd != null">current_end,</if>
+            <if test="appointStatus != null and appointStatus != ''">appoint_status,</if>
+            <if test="payWay != null and payWay != ''">pay_way,</if>
+            <if test="payAmount != null and payAmount != ''">pay_amount,</if>
+            <if test="refundWay != null and refundWay != ''">refund_way,</if>
+            <if test="refundAmount != null and refundAmount != ''">refund_amount,</if>
+            <if test="refundReason != null and refundReason != ''">refund_reason,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null ">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="userName != null and userName != ''">#{userName},</if>
+            <if test="userPhone != null and userPhone != ''">#{userPhone},</if>
+            <if test="activityId != null and activityId != ''">#{activityId},</if>
+            <if test="activityName != null and activityName != ''">#{activityName},</if>
+            <if test="venueId != null and venueId != ''">#{venueId},</if>
+            <if test="cardNo != null and cardNo != ''">#{cardNo},</if>
+            <if test="planStart != null">#{planStart},</if>
+            <if test="planEnd != null">#{planEnd},</if>
+            <if test="deposit != null and deposit != ''">#{deposit},</if>
+            <if test="currentEnd != null">#{currentEnd},</if>
+            <if test="appointStatus != null and appointStatus != ''">#{appointStatus},</if>
+            <if test="payWay != null and payWay != ''">#{payWay},</if>
+            <if test="payAmount != null and payAmount != ''">#{payAmount},</if>
+            <if test="refundWay != null and refundWay != ''">#{refundWay},</if>
+            <if test="refundAmount != null and refundAmount != ''">#{refundAmount},</if>
+            <if test="refundReason != null and refundReason != ''">#{refundReason},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+    <update id="updateEndStatus">
+        update xccj_community.bus_venue_appoint set appoint_status=#{appointStatus},current_end=#{currentEnd}
+        where appoint_id=#{appointId}
+    </update>
+
+    <!--查询本小区活动场馆-->
+    <select id="stadiumList" resultType="com.wr.api.owner.entity.dto.VenueDTO">
+         SELECT
+            bv.venue_id,
+            bv.community_id,
+            bv.venue_name,
+            bv.address,
+            bv.deposit,
+            bv.hour_fee,
+            bv.staff_id,
+            bv.venue_image,
+            bv.venue_status,
+            bv.create_by,
+            bv.create_time,
+            bv.update_by,
+            bv.update_time,
+            bv.del_flag
+        FROM
+            xccj_community.bus_venue bv
+           where bv.community_id=#{communityId}
+           and bv.venue_status='0'
+    </select>
+    <!--获取本场馆的预约信息-->
+    <select id="getAppointyId" resultType="com.wr.api.owner.entity.vo.serve.StadiumPointVo">
+       SELECT
+	bap.venue_id,
+	bap.activity_name,
+	bat.activity_name AS activityType,
+	bap.plan_start,
+	bap.plan_end,
+	bap.create_time
+FROM
+	xccj_community.bus_venue bv
+	LEFT JOIN xccj_community.bus_venue_appoint bap ON bv.venue_id = bap.venue_id
+	LEFT JOIN xccj_community.bus_venue_act bat ON bap.activity_id = bat.activity_id
+						where bap.venue_id=#{venueId} and bap.plan_start LIKE concat(#{createTime}, '%')
+						and bap.community_id=#{communityId}
+						and bap.del_flag='0'
+
+    </select>
+    <!-- 查看场馆详细信息-->
+    <select id="getStadiumInfo" resultType="com.wr.api.owner.entity.vo.serve.StadiumVo">
+        SELECT
+            bv.venue_id,
+            bv.community_id,
+            bv.venue_name,
+            bv.address,
+            bv.deposit,
+            bv.hour_fee,
+            bv.staff_id,
+            bv.venue_image,
+            bv.venue_status,
+            bv.create_by,
+            bv.create_time,
+            bv.update_by,
+            bv.update_time,
+            bv.del_flag,
+						bs.staff_name,
+						bs.staff_phone,
+						bva.refund_amount,
+						bva.refund_reason,
+						bva.appoint_status,
+						bva.pay_amount
+        FROM
+            xccj_community.bus_venue bv
+						LEFT JOIN xccj_community.bus_staff bs on bv.staff_id = bs.staff_id
+						LEFT JOIN xccj_community.bus_venue_appoint bva on bva.venue_id = bv.venue_id
+						where bs.work_post='3' and bv.del_flag='0' and
+            bv.venue_id=#{venueId}
+            GROUP BY bv.venue_id
+    </select>
+    <!--<select id="getcount" resultType="java.lang.Integer">
+         SELECT
+            COUNT(*)
+        FROM
+            xccj_community.bus_venue_appoint
+        WHERE
+            del_flag = 0 AND venue_id = #{venueId}
+          AND (
+                #{starttime} BETWEEN plan_start
+                    AND plan_end
+                OR ( #{endtime} BETWEEN plan_start AND plan_end )
+            )
+    </select>-->
+    <!-- 查询当前时间段是否被预约-->
+    <select id="getcount" resultType="java.lang.Integer">
+        SELECT COUNT(venue_id) FROM xccj_community.bus_venue_appoint
+        WHERE del_flag = 0 AND venue_id = #{venueId} and appoint_id NOT IN (
+        SELECT appoint_id	FROM xccj_community.bus_venue_appoint WHERE
+        #{starttime} >= plan_end OR plan_start >= #{endtime}
+        and appoint_status =0
+        )
+    </select>
+    <!--查询我得预约-->
+    <select id="getAppointMine" resultType="com.wr.api.owner.entity.dto.VenueDTO">
+        SELECT
+         bap.appoint_id,
+         bv.venue_name,
+        bv.address,
+        bap.community_id,
+        bap.venue_id,
+        bv.venue_image,
+        bap.create_time,
+        bap.card_no,
+        (CASE
+        when bap.current_end is not null THEN '2'
+        when bap.appoint_status ="2" THEN '3'
+        WHEN now() BETWEEN bap.plan_start and bap.plan_end THEN '0'
+        WHEN now() &lt; bap.plan_start THEN '1'
+        WHEN now() > bap.plan_end THEN '2'
+        END) timeStatus
+        from xccj_community.bus_venue bv
+        LEFT JOIN xccj_community.bus_venue_appoint bap ON bv.venue_id = bap.venue_id AND bap.del_flag = '0'
+        where bv.del_flag = '0' AND bap.card_no =#{cardNo} and bap.community_id=#{communityId}
+    </select>
+    <!-- 查询本小区的活动类型-->
+    <select id="getCommunityAct" resultType="com.wr.api.owner.entity.vo.serve.TypeActVo">
+         select activity_id,community_id,activity_name from xccj_community.bus_venue_act where community_id=#{communityId}
+ and del_flag='0'
+    </select>
+    <select id="getVenueRule" resultType="com.wr.api.owner.entity.vo.serve.StadiumRuleVo">
+
+SELECT
+    rule_id,
+	statement,
+	use_rule,
+    start_time,
+    end_time,
+    gap_hour
+FROM
+	xccj_community.bus_venue_rule
+WHERE
+	estate_id =(
+	SELECT
+		estate_id
+	FROM
+		xccj_community.bus_estate
+	WHERE
+	del_flag = '0'
+	AND estate_id = ( SELECT estate_id FROM xccj_community.bus_community
+            WHERE del_flag='0' AND community_id =  #{communityId} ))
+
+    </select>
+    <!-- 根据身份证、小区id、场馆id查询我得预约详情-->
+    <select id="getMyPoint" resultType="com.wr.api.owner.entity.vo.serve.StadiumPointVo">
+        SELECT
+        bap.appoint_id,
+	bap.venue_id,
+	bap.user_name,
+	bap.user_phone,
+	bap.card_no,
+	bap.activity_name,
+	bat.activity_name AS activityType,
+	bap.plan_start,
+	bap.plan_end,
+	bap.create_time,
+	bap.refund_amount,
+	bap.refund_reason,
+	bap.appoint_status,
+	bap.pay_amount,
+	bv.address,
+	bv.venue_name,
+	bv.deposit,
+	bv.hour_fee
+FROM
+    xccj_community.bus_venue_appoint bap
+	LEFT JOIN xccj_community.bus_venue bv ON bv.venue_id = bap.venue_id
+	LEFT JOIN xccj_community.bus_venue_act bat ON bap.activity_id = bat.activity_id
+						where bap.venue_id=#{venueId} and bap.card_no =#{cardNo}
+						and bap.community_id=#{communityId}
+						and bap.del_flag='0'
+        AND bap.appoint_id = #{appointId}
+    </select>
+</mapper>
+

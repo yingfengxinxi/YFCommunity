@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.mapper.HomeMenuMapper">
+  <resultMap type="com.wr.system.domain.HomeMenu" id="BannerResult">
+    <id property="estateId" column="estate_id"/>
+    <result property="type" column="type"/>
+    <result property="menuType" column="menu_type"/>
+    <result property="menuUrl" column="menu_url"/>
+    <result property="pageUrl" column="page_url"/>
+    <result property="menuCode" column="menu_code"/>
+    <result property="sort" column="sort"/>
+    <result property="name" column="name"/>
+  </resultMap>
+
+  <!--分页列表-->
+  <select id="selectListByestateId" parameterType="com.wr.system.domain.HomeMenu"
+          resultMap="BannerResult">
+      SELECT
+      home_menu_id,
+      menu_type,
+      menu_url,
+      page_url,
+      menu_code,
+      `type`,
+      `name`,
+      sort
+      FROM xccj_community.bus_home_menu
+      where del_flag = '0'
+      <if test="null != estateId">
+          and estate_id = #{estateId}
+      </if>
+      <if test="null != type and '' != type">
+          and `type` = #{type}
+      </if>
+      <if test="null != menuType and '' != menuType">
+          and menu_type = #{menuType}
+      </if>
+      order by sort asc
+  </select>
+
+</mapper>

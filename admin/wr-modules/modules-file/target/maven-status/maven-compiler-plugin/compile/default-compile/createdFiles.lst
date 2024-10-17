@@ -1,0 +1,9 @@
+com\wr\file\config\MinioConfig.class
+com\wr\file\controller\SysFileController.class
+com\wr\file\service\FastDfsSysFileServiceImpl.class
+com\wr\file\service\LocalSysFileServiceImpl.class
+com\wr\file\utils\FileUploadUtils.class
+com\wr\file\config\ResourcesConfig.class
+com\wr\file\service\ISysFileService.class
+com\wr\file\service\MinioSysFileServiceImpl.class
+com\wr\file\FileApplication.class

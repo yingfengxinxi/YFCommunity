@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.partypay.MemberFeeMapper">
+
+    <update id="partyFeeEdit">
+        UPDATE xccj_govern.bus_member SET party_fee = #{partyFee} WHERE member_id IN
+        <foreach item="item" index="index" collection="memberIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+</mapper>

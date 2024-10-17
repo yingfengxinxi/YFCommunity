@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.security.PreventMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.govern.security.Prevent">
+        <id column="prevent_id" jdbcType="BIGINT" property="preventId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="prevent_title" jdbcType="VARCHAR" property="preventTitle"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+
+
+
+    <select id="getList" resultType="com.wr.remote.govern.security.Prevent">
+        SELECT prevent_id         as "preventId",
+               image_url          as "imageUrl",
+               prevent_title      as "preventTitle",
+               prevent_type_id    as "preventTypeId",
+               brief_introduction as "briefIntroduction",
+               create_time        as "createTime"
+        FROM xccj_govern.bus_prevent
+        where del_flag = 0
+          AND community_id = #{communityId}
+        ORDER BY create_time Desc
+    </select>
+
+    <select id="getByEstateIdPreventId" resultType="String">
+        SELECT
+            bp.prevent_id
+        FROM
+            xccj_govern.bus_prevent bp
+        WHERE
+            bp.`del_flag` = '0'
+          AND estate_id = #{estateId} and bp.community_id=#{communityId}
+    </select>
+
+    <select id="getPreventDetail" resultType="com.wr.remote.govern.security.vo.PreventVO">
+        SELECT bp.prevent_id    AS "preventId",
+               bp.estate_id     AS "estateId",
+               bp.prevent_title AS "preventTitle",
+               bp.image_url     AS "imageUrl",
+               bp.content       AS "content",
+               su.nick_name     AS "createBy",
+               bp.create_time   AS "createTime"
+        FROM xccj_govern.bus_prevent bp
+                 LEFT JOIN xccj_estate_sys.sys_user su ON su.user_name = bp.create_by
+        WHERE bp.del_flag = 0
+          AND bp.prevent_id = #{preventId}
+    </select>
+
+    <select id="getPreventRangInfo" resultType="java.lang.Long">
+        SELECT community_id
+        FROM xccj_govern.bus_prevent_rang
+        WHERE prevent_id = #{preventId}
+    </select>
+
+
+</mapper>

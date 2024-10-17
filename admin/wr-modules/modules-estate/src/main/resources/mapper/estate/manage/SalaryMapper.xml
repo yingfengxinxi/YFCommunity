@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.SalaryMapper">
+    <select id="selectSumList" resultType="com.wr.remote.estate.manage.SalaryTotal">
+        SELECT CONCAT( REPLACE(b.`year_month`,'-','年'),'月薪资') AS salaryName,
+               b.`year_month`                    AS salaryTime,
+               SUM(b.gross_salary)               AS salaryExpenses,
+               COUNT(b.`year_month`)                           AS attendance,
+               SUM(b.full_day)                   AS days,
+               SUM(b.attend_day)                 AS workDays,
+               SUM(b.age_award)                  AS salarySeniority,
+               SUM(b.full_award)                 AS fullSalary,
+               SUM(b.social_fee)                 AS guarantee,
+               SUM(b.late_fee)                   AS salaryLate,
+               SUM(b.tax_fee)                    AS realitySalary,
+               SUM(b.actually_salary) AS wages
+
+        FROM xccj_community.bus_salary b
+        WHERE b.del_flag = '0' AND b.community_id in (SELECT community_id FROM xccj_community.bus_community  WHERE del_flag = '0' AND estate_id = #{estateId})
+        GROUP BY b.`year_month`
+        ORDER BY b.`year_month` desc
+
+    </select>
+    <select id="selectList" resultType="com.wr.remote.estate.manage.Salary">
+        SELECT
+        b.salary_id         as salaryId,
+        b.staff_id          as staffId,
+        s.staff_name        as staffName,
+        s.staff_phone       as staffPhone,
+        b.year_month        as yearMonth,
+        b.attend_day        as attendDay,
+        b.full_day          as fullDay,
+        b.full_award        as fullAward,
+        b.age_award         as ageAward,
+        b.gross_salary      as grossSalary,
+        b.social_fee        as socialFee,
+        b.late_fee          as lateFee,
+        b.tax_fee           as taxFee,
+        (b.actually_salary)   as actuallySalary,
+        b.remark            as remark
+        FROM xccj_community.bus_salary b
+        left join xccj_community.bus_staff s on b.staff_id=s.staff_id
+        where b.del_flag='0'
+        AND b.community_id in (SELECT xcbc.community_id FROM xccj_community.bus_community xcbc WHERE xcbc.del_flag = '0' AND xcbc.estate_id = #{estateId})
+        <if test="staffName!= null and staffName!= ''">
+            AND s.staff_name like concat('%', #{staffName}, '%')
+        </if>
+        <if test="staffPhone!= null and staffPhone!= ''">
+            AND s.staff_phone like concat('%', #{staffPhone}, '%')
+        </if>
+        <if test="fullDay!= null and fullDay!= ''">
+            AND b.full_day like concat('%', #{fullDay}, '%')
+        </if>
+        <if test="yearMonth!= null and yearMonth!= ''">
+            AND b.year_month=#{yearMonth}
+        </if>
+        <if test="salaryId!= null ">
+            AND b.salary_id=#{salaryId}
+        </if>
+    </select>
+
+    <!--<select id="listName" resultType="java.util.Map">
+        SELECT
+            s.staff_id as staffId,
+            s.staff_name as staffName
+        FROM xccj_community.bus_staff s
+        where s.del_flag=0 AND s.community_id in (SELECT community_id FROM xccj_community.bus_community WHERE estate_id = #{estateId})
+        ORDER BY s.staff_id
+    </select>-->
+    <select id="listName" resultType="java.util.Map">
+        SELECT
+            s.staff_id as staffId,
+            s.staff_name as staffName
+        FROM xccj_community.bus_staff s
+        WHERE s.del_flag = 0
+          AND s.community_id IN (SELECT community_id
+                                 FROM xccj_community.bus_community
+                                 WHERE estate_id IN  (select GROUP_CONCAT(estate_id) estate_id from (SELECT estate_id
+                                                                                                     FROM (
+                                                                                                              SELECT t1.*,
+                                                                                                                     IF(FIND_IN_SET(parent_id, @pids) > 0,
+                                                                                                                        @pids := CONCAT(@pids, ',', estate_id), '0') AS ischild
+                                                                                                              FROM (
+                                                                                                                       SELECT *
+                                                                                                                       FROM xccj_community.bus_estate AS t
+                                                                                                                       WHERE t.del_flag = '0'
+                                                                                                                       ORDER BY t.estate_id ASC
+                                                                                                                   ) t1,
+                                                                                                                   (SELECT @pids := #{estateId}) t2
+                                                                                                          ) t3
+                                                                                                     WHERE ischild != '0'
+                                                                                                     UNION
+                                                                                                     SELECT estate_id
+                                                                                                     FROM xccj_community.bus_estate
+                                                                                                     WHERE estate_id = #{estateId}
+                                                                                                       AND del_flag = '0') a))
+        ORDER BY s.staff_id
+    </select>
+
+    <insert id="addSalary">
+        INSERT
+        INTO xccj_community.bus_salary (staff_id,
+                                        `year_month`,
+                                        attend_day,
+                                        full_day,
+                                        full_award,
+                                        age_award,
+                                        gross_salary,
+                                        social_fee,
+                                        late_fee,
+                                        tax_fee,
+                                        actually_salary,
+                                        remark,
+                                        del_flag,
+                                        create_by,
+                                        create_time,
+                                        community_id
+
+        )
+        VALUES (
+                   #{staffId},
+                   #{yearMonth},
+                   #{attendDay},
+                   #{fullDay},
+                   #{fullAward},
+                   #{ageAward},
+                   #{grossSalary},
+                   #{socialFee},
+                   #{lateFee},
+                   #{taxFee},
+                   #{actuallySalary},
+                   #{remark},
+                   '0',
+                   #{createBy},
+                   SYSDATE(),
+                (select community_id from xccj_community.bus_staff where staff_id = #{staffId} and del_flag = '0')
+               )
+    </insert>
+
+    <update id="updateSalary">
+        UPDATE xccj_community.bus_salary
+        SET
+
+        <if test="yearMonth != null">
+            `year_month` =#{yearMonth},
+        </if>
+        <if test="attendDay != null">
+            attend_day =#{attendDay},
+        </if>
+        <if test="fullDay != null">
+            full_day =#{fullDay},
+        </if>
+        <if test="fullAward != null">
+            full_award =#{fullAward},
+        </if>
+        <if test="ageAward != null">
+            age_award =#{ageAward},
+        </if>
+        <if test="grossSalary != null">
+            gross_salary =#{grossSalary},
+        </if>
+        <if test="socialFee != null">
+            social_fee =#{socialFee},
+        </if>
+        <if test="lateFee != null">
+            late_fee =#{lateFee},
+        </if>
+        <if test="taxFee != null">
+            tax_fee =#{taxFee},
+        </if>
+        <if test="actuallySalary != null">
+            actually_salary =#{actuallySalary},
+        </if>
+        <if test="remark != null">
+            remark =#{remark},
+        </if>
+        <if test="delFlag != null">
+            del_flag =#{delFlag},
+        </if>
+        update_by =#{updateBy},
+        update_time =SYSDATE()
+        WHERE salary_id=#{salaryId}
+
+    </update>
+
+    <update id="deleteSalaryByIds">
+        update xccj_community.bus_salary set del_flag = '1' where salary_id in
+        <foreach collection="array" item="salaryId" open="(" separator="," close=")">
+            #{salaryId}
+        </foreach>
+    </update>
+    <select id="checkUnique" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM xccj_community.bus_salary
+        WHERE del_flag = '0'
+          AND staff_id = #{staffId}
+          AND `year_month`= #{yearMonth}
+        limit 1
+    </select>
+</mapper>

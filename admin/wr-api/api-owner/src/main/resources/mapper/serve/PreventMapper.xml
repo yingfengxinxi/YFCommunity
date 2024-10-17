@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.PreventMapper">
+
+    <select id="getPreventAll" resultType="com.wr.remote.govern.security.PreventSafety">
+        SELECT bp.prevent_id,
+               bp.estate_id,
+               bp.community_id,
+               bp.image_url,
+               bp.prevent_title,
+               bp.create_time,
+               bp.content,
+               bp.prevent_type_id,
+               bp.brief_introduction,
+               bp.create_by
+        FROM xccj_govern.`bus_prevent_safety` bp
+                 LEFT JOIN xccj_govern.bus_prevent_rang bpr ON bpr.prevent_id = bp.prevent_id
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bpr.community_id
+        WHERE bp.del_flag = '0'
+          AND bpr.community_id = #{communityId}
+        ORDER BY bp.create_time DESC
+    </select>
+    <select id="getPreventById" resultType="com.wr.remote.govern.security.PreventSafety">
+        SELECT bp.prevent_id,
+               bp.estate_id,
+               bp.community_id,
+               bp.image_url,
+               bp.prevent_title,
+               bp.create_time,
+               bp.content,
+               bp.prevent_type_id,
+               bp.brief_introduction,
+               bp.create_by
+        FROM xccj_govern.`bus_prevent_safety` bp
+        WHERE bp.del_flag = '0'
+          AND bp.prevent_id = #{preventId}
+    </select>
+
+    <resultMap id="BaseResultMap" type="com.wr.remote.govern.security.Prevent">
+        <id column="prevent_id" jdbcType="BIGINT" property="preventId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="prevent_title" jdbcType="VARCHAR" property="preventTitle"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        community_id,
+        prevent_id,
+        estate_id,
+        prevent_title,
+        image_url,
+        content,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag,
+        prevent_type_id,
+        brief_introduction
+    </sql>
+
+    <insert id="addPrevent" useGeneratedKeys="true" keyProperty="preventId">
+        insert into xccj_govern.bus_prevent
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="preventTitle != null">
+                prevent_title,
+            </if>
+            <if test="imageUrl != null">
+                image_url,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="briefIntroduction != null">
+                brief_introduction,
+            </if>
+            <if test="preventTypeId != null">
+                prevent_type_id,
+            </if>
+
+            <if test="content != null">
+                content,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            create_time,
+            del_flag
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="preventTitle != null">
+                #{preventTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl != null">
+                #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="communityId != null">
+                #{communityId},
+            </if>
+            <if test="estateId != null">
+                #{estateId},
+            </if>
+            <if test="briefIntroduction != null">
+                #{briefIntroduction},
+            </if>
+            <if test="preventTypeId != null">
+                #{preventTypeId},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            sysDate(),
+            "0"
+        </trim>
+    </insert>
+
+    <insert id="addPreventRang">
+        insert into xccj_govern.bus_prevent_rang (prevent_id,community_id)
+        VALUES
+        <foreach collection="communityIds" item="item" separator=",">
+            (#{preventId},#{item})
+        </foreach>
+    </insert>
+
+    <update id="updatePrevent">
+        update xccj_govern.bus_prevent
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId},
+            </if>
+            <if test="preventTitle != null">
+                prevent_title = #{preventTitle,jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl != null">
+                image_url = #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="briefIntroduction != null">
+                brief_introduction=#{briefIntroduction,jdbcType=VARCHAR},
+            </if>
+            <if test="preventTypeId != null">
+                prevent_type_id=#{preventTypeId,jdbcType=VARCHAR},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            update_time=sysDate()
+        </set>
+        where prevent_id = #{preventId,jdbcType=BIGINT} and del_flag=0
+    </update>
+
+    <delete id="removePreventRang">
+        delete
+        FROM xccj_govern.bus_prevent_rang
+        WHERE prevent_id = #{preventId,jdbcType=BIGINT}
+    </delete>
+
+    <update id="delPrevent">
+        update xccj_govern.bus_prevent
+        <set>
+            del_flag=1
+        </set>
+        where prevent_id = #{preventId,jdbcType=BIGINT} and del_flag=0
+    </update>
+
+    <select id="getList" resultType="com.wr.remote.govern.security.Prevent">
+        SELECT
+        community_id,
+        prevent_id,
+        image_url,
+        prevent_title,
+        prevent_type_id,
+        brief_introduction,
+        create_time
+        FROM xccj_govern.bus_prevent
+        <where>
+            del_flag=0
+            <if test="preventTitle !=null and preventTitle !=''">
+                and prevent_title like CONCAT('%',#{preventTitle},'%')
+            </if>
+            <if test="preventTypeId !=null and preventTypeId !=''">
+                and prevent_type_id=#{preventTypeId}
+            </if>
+            <if test="communityId !=null">
+                and community_id=#{communityId}
+            </if>
+            <if test="estateId != null">
+                AND estate_id = #{estateId}
+            </if>
+        </where>
+        ORDER BY create_time Desc
+    </select>
+
+    <select id="getPreventDetail" resultType="com.wr.remote.govern.security.vo.PreventVO">
+        select
+        <include refid="Base_Column_List"></include>
+        from xccj_govern.bus_prevent
+        WHERE del_flag=0 and prevent_id=#{preventId}
+    </select>
+
+    <select id="getPreventRangInfo" resultType="java.lang.Long">
+        SELECT community_id
+        FROM xccj_govern.bus_prevent_rang
+        WHERE prevent_id = #{preventId}
+    </select>
+</mapper>

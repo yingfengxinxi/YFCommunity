@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.manage.contract.TenantMapper">
+    <!--字段映射-->
+    <resultMap type="com.wr.remote.estate.manage.vo.contract.LeaseVo" id="leaseVoResult">
+        <id property="contractId" column="contract_id"/>
+        <result property="tenantName" column="tenant_name"/>
+        <result property="tenantPhone" column="tenant_phone"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="communityName" column="community_name"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomName" column="room_name"/>
+        <result property="monthRent" column="month_rent"/>
+        <result property="contractStart" column="contract_start"/>
+        <result property="contractEnd" column="contract_end"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="communityId" column="community_id"/>
+    </resultMap>
+
+    <update id="updateAccountType">
+        UPDATE xccj_community.bus_account SET account_type = '1' WHERE account_id = #{accountId}
+    </update>
+
+    <select id="getByPhoneOrCardNo" resultType="com.wr.remote.estate.manage.contract.Tenant">
+        SELECT
+            tenant_id,community_id,building_id,unit_id,room_id,account_id,owner_id,tenant_name,tenant_phone,card_no
+        FROM xccj_community.bus_tenant
+        WHERE del_flag = '0' AND (tenant_phone = #{tenantPhone} OR card_no = #{cardNo})
+        LIMIT 1
+    </select>
+
+
+    <insert id="tenantAdd" parameterType="com.wr.remote.estate.manage.contract.Tenant" useGeneratedKeys="true"
+            keyProperty="tenantId">
+        insert into xccj_community.bus_tenant
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tenantName != null and tenantName != ''">tenant_name,</if>
+            <if test="tenantPhone != null and tenantPhone != ''">tenant_phone,</if>
+            <if test="gender != null and gender != ''">gender,</if>
+            <if test="career != null and career != ''">career,</if>
+            <if test="politicsStatus != null ">politics_status,</if>
+            <if test="nation != null and nation != ''">nation,</if>
+            <if test="nativePlace != null and nativePlace != ''">native_place,</if>
+            <if test="marriageStatus != null ">marriage_status,</if>
+            <if test="cardType != null and cardType != ''">card_type,</if>
+            <if test="cardNo != null and cardNo != ''">card_no,</if>
+            <if test="cardFont != null and cardFont != ''">card_font,</if>
+            <if test="cardBack != null and cardBack != ''">card_back,</if>
+            <if test="qqNumber != null and qqNumber != ''">qq_number,</if>
+            <if test="email != null and email != ''">email,</if>
+            <if test="dataSource != null and dataSource != ''">data_source,</if>
+            <if test="selfIntro != null and selfIntro != ''">self_intro,</if>
+            <if test="ownerId != null">owner_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="unitId != null">unit_id,</if>
+            <if test="roomId != null">room_id,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="auditStatus != null and auditStatus != ''">audit_status,</if>
+            <if test="accountId != null ">account_id,</if>
+            <if test="domicileAddress != null and domicileAddress != ''">domicile_address,</if>
+            <if test="religion != null and religion != ''">religion,</if>
+            <if test="eduLevel != null and eduLevel != ''">edu_level,</if>
+            <if test="military != null and military != ''">military,</if>
+            <if test="nationality != null and nationality != ''">nationality,</if>
+            <if test="population != null ">population,</if>
+            <if test="faceUrl != null and faceUrl != ''">face_url,</if>
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tenantName != null and tenantName != ''">#{tenantName},</if>
+            <if test="tenantPhone != null and tenantPhone != ''">#{tenantPhone},</if>
+            <if test="gender != null and gender != ''">#{gender},</if>
+            <if test="career != null and career != ''">#{career},</if>
+            <if test="politicsStatus != null ">#{politicsStatus},</if>
+            <if test="nation != null and nation != ''">#{nation},</if>
+            <if test="nativePlace != null and nativePlace != ''">#{nativePlace},</if>
+            <if test="marriageStatus != null ">#{marriageStatus},</if>
+            <if test="cardType != null and cardType != ''">#{cardType},</if>
+            <if test="cardNo != null and cardNo != ''">#{cardNo},</if>
+            <if test="cardFont != null and cardFont != ''">#{cardFont},</if>
+            <if test="cardBack != null and cardBack != ''">#{cardBack},</if>
+            <if test="qqNumber != null and qqNumber != ''">#{qqNumber},</if>
+            <if test="email != null and email != ''">#{email},</if>
+            <if test="dataSource != null and dataSource != ''">#{dataSource},</if>
+            <if test="selfIntro != null and selfIntro != ''">#{selfIntro},</if>
+            <if test="ownerId != null">#{ownerId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="unitId != null">#{unitId},</if>
+            <if test="roomId != null">#{roomId},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="auditStatus != null and auditStatus != ''">#{auditStatus},</if>
+            <if test="accountId != null">#{accountId},</if>
+            <if test="domicileAddress != null and domicileAddress != ''">#{domicileAddress},</if>
+            <if test="religion != null and religion != ''">#{religion},</if>
+            <if test="eduLevel != null and eduLevel != ''">#{eduLevel},</if>
+            <if test="military != null and military != ''">#{military},</if>
+            <if test="nationality != null and nationality != ''">#{nationality},</if>
+            <if test="population != null ">#{population},</if>
+            <if test="faceUrl != null and faceUrl != ''">#{faceUrl},</if>
+            #{createBy},sysdate()
+        </trim>
+
+    </insert>
+
+
+</mapper>

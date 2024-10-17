@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.order.CleanOrderMapper">
+    <!-- 保洁工单移动端列表查询 -->
+    <select id="listCleanOrders" resultType="com.wr.api.estate.entity.vo.order.OrderListVO">
+        SELECT
+        DISTINCT
+        bc.clean_id AS orderId,
+        bc.clean_no AS orderNo,
+        bc.clean_name AS orderName,
+        bc.start_time AS startTime,
+        bc.end_time AS endTime,
+        bc.address AS address,
+        '保洁工单' AS orderTypeName,
+        3 AS orderType,
+        IF(bc.allot_way = '2' AND bc.staff_id = 0, 1, 0) AS hasGrab,
+        CASE
+        WHEN bc.transfer_status = '1' THEN 4
+        WHEN bc.allot_status = '0' THEN 1
+        WHEN bc.accept_status = '0' THEN 2
+        WHEN bc.execute_status = '0' THEN 3
+        WHEN bc.execute_status = '2' THEN 6
+        WHEN bc.execute_status = '3' THEN 8
+        WHEN bc.execute_status = '1' AND NOW()>bc.end_time THEN 7
+        ELSE 5 END AS orderStatus,
+        IF(assist.staff_id = #{staffId}, 1, 0) AS hasAssist
+        FROM xccj_work.bus_clean bc
+        LEFT JOIN xccj_work.bus_order_audit audit ON bc.clean_id = audit.order_id AND audit.order_type = '3' AND audit.audit_status = '1'
+        AND audit.audit_type = '1'
+        LEFT JOIN xccj_work.bus_order_assist assist ON audit.audit_id = assist.audit_id
+        WHERE bc.del_flag = '0'
+        <if test="userType != '10'.toString()">
+            AND (bc.staff_id = #{staffId} OR (bc.allot_way = '2' AND bc.allot_status = '0' AND bc.accept_status = '0') OR assist.staff_id = #{staffId})
+        </if>
+        AND bc.community_id = #{communityId}
+        <if test="orderStatus == 1">
+            AND bc.allot_status = 0
+        </if>
+        <if test="orderStatus == 2">
+            AND bc.accept_status = 0
+        </if>
+        <if test="orderStatus == 3">
+            AND bc.execute_status = 0
+        </if>
+        <if test="orderStatus == 4">
+            AND bc.transfer_status = 1
+        </if>
+        <if test="orderStatus == 5">
+            AND bc.execute_status = 1
+        </if>
+        <if test="orderStatus == 6">
+            AND bc.execute_status = 2
+        </if>
+        order by bc.start_time desc
+    </select>
+
+    <!-- 保洁工单详情 -->
+    <select id="detailCleanOrder" resultType="com.wr.api.estate.entity.vo.order.CleanOrderDetailVO">
+        SELECT bc.clean_no    AS orderNo,
+               bc.clean_name  AS orderName,
+               bc.start_time  AS startTime,
+               bc.end_time    AS endTime,
+               bc.address     AS address,
+               bc.execute_time,
+               bc.finish_time,
+               bc.staff_id,
+               '保洁工单'     AS orderTypeName,
+               bc.remark      AS finishRemark,
+               bc.image_url   AS finishImageUrl,
+               CASE
+                   WHEN bc.transfer_status = '1' THEN 4
+                   WHEN bc.allot_status = '0' THEN 1
+                   WHEN bc.accept_status = '0' THEN 2
+                   WHEN bc.execute_status = '0' THEN 3
+                   WHEN bc.execute_status = '2' THEN 6
+                   WHEN bc.execute_status = '3' THEN 8
+                   WHEN bc.execute_status = '1' AND bc.end_time > NOW() THEN 7
+                   ELSE 5 END AS orderStatus
+        FROM xccj_work.bus_clean bc
+        WHERE bc.clean_id = #{orderId}
+    </select>
+
+    <!-- 抢单 -->
+    <update id="robOrder">
+        UPDATE xccj_work.bus_clean
+        SET allot_status  = '1',
+            accept_status = '1',
+            staff_id      = #{staffId}
+        WHERE allot_status = '0'
+          AND accept_status = '0'
+          AND allot_way = '2'
+          AND clean_id = #{orderId}
+    </update>
+
+    <!-- 接单 -->
+    <update id="receiveOrder">
+        UPDATE xccj_work.bus_clean
+        SET accept_status = '1'
+        WHERE allot_status = '1'
+          AND accept_status = '0'
+          AND clean_id = #{orderId}
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 开始执行 -->
+    <update id="startPerform">
+        UPDATE xccj_work.bus_clean
+        SET execute_status = '1',
+            execute_time   = NOW()
+        WHERE clean_id = #{orderId}
+          AND allot_status = '1'
+          AND accept_status = '1'
+          AND execute_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+
+    <!-- 完成工单 -->
+    <update id="finish">
+        UPDATE xccj_work.bus_clean
+        SET execute_status = IF(NOW() > end_time, 3, 2),
+            finish_time    = NOW(),
+            image_url      = #{finishImageUrl},
+            remark         = #{remark},
+            execute_id     = #{staffId}
+        WHERE clean_id = #{orderId}
+    </update>
+
+    <!-- 转交工单 -->
+    <update id="transfer">
+        UPDATE xccj_work.bus_clean
+        SET transfer_status = '1'
+        WHERE clean_id = #{orderId}
+          AND execute_status IN ('1', '0')
+          AND transfer_status = '0'
+          AND staff_id = #{staffId}
+    </update>
+</mapper>

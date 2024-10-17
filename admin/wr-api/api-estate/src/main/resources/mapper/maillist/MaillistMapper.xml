@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.maillist.MaillistMapper">
+
+    <resultMap id="deptMap" type="com.wr.api.estate.entity.maillist.MaillistEntity">
+        <result property="deptId" column="dept_id"/>
+        <result property="ancestors" column="ancestors"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="deptType" column="dept_type"/>
+        <result property="parentId" column="parent_id"/>
+
+    </resultMap>
+
+    <resultMap id="userMap" type="com.wr.api.estate.entity.maillist.UserEntity">
+        <result property="deptId" column="dept_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="email" column="email"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="userType" column="user_type"/>
+    </resultMap>
+
+
+    <resultMap id="contactMap" type="com.wr.api.estate.entity.maillist.ContactEntity">
+        <result property="communityId" column="community_id"/>
+        <result property="estateId" column="estate_id"/>
+        <result property="companyName" column="company_name"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="address" column="address"/>
+        <result property="contactId" column="contact_id"/>
+        <result property="contactPhone" column="contact_phone"/>
+    </resultMap>
+
+    <resultMap id="ownerNap" type="com.wr.api.estate.entity.maillist.OwnerEntity">
+        <result property="communityId" column="community_id"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="gender" column="gender"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="accountId" column="account_id"/>
+    </resultMap>
+
+    <!--添加收藏-->
+    <insert id="collectAdd">
+        insert into xccj_community.bus_collect_user(
+        <if test="nickName != null and nickName != ''">collect_name,</if>
+        <if test="phonenumber != null and phonenumber != ''">collect_phone,</if>
+        <if test="collectStaffId != null and collectStaffId != 0">collect_staff_id</if>
+        )values(
+        <if test="nickName != null and nickName != ''">#{nickName},</if>
+        <if test="phonenumber != null and phonenumber != ''">#{phonenumber},</if>
+        <if test="collectStaffId != null and collectStaffId != 0">#{collectStaffId}</if>
+        )
+    </insert>
+
+    <!--取消收藏-->
+    <delete id="collectDelete">
+        delete
+        from xccj_community.bus_collect_user
+        where collect_name = #{nickName}
+          and collect_phone = #{phonenumber}
+          and collect_staff_id = #{collectStaffId}
+    </delete>
+
+    <!--根据部门id查询部门列表-->
+    <select id="getEstate" resultMap="deptMap">
+        SELECT
+        estate_id,
+        estate_name
+        FROM
+        xccj_community.bus_estate
+        WHERE
+        del_flag = '0'
+        <if test="estateId !=null and estateId != 0">
+            AND estate_id = #{estateId}
+        </if>
+    </select>
+
+
+
+    <select id="getUserInfo" resultType="com.wr.api.estate.entity.maillist.UserEntity">
+        SELECT su.user_id AS "userId",
+        su.dept_id AS "deptId",
+        su.nick_name AS "nickName",
+        su.user_type AS "userType",
+        su.email AS "email",
+        su.phonenumber AS "phonenumber"
+        FROM xccj_community.bus_staff bs
+        LEFT JOIN xccj_estate_sys.sys_user su ON su.user_id = bs.user_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bs.community_id
+        WHERE su.del_flag = 0
+        AND bc.estate_id =#{estateId}
+        AND su.user_type != '00'
+        <if test="searchValue !=null and searchValue !=''">
+            AND (su.nick_name LIKE CONCAT('%',#{searchValue},'%') OR su.phonenumber LIKE CONCAT('%',#{searchValue},'%')
+            )
+        </if>
+
+        ORDER BY
+        su.create_time DESC
+    </select>
+
+    <!--    查询当前物业下小区id-->
+    <select id="getcid" resultType="com.wr.api.estate.entity.maillist.MaillistEntity">
+        SELECT bc.community_id   as "communityId",
+               bc.community_name as "communityName"
+        FROM xccj_community.bus_estate be
+                 LEFT JOIN xccj_community.bus_community bc ON bc.estate_id = be.estate_id
+        WHERE be.estate_id = #{estateId}
+    </select>
+
+
+    <!--    常用通讯录-->
+    <select id="contact" resultMap="contactMap" parameterType="com.wr.api.estate.entity.maillist.ContactEntity">
+        SELECT contact_id, contact_name, contact_phone, company_name, address
+        FROM xccj_community.bus_contact
+        <where>
+            del_flag=0
+            <if test="communityId !=null">
+                and community_id = #{communityId}
+            </if>
+            <if test="searchValue !=null and searchValue !=''">
+                and (contact_name like concat('%',#{searchValue},'%') or contact_phone like
+                concat('%',#{searchValue},'%'))
+            </if>
+            <if test="companyName !=null and companyName !=''">
+                and company_name like concat('%',#{companyName},'%')
+            </if>
+        </where>
+    </select>
+
+
+    <!--    智慧小区 业主电话-->
+    <select id="getowner" resultMap="ownerNap" parameterType="com.wr.api.estate.entity.maillist.OwnerEntity">
+        SELECT bo.owner_id,
+        bo.community_id,
+        bo.account_id,
+        bo.owner_name,
+        bo.owner_phone,
+        bo.gender
+        FROM xccj_community.bus_owner bo
+        <where>
+            bo.del_flag = '0'
+            and bo.audit_status = '1'
+            <if test="communityId !=null">
+                and bo.community_id = #{communityId}
+            </if>
+            <if test="searchValue !=null and searchValue !=''">
+                and (bo.owner_name like concat('%',#{searchValue},'%') or bo.owner_phone like
+                concat('%',#{searchValue},'%'))
+            </if>
+            <if test="ownerArray !=null">
+                and bo.owner_id in
+                <foreach item="ownerId" collection="ownerArray" open="(" separator="," close=")">
+                    #{ownerId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!--如果当前登录账号是”物业端员工账号“，需重新查询一次-->
+    <select id="getownerEntityList" resultType="Long">
+        select xwbpa.owner_id ownerId from xccj_work.bus_park_audit xwbpa where xwbpa.audit_id in
+        (select xwbpo.audit_id from xccj_work.bus_park_order xwbpo where xwbpo.staff_id = #{staffId}
+        and xwbpo.del_flag = '0' and xwbpo.allot_status = '1' and xwbpo.accept_status = '1' and xwbpo.execute_status not in ('2', '3'))
+            union
+        select xwbda.owner_id ownerId from xccj_work.bus_disaster_audit xwbda where xwbda.audit_id in
+        (select xwbdo.audit_id from xccj_work.bus_disaster_order xwbdo where xwbdo.staff_id = #{staffId}
+        and xwbdo.del_flag = '0' and xwbdo.allot_status = '1' and xwbdo.accept_status = '1' and xwbdo.execute_status not in ('2', '3'))
+            union
+        select xwbho.owner_id ownerId from xccj_work.bus_home_order xwbho where xwbho.staff_id = #{staffId}
+        and xwbho.del_flag = '0' and xwbho.allot_status = '1' and xwbho.accept_status = '1' and xwbho.execute_status not in ('2', '3')
+            union
+        select xcbd.owner_id ownerId from xccj_community.bus_decorate xcbd where xcbd.decorate_id in
+        (select xwbdo.decorate_id from xccj_work.bus_decorate_order xwbdo where xwbdo.staff_id = #{staffId}
+        and xwbdo.del_flag = '0' and xwbdo.allot_status = '1' and xwbdo.accept_status = '1' and xwbdo.execute_status not in ('2', '3'))
+        and xcbd.del_flag = '0' and xcbd.audit_status in ('2', '4')
+    </select>
+
+    <!--查看收藏的联系方式-->
+    <select id="getCollect" resultType="com.wr.api.estate.entity.maillist.MaillistEntity">
+        SELECT
+        collect_staff_id collectStaffId,
+        collect_name nickName,
+        collect_phone phonenumber,
+        collect_id collectId
+        FROM
+        xccj_community.bus_collect_user
+        WHERE
+        collect_staff_id = #{collectStaffId}
+        <if test="searchValue !=null and searchValue !=''">
+            and (collect_name CONCAT('%',#{searchValue},'%') or collect_phone CONCAT('%',#{searchValue},'%'))
+        </if>
+    </select>
+
+    <!--根据当前登录用户查询收藏夹-->
+    <select id="getCollectList" resultType="com.wr.api.estate.entity.maillist.UserEntity">
+        select collect_name nickName, collect_phone phonenumber
+        from xccj_community.bus_collect_user where collect_staff_id = #{collectStaffId}
+    </select>
+</mapper>

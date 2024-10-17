@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.goods.GoodsMapper">
+
+    <select id="export" resultType="com.wr.remote.estate.customer.goods.vo.GoodsVo">
+        SELECT
+            bg.goods_name,
+            ba.account_name AS ownerName,
+            ba.login_name AS ownerPhone,
+            bc.community_name,
+            bbb.building_name,
+            bu.unit_name,
+            br.room_name,
+            bb.apply_time,
+            bb.return_time
+        FROM
+            xccj_community.bus_goods bg
+            RIGHT JOIN xccj_community.bus_borrow bb ON bg.goods_id = bb.goods_id
+            RIGHT JOIN xccj_community.bus_account ba ON ba.account_id = bb.account_id
+            RIGHT JOIN xccj_community.bus_owner bo ON bo.account_id = ba.account_id
+            RIGHT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+            RIGHT JOIN xccj_community.bus_building bbb ON bo.building_id = bbb.building_id
+            RIGHT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+            RIGHT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+            RIGHT JOIN xccj_community.bus_classify bccc ON bccc.classify_id = bg.classify_id
+        WHERE
+            bg.borrow_status = '1' AND bccc.del_flag = '0' AND bg.del_flag = '0'
+          AND bg.del_flag = '0' AND bb.audit_status = '2'
+          AND bg.community_id = #{communityId}
+    </select>
+
+    <select id="selectGoodsList" resultType="com.wr.remote.estate.customer.goods.vo.GoodsVo">
+        SELECT
+            bg.goods_id,
+            bg.goods_no,
+            bg.goods_name,
+            bg.goods_price,
+            bg.borrow_status,
+            bg.address,
+            bc.classify_name
+        FROM
+            xccj_community.bus_goods bg
+            LEFT JOIN xccj_community.bus_classify bc ON bg.classify_id = bc.classify_id
+        WHERE bg.del_flag = '0' AND bc.del_flag = '0'
+        <if test="communityId != null"> AND bg.community_id = #{communityId} </if>
+        <if test="goodsName != null and goodsName != ''"> AND bg.goods_name = #{goodsName} </if>
+        <if test="address != null and address != ''"> AND bg.address LIKE concat('%', #{address}, '%')</if>
+        <if test="classifyId != null"> AND bg.classify_id = #{classifyId} </if>
+        <if test="borrowStatus != null and borrowStatus != ''"> AND bg.borrow_status = #{borrowStatus} </if>
+        ORDER BY bg.create_time DESC
+    </select>
+
+    <select id="getGoodsInfo" resultType="com.wr.remote.estate.customer.goods.vo.GoodsVo">
+        SELECT
+            bg.community_id,
+            bg.classify_id,
+            bg.goods_url,
+            bg.goods_id,
+            bg.goods_no,
+            bg.goods_name,
+            bg.goods_price,
+            bg.borrow_status,
+            bg.address,
+            bb.remark,
+            bc.classify_name,
+            bcc.community_name,
+            bb.apply_time,
+            bb.return_time,
+            bb.account_id
+        FROM
+            xccj_community.bus_goods bg
+                LEFT JOIN xccj_community.bus_classify bc ON bg.classify_id = bc.classify_id
+                LEFT JOIN xccj_community.bus_borrow bb ON bb.goods_id = bg.goods_id
+                LEFT JOIN xccj_community.bus_community bcc ON bcc.community_id = bg.community_id
+        WHERE bg.del_flag ='0' AND bg.goods_id = #{goodsId}
+        <if test="applyTime != null"> AND bb.apply_time = #{applyTime} </if> limit 1
+
+    </select>
+
+    <select id="getOwnerInfo" resultType="com.wr.remote.estate.customer.goods.vo.GoodsVo">
+        SELECT
+            bo.owner_name,
+            INSERT ( bo.owner_phone, 4, 4, '****' ) AS ownerPhone,
+            bc.community_name,
+            bb.building_name,
+            bu.unit_name,
+            br.room_name
+        FROM
+            xccj_community.bus_owner bo
+                LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+                LEFT JOIN xccj_community.bus_building bb ON bo.building_id = bb.building_id
+                LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+                LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        WHERE
+            account_id = #{accountId} limit 1
+    </select>
+
+
+    <select id="selectBorrowHistory" resultType="com.wr.remote.estate.customer.goods.vo.BorrowVo">
+        SELECT
+            bb.apply_time,
+            bb.return_time,
+            bc.account_name,
+            INSERT ( bc.login_name, 4, 4, '****' ) AS loginName
+        FROM
+            xccj_community.bus_borrow bb
+            LEFT JOIN xccj_community.bus_account bc ON bb.account_id = bc.account_id
+        WHERE bb.del_flag = '0' AND bb.goods_id = #{goodsId} AND bb.audit_status = '2'
+        ORDER BY bb.audit_time DESC
+    </select>
+
+    <update id="updateGoods" parameterType="com.wr.remote.estate.customer.goods.vo.GoodsVo">
+        UPDATE xccj_community.bus_goods
+        <set>
+            <if test="goodsNo != null and goodsNo != ''">goods_no = #{goodsNo},</if>
+            <if test="goodsName != null and goodsName != ''">goods_name = #{goodsName},</if>
+            <if test="borrowStatus != null and borrowStatus != ''">borrow_status = #{borrowStatus},</if>
+            <if test="classifyId != null">classify_id = #{classifyId},</if>
+            <if test="goodsPrice != null">goods_price = #{goodsPrice},</if>
+            <if test="goodsUrl != null and goodsUrl != ''">goods_url = #{goodsUrl},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        WHERE goods_id = #{goodsId}
+    </update>
+
+    <!--新增-->
+    <insert id="insertClassify">
+        INSERT INTO
+            xccj_community.bus_goods(community_id, goods_no, goods_name, classify_id,goods_price,goods_url,borrow_status,address, create_by, create_time, update_by, update_time, del_flag)
+        VALUES
+            (#{communityId}, #{goodsNo}, #{goodsName}, #{classifyId}, #{goodsPrice},#{goodsUrl},'0', #{address}, #{createBy}, sysdate(), #{createBy}, sysdate(), '0')
+    </insert>
+
+    <!--删除-->
+    <delete id="deleteById">
+        UPDATE xccj_community.bus_goods SET del_flag = '1' WHERE goods_id = #{goodsId}
+    </delete>
+
+
+    <!--新增提醒-->
+    <insert id="insertRemind">
+        INSERT INTO
+            xccj_community.bus_remind(community_id, remind_type, account_id,goods_id,read_status, create_by, del_flag)
+        VALUES
+            (#{communityId}, '0', #{accountId}, #{goodsId},'0', #{createBy}, '0')
+    </insert>
+
+    <!--物品编号是否存在-->
+    <select id="getIsExsit" resultType="int">
+        SELECT count(1) FROM xccj_community.bus_goods WHERE del_flag = '0'
+        <if test="goodsNo != null and goodsNo != ''"> AND goods_no = #{goodsNo} </if>
+        <if test="communityId != null"> AND community_id = #{communityId} </if>
+    </select>
+
+</mapper>
+

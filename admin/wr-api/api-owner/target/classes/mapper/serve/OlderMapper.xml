@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.OlderMapper">
+    <!--添加老人-->
+    <insert id="insertOlder">
+        insert into xccj_community.bus_older
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="buildingId != null and buildingId != ''">building_id,</if>
+            <if test="unitId != null and unitId != ''">unit_id,</if>
+            <if test="roomId != null and roomId != ''">room_id,</if>
+            <if test="ownerId != null and ownerId != ''">owner_id,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="contactPhone != null and contactPhone != '' ">contact_phone,</if>
+            <if test="contactGender != null and contactGender != ''">contact_gender,</if>
+            <if test="contactId != null and contactId != ''">contact_id,</if>
+            <if test="relation != null and relation != ''">relation,</if>
+            <if test="auditStatus != null and auditStatus != ''">audit_status,</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="buildingId != null and buildingId != ''">#{buildingId},</if>
+            <if test="unitId != null and unitId != ''">#{unitId},</if>
+            <if test="roomId != null and roomId != ''">#{roomId},</if>
+            <if test="ownerId != null and ownerId != ''">#{ownerId},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="contactGender != null and contactGender != ''">#{contactGender},</if>
+            <if test="contactId != null and contactId != ''">#{contactId},</if>
+            <if test="relation != null and relation != ''">#{relation},</if>
+            <if test="auditStatus != null and auditStatus != ''">#{auditStatus},</if>
+            <if test="rejectReason != null and rejectReason != ''">#{rejectReason},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            SYSDATE()
+        </trim>
+    </insert>
+
+    <insert id="insertOwner">
+        insert into xccj_community.bus_owner
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="buildingId != null and buildingId != ''">building_id,</if>
+            <if test="unitId != null and unitId != ''">unit_id,</if>
+            <if test="roomId != null and roomId != ''">room_id,</if>
+            <if test="parentId != null and parentId != ''">parent_id,</if>
+            <if test="accountId != null and accountId != ''">account_id,</if>
+            <if test="ownerRelation != null and ownerRelation != ''">owner_relation,</if>
+            <if test="ownerId != null and ownerId != ''">owner_id,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="contactPhone != null and contactPhone != '' ">contact_phone,</if>
+            <if test="contactGender != null and contactGender != ''">contact_gender,</if>
+            <if test="contactId != null and contactId != ''">contact_id,</if>
+            <if test="relation != null and relation != ''">relation,</if>
+            <if test="auditStatus != null and auditStatus != ''">audit_status,</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null ">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="buildingId != null and buildingId != ''">#{buildingId},</if>
+            <if test="unitId != null and unitId != ''">#{unitId},</if>
+            <if test="roomId != null and roomId != ''">#{roomId},</if>
+            <if test="ownerId != null and ownerId != ''">#{ownerId},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="contactGender != null and contactGender != ''">#{contactGender},</if>
+            <if test="contactId != null and contactId != ''">#{contactId},</if>
+            <if test="relation != null and relation != ''">#{relation},</if>
+            <if test="auditStatus != null and auditStatus != ''">#{auditStatus},</if>
+            <if test="rejectReason != null and rejectReason != ''">#{rejectReason},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <!--判断是否是业主-->
+    <select id="getAccountType" resultType="java.lang.Integer">
+        select account_type
+        from xccj_community.bus_account
+        where account_id = #{accountId}
+    </select>
+    <!-- 获取老人信息-->
+    <select id="getOwner" resultType="com.wr.api.owner.entity.vo.serve.OlderFilesVo">
+        SELECT
+            bo.owner_id,
+            bso.older_id,
+            bo.owner_name,
+            bso.create_time,
+            bso.audit_status,
+            bso.contact_name,
+            bso.contact_phone,
+            bso.relation
+        FROM
+            xccj_community.bus_older bso
+                LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = bso.owner_id
+        WHERE
+                bso.del_flag = 0
+                AND bso.contact_phone = #{ownerPhone} OR bo.owner_phone = #{ownerPhone}
+    </select>
+    <!-- 查看详情-->
+    <select id="getOwnerInfoList" resultType="com.wr.api.owner.entity.vo.serve.OlderFilesVo">
+        SELECT bd.building_name,
+               bc.community_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_status,
+               bo.contact_name,
+               bo.contact_phone,
+               bo.contact_id,
+               bo.audit_status,
+               bo.relation,
+               bo.contact_gender,
+               bdc.card_font,
+               bdc.card_back,
+               bdc.face_url,
+               bdc.owner_relation,
+               bdc.card_type,
+               bdc.owner_phone,
+               bdc.owner_name,
+               bdc.gender,
+               br.room_status,
+               d.dict_label,
+               bo.reject_reason
+        FROM xccj_community.bus_older bo
+                 LEFT JOIN xccj_community.bus_owner bdc on bdc.owner_id = bo.owner_id
+                 LEFT JOIN xccj_community.bus_room br ON bdc.room_id = br.room_id
+                 LEFT JOIN xccj_community.bus_community bc ON bdc.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bdc.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_building bd ON bd.building_id = bdc.building_id
+                 LEFT JOIN xccj_estate_sys.sys_dict_data d on d.dict_value = bdc.card_type
+        where bo.older_id = #{olderId}
+    </select>
+    <!--根据老人查看老人信息-->
+    <select id="getOlderName" resultType="com.wr.api.owner.entity.vo.serve.OldBasicInfoVo">
+        SELECT bdc.owner_id,
+               bdc.card_font,
+               bdc.politics_status,
+               bdc.card_back,
+               bdc.card_no,
+               bdc.face_url,
+               bdc.owner_relation,
+               bdc.card_type,
+               bdc.gender,
+               d.dict_label,
+               bdc.owner_phone
+        from xccj_community.bus_owner bdc
+                 LEFT JOIN xccj_estate_sys.sys_dict_data d on d.dict_value = bdc.card_type
+        where bdc.owner_id = #{ownerId}
+          and bdc.card_no = #{cardNo}
+          and bdc.audit_status = '1'
+        GROUP BY bdc.owner_id
+
+    </select>
+    <select id="getoldfilecount" resultType="java.lang.Integer">
+        SELECT count(bod.owner_id)
+        FROM `xccj_community`.bus_older bod
+                 LEFT JOIN `xccj_community`.bus_owner bo ON bod.owner_id = bo.owner_id
+        WHERE bod.owner_id = #{ownerId}
+          and bod.del_flag = 0
+          and bod.audit_status IN (0, 1)
+    </select>
+    <!--根据业主id查询房产-->
+    <select id="getMyOnwerHouse" resultType="com.wr.api.owner.entity.vo.serve.MyRoomsVo">
+        select bd.building_name,
+               bc.community_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_status,
+               bdc.owner_id
+        from xccj_community.bus_owner bdc
+                 LEFT JOIN xccj_community.bus_room br ON bdc.room_id = br.room_id
+                 LEFT JOIN xccj_community.bus_community bc ON bdc.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bdc.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_building bd ON bd.building_id = bdc.building_id
+        where bdc.owner_id = #{ownerId}
+    </select>
+    <!--查询小区-->
+    <select id="getCommunitys" resultType="com.wr.api.owner.entity.vo.serve.MyRoomsVo">
+        SELECT DISTINCT(xbc.community_id), xbc.community_name
+        FROM xccj_community.bus_community xbc
+                 LEFT JOIN xccj_community.bus_owner xbo ON xbo.community_id = xbc.community_id
+        WHERE xbo.account_id = #{accountId}
+          AND xbo.del_flag = '0'
+        ORDER BY xbc.community_name
+    </select>
+    <!--查询楼栋-->
+    <select id="getBuild" resultType="com.wr.api.owner.entity.vo.serve.MyRoomsVo">
+        SELECT building_id AS buildingid, building_name AS buildingname
+        FROM xccj_community.bus_building
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+        ORDER BY building_name
+    </select>
+    <!-- 查询单元-->
+    <select id="getUnits" resultType="com.wr.api.owner.entity.vo.serve.MyRoomsVo">
+        SELECT unit_id AS unitid, unit_name AS unitname
+        FROM xccj_community.bus_unit
+        WHERE building_id = #{buildingId}
+          AND del_flag = '0'
+        ORDER BY unit_name
+    </select>
+    <!--查询房间-->
+    <select id="getRooms" resultType="com.wr.api.owner.entity.vo.serve.MyRoomsVo">
+        SELECT room_id   AS roomid,
+               room_name AS roomname,
+               (
+                   CASE
+                       WHEN room_status = "0" THEN
+                           '在售'
+                       WHEN room_status = "1" THEN
+                           '不可售'
+                       WHEN room_status = "2" THEN
+                           '入住'
+                       WHEN room_status = "3" THEN
+                           '装修'
+                       WHEN room_status = "4" THEN
+                           '空关'
+                       WHEN room_status = "5" THEN
+                           '整租'
+                       WHEN room_status = "6" THEN
+                           '合租'
+                       WHEN room_status = "7" THEN
+                           '群租'
+                       ELSE '未知'
+                       END
+                   )        room_status
+        FROM xccj_community.bus_room
+        WHERE unit_id = #{unitId}
+          AND del_flag = '0'
+        ORDER BY room_name
+    </select>
+    <!--查询老人-->
+    <select id="getAllOwner" resultType="com.wr.api.owner.entity.vo.serve.OldBasicInfoVo">
+        select owner_name, owner_id, card_no, gender
+        from xccj_community.bus_owner
+        where owner_relation IN (2,4)
+          and room_id = #{roomId}
+          and audit_status = '1'
+    </select>
+</mapper>
+

@@ -1,0 +1,12 @@
+com.wr.remote.system.factory.RemoteUserSysFallbackFactory
+com.wr.remote.system.factory.RemoteUserEstateFallbackFactory
+com.wr.remote.system.factory.RemoteUserAiIotFallbackFactory
+com.wr.remote.system.factory.RemoteUserGovernFallbackFactory
+com.wr.remote.system.factory.RemoteFileFallbackFactory
+com.wr.remote.system.factory.RemoteLogSysFallbackFactory
+com.wr.remote.system.factory.RemoteLogEstateFallbackFactory
+com.wr.remote.system.factory.RemoteLogAiIotFallbackFactory
+com.wr.remote.system.factory.RemoteLogGovernFallbackFactory
+com.wr.remote.system.factory.RemoteApiLogFallbackFactory
+com.wr.remote.system.factory.RemoteFieldWebFallbackFactory
+com.wr.remote.system.factory.RemoteFieldApiFallbackFactory

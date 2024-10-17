@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.BarrierMapper">
+    <sql id="barrierColumns">
+        dbb.barrier_id, dbb.community_id, dbb.index_code, dbb.barrier_name, dbb.open_output, dbb.close_output,
+        dbb.com_id, dbb.connect_style, dbb.create_time, dbb.update_time, dbb.manufacturer, dbb.renewal_by,
+        dbb.renewal_time, dbb.update_by, dbb.operate_time, dbb.address, dbb.device_qr,
+        dbb.park_index, dbb.entrance_index, dbb.roadway_index, dbb.del_flag
+    </sql>
+    <update id="delAll">
+        UPDATE xccj_device.bus_barrier SET del_flag = '1',operate_time =  sysdate() WHERE del_flag = '0'
+    </update>
+    <delete id="delRenewalTimeNotToday">
+        DELETE FROM xccj_device.bus_barrier WHERE renewal_time &lt;CURDATE()
+    </delete>
+
+    <select id="selectBarrierList" resultType="com.wr.remote.aiot.Barrier">
+        SELECT
+            dbp.park_name, dbe.entrance_name, dbr.roadway_name,
+            <include refid="barrierColumns"/>
+        FROM xccj_device.bus_barrier dbb
+            LEFT JOIN xccj_device.bus_park dbp ON dbp.index_code = dbb.park_index
+            LEFT JOIN xccj_device.bus_entrance dbe ON dbe.index_code = dbb.entrance_index
+            LEFT JOIN xccj_device.bus_roadway dbr ON dbr.index_code = dbb.roadway_index
+        WHERE dbb.del_flag = '0' AND dbb.community_id = #{communityId}
+        <if test="barrierName != null and barrierName != ''">
+            AND dbb.barrier_name LIKE concat('%', #{barrierName}, '%')
+        </if>
+        <if test="indexCode != null and indexCode != ''">
+            AND dbb.index_code LIKE concat('%', #{indexCode}, '%')
+        </if>
+        ORDER BY dbb.operate_time DESC
+    </select>
+
+    <insert id="insertOrUpdate">
+        INSERT INTO xccj_device.bus_barrier (
+            community_id, index_code, barrier_name, open_output, close_output, com_id,
+            connect_style, create_time, update_time, manufacturer, renewal_by, renewal_time
+        ) VALUES
+        <foreach item="item" index="index" collection="dataList" separator=",">
+            (
+                #{communityId}, #{item.indexCode}, #{item.name}, #{item.openOutput}, #{item.closeOutput}, #{item.comId},
+                #{item.connectStyle}, #{item.createTime}, #{item.updateTime}, #{manufacturer}, #{renewalBy}, sysdate()
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            community_id = values(community_id), index_code = values(index_code), barrier_name = values(barrier_name),
+            open_output = values(open_output), close_output = values(close_output), com_id = values(com_id),
+            connect_style = values(connect_style), create_time = values(create_time), update_time = values(update_time),
+            manufacturer = values(manufacturer), renewal_by = values(renewal_by), renewal_time = values(renewal_time)
+    </insert>
+    <insert id="insert">
+        INSERT INTO xccj_device.bus_barrier (community_id, index_code, barrier_name, com_id,
+                                             create_time, update_time, manufacturer, renewal_by, renewal_time,
+                                             region_path,device_type,treaty_type,resource_type,region_index_code,port,ip)
+        VALUES (#{communityId}, #{jsonObject.indexCode}, #{jsonObject.name}, #{jsonObject.comId},
+                #{jsonObject.createTime}, #{jsonObject.updateTime}, #{manufacturer}, #{renewalBy}, sysdate(),
+                #{jsonObject.regionPath},#{jsonObject.deviceType},#{jsonObject.treatyType},#{jsonObject.resourceType},
+                #{jsonObject.regionIndexCode},#{jsonObject.port},#{jsonObject.ip})
+    </insert>
+    <update id="updateByIndexCode">
+        update xccj_device.bus_barrier
+        set community_id = #{communityId},
+            barrier_name = #{jsonObject.name},
+            com_id = #{jsonObject.comId},
+            update_time = #{jsonObject.updateTime},
+            manufacturer = #{manufacturer},
+            renewal_by = #{renewalBy},
+            renewal_time = sysdate(),
+            region_path = #{jsonObject.regionPath},
+            device_type = #{jsonObject.deviceType},
+            treaty_type = #{jsonObject.treatyType},
+            resource_type = #{jsonObject.resourceType},
+            region_index_code = #{jsonObject.regionIndexCode},
+            port = #{jsonObject.port},
+            ip = #{jsonObject.ip}
+        where index_code = #{jsonObject.indexCode}
+    </update>
+
+    <select id="selectBarrierById" resultType="com.wr.remote.aiot.Barrier">
+        SELECT
+            cbc.community_name AS "communityName", dbp.park_name,
+            dbe.entrance_name, dbr.roadway_name,
+            <include refid="barrierColumns"/>
+        FROM xccj_device.bus_barrier dbb
+            LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dbb.community_id
+            LEFT JOIN xccj_device.bus_park dbp ON dbp.index_code = dbb.park_index
+            LEFT JOIN xccj_device.bus_entrance dbe ON dbe.index_code = dbb.entrance_index
+            LEFT JOIN xccj_device.bus_roadway dbr ON dbr.index_code = dbb.roadway_index
+        WHERE dbb.del_flag = '0' AND dbb.barrier_id = #{barrierId}
+    </select>
+
+    <update id="updateBarrier">
+        UPDATE xccj_device.bus_barrier SET
+            address = #{address},update_by = #{updateBy}, operate_time = sysdate()
+            <if test="parkIndex != null and parkIndex != ''">, park_index = #{parkIndex}</if>
+            <if test="entranceIndex != null and entranceIndex != ''">, entrance_index = #{entranceIndex}</if>
+            <if test="roadwayIndex != null and roadwayIndex != ''">, roadway_index = #{roadwayIndex}</if>
+        WHERE barrier_id = #{barrierId}
+    </update>
+
+    <select id="selectIdsOfNotQrCode" resultType="com.wr.remote.aiot.Barrier">
+        SELECT barrier_id,index_code,barrier_name FROM xccj_device.bus_barrier
+        WHERE del_flag = '0' AND (device_qr IS NULL OR device_qr = '')
+    </select>
+
+    <update id="batchUpdateDeviceQr">
+        INSERT INTO xccj_device.bus_barrier ( barrier_id, device_qr ) VALUES
+        <foreach item="item" index="index" collection="barrierList" separator=",">
+            ( #{item.barrierId}, #{item.deviceQr} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            barrier_id = values(barrier_id), device_qr = values(device_qr)
+    </update>
+
+
+    <select id="selectUnbidRoadway" resultType="com.wr.remote.aiot.Roadway">
+        SELECT dbr.* FROM xccj_device.bus_roadway  dbr
+        WHERE dbr.del_flag = '0'
+          AND dbr.entrance_index_code = #{entranceIndex}
+          AND dbr.roadway_id NOT IN (
+            SELECT roadway_index FROM xccj_device.bus_barrier
+            WHERE del_flag = '0' AND barrier_id != #{barrierId}
+              AND roadway_index IS NOT NULL AND roadway_index != ''
+
+        )
+    </select>
+
+    <!-- 根据ids查询道闸信息 -->
+    <select id="selectBarrierByIds" resultType="com.wr.remote.aiot.Barrier">
+        SELECT barrier_id,index_code,barrier_name FROM xccj_device.bus_barrier
+        <where>
+            <foreach collection="list" item="id" open="AND barrier_id IN(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+    <select id="getIndexCode" resultType="com.wr.remote.aiot.Barrier">
+        SELECT index_code as indexCode ,barrier_id  FROM xccj_device.bus_barrier
+        WHERE del_flag = '0'
+    </select>
+    <select id="selectBarrierByRoadway" resultType="com.wr.remote.aiot.Barrier">
+        SELECT `barrier_id`, `community_id`, `index_code`, `barrier_name`, `open_output`, `close_output`, `com_id`, `connect_style`, `create_time`, `update_time`, `manufacturer`, `renewal_by`, `renewal_time`, `update_by`, `operate_time`, `address`, `device_qr`, `park_index`, `entrance_index`, `roadway_index`, `del_flag`, `region_path`, `device_type`, `treaty_type`, `resource_type`, `region_index_code`, `port`, `ip`
+        FROM xccj_device.bus_barrier
+        WHERE xccj_device.bus_barrier.roadway_index = #{roadwayIndexCode} AND del_flag = '0'
+    </select>
+</mapper>

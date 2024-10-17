@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.serve.WarnEventMapper">
+
+    <sql id="warnColumns">
+        bwe.warn_id, bwe.send_time, bwe.ability, bwe.event_id, bwe.src_index, bwe.src_type, bwe.src_name,
+        bwe.event_type, bwe.status, bwe.timeout, bwe.event_name, bwe.happen_time, bwe.stop_time, bwe.remark,
+        bwe.record_time, bwe.community_id, bwe.del_flag
+    </sql>
+
+    <select id="selectHikByCommunityId" resultType="com.wr.common.customize.util.CommunityHik">
+        SELECT
+            *
+        FROM xccj_community.bus_community_hik
+        WHERE del_flag = '0' AND community_id = #{communityId}
+        LIMIT 1
+    </select>
+
+    <select id="selectWarnEventList" resultType="java.util.LinkedHashMap">
+        SELECT
+        cbc.community_name as 'communityName',bwe.warn_id as 'warnId',bwe.record_time as 'recordTime',bwe.src_name as 'srcName',bwe.event_type as 'eventType'
+        FROM xccj_device.bus_warn_event bwe,xccj_community.bus_community cbc
+        WHERE bwe.del_flag = '0' AND bwe.community_id = #{communityId} and cbc.community_id = bwe.community_id
+        <if test="srcName != null and srcName != ''">
+            AND bwe.src_name like concat('%',#{srcName},'%')
+        </if>
+        ORDER BY bwe.record_time DESC
+    </select>
+
+
+    <select id="selectAcsDataList" resultType="java.util.LinkedHashMap">
+        SELECT
+            bad.ext_event_picture_url as "imgUrl", cbc.community_name as "communityName",bwe.src_name as "address",
+            bad.ext_event_door_id as "idNum",
+            IF(bad.ext_event_code='198657','门被外力开启',
+               IF(bad.ext_event_code='199428','胁迫报警',
+                   IF(bad.ext_event_code='199708','设备防拆报警',
+                     IF(bad.ext_event_code='199709','设备防拆恢复','')
+                   ))
+                ) as 'type',
+            bad.ext_receive_time as "time", bad.svr_index_code AS "svrIndexCode"
+        FROM xccj_device.bus_acs_data bad,xccj_community.bus_community cbc,xccj_device.bus_warn_event bwe
+        WHERE bad.del_flag = '0' and bad.community_id = cbc.community_id and bwe.warn_id=bad.warn_id
+          AND bad.warn_id = #{warnId}
+    </select>
+
+    <select id="selectVisDataList" resultType="java.util.LinkedHashMap">
+        SELECT
+            bvd.ext_event_picture_url as "imgUrl",cbc.community_name as "communityName",bwe.src_name as "address",
+            bvd.ext_event_door_id as "idNum",
+            IF(bvd.ext_event_code='983302','设备防拆报警',
+               IF(bvd.ext_event_code='983303','劫持报警',
+                  IF(bvd.ext_event_code='983556','烟感报警',
+                     IF(bvd.ext_event_code='983560','紧急开关报警',
+                         IF(bvd.ext_event_code='983563','智能锁撬门报警','')
+                        )
+                  ))
+                ) as 'type',
+            bvd.ext_receive_time as "time",bvd.svr_index_code AS "svrIndexCode"
+        FROM xccj_device.bus_vis_data bvd,xccj_community.bus_community cbc,xccj_device.bus_warn_event bwe
+        WHERE bvd.del_flag = '0' and bvd.community_id = cbc.community_id and bvd.warn_id=bwe.warn_id AND bvd.warn_id = #{warnId}
+    </select>
+
+    <select id="selectVideoDataList" resultType="java.util.LinkedHashMap">
+        SELECT
+          data_id as 'dataId'
+        FROM xccj_device.bus_video_data
+        WHERE del_flag = '0'  and  warn_id = #{warnId}
+    </select>
+
+    <select id="selectVideoResultList" resultType="java.util.LinkedHashMap">
+        SELECT
+            bvr.image_url as "imgUrl",cbc.community_name as "communityName",bwe.src_name as "address",bvr.device_index_code as 'idNum',
+            bvd.event_type as 'type',bvd.send_time as 'time', bvr.image_server_code AS "imageServerCode"
+        FROM xccj_device.bus_video_result bvr,xccj_community.bus_community cbc,xccj_device.bus_warn_event bwe,xccj_device.bus_video_data bvd
+        WHERE bvr.del_flag = '0' and bvr.community_id = cbc.community_id and bvd.warn_id=bwe.warn_id AND  bvd.data_id=bvr.data_id and bvr.data_id = #{dataId}
+    </select>
+
+    <select id="selectSmokeFireList" resultType="java.util.LinkedHashMap">
+        SELECT
+            bsf.image_url as "imgUrl",cbc.community_name as "communityName",bwe.src_name as "address",bsf.device_index_code as 'idNum',
+            bvd.event_type as 'type',bvd.send_time as 'time', bsf.image_server_code  AS "imageServerCode"
+        FROM xccj_device.bus_smoke_fire bsf,xccj_community.bus_community cbc,xccj_device.bus_warn_event bwe,xccj_device.bus_video_data bvd
+        WHERE bsf.del_flag = '0' and bsf.community_id = cbc.community_id and bvd.warn_id=bwe.warn_id AND  bvd.data_id=bsf.data_id
+          AND bsf.data_id = #{dataId}
+    </select>
+
+    <select id="selectWarnEventById" resultType="com.wr.remote.aiot.WarnEvent">
+        SELECT
+            <include refid="warnColumns"/>
+        FROM xccj_device.bus_warn_event bwe
+        WHERE bwe.del_flag = '0' AND bwe.warn_id = #{warnId}
+    </select>
+
+</mapper>

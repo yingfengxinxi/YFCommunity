@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.member.AuditMapper">
+    <sql id="memberColumns">
+        bm.member_id, ba.account_id, ba.account_name AS `memberName`, ba.login_name AS `memberPhone`, ba.account_type, bm.join_time, bm.party_id, bp.party_name, bm.member_duty, bm.create_time, bm.audit_time, bc.community_id, bc.community_name, bb.building_id, bb.building_name, bu.unit_id, bu.unit_name, br.room_id, br.room_name, bm.audit_status, bm.prove_url
+    </sql>
+    <update id="through">
+        UPDATE xccj_govern.`bus_member` SET audit_status = '1', audit_time = sysdate() WHERE member_id = #{memberId}
+    </update>
+    <update id="rejected">
+        UPDATE xccj_govern.`bus_member` SET audit_status = '2', reject_reason = #{rejectReason}, audit_time = sysdate() WHERE member_id = #{memberId}
+    </update>
+    <select id="getMemberAll" resultType="com.wr.remote.govern.party.vo.MemberVO">
+        SELECT
+        <include refid="memberColumns"/>
+        FROM xccj_govern.`bus_member` bm
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bm.account_id
+        LEFT JOIN xccj_govern.bus_party bp ON bp.party_id = bm.party_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bm.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bm.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bm.unit_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bm.room_id
+        WHERE bm.del_flag = '0' AND bm.audit_status = '0'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != params">
+            AND date_format(bm.join_time,'%y%m%d') between date_format(#{params.beginTime},'%y%m%d') AND date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="null != memberName and '' != memberName">
+            AND ba.account_name = #{memberName}
+        </if>
+        ORDER BY bm.create_time DESC
+    </select>
+    <select id="getMemberById" resultType="com.wr.remote.govern.party.vo.MemberVO">
+        SELECT
+        <include refid="memberColumns"/>
+        FROM xccj_govern.`bus_member` bm
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bm.account_id
+        LEFT JOIN xccj_govern.bus_party bp ON bp.party_id = bm.party_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bm.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bm.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bm.unit_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bm.room_id
+        WHERE bm.del_flag = '0'
+        AND bm.member_id = #{memberId}
+    </select>
+</mapper>

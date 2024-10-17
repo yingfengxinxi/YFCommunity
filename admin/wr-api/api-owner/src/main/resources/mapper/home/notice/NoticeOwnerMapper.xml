@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.notice.NoticeOwnerMapper">
+    <resultMap type="com.wr.api.owner.entity.home.notice.NoticeOwnerVO" id="noticeVOMap">
+        <result property="id" column="notice_id" jdbcType="INTEGER"/>
+    </resultMap>
+    <update id="increaseReadNumByNoticeId">
+        update xccj_community.bus_notice
+        set read_num=read_num + 1
+        where notice_id = #{id}
+    </update>
+    <select id="festivalDetail" resultType="com.wr.remote.domain.NoticeFestival">
+        SELECT bnf.notice_title AS "noticeTitle",
+               bnf.content      AS "content",
+               bnf.update_time AS 'createTime'
+        FROM xccj_community.bus_notice_festival bnf
+        WHERE bnf.`del_flag` = '0'
+          and bnf.id = #{id}
+    </select>
+
+    <select id="searchByCommunityId" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT notice_id             AS "noticeId",
+               notice_title          AS "noticeTitle",
+               update_time           AS "createTime",
+               bn.brief_introduction AS "briefIntroduction"
+        FROM xccj_community.bus_notice bn
+        WHERE estate_id = #{estateId}
+          AND `community_id` = #{communityId}
+          AND del_flag = '0'
+          AND notice_status = '0'
+        ORDER BY create_time DESC
+    </select>
+    <select id="detailByNoticeId" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT bn.notice_title AS "noticeTitle",
+               bn.content      AS "content",
+               bn.read_num     AS "readNum",
+               su.nick_name    AS "createBy",
+               bn.update_time AS 'createTime'
+        FROM xccj_community.bus_notice bn
+                 LEFT JOIN xccj_estate_sys.sys_user su ON bn.create_by = su.user_name
+        WHERE bn.notice_id = #{noticeId}
+    </select>
+
+
+    <select id="getNoticeList" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT nip.*
+        FROM (SELECT *
+              FROM xccj_community.view_notice
+              UNION ALL
+              SELECT *
+              FROM xccj_community.view_invest
+              UNION ALL
+              SELECT *
+              FROM xccj_govern.view_prevent
+              UNION ALL
+              SELECT *
+              FROM xccj_community.view_notice_estate_festival
+              where userId = #{userId}) AS nip
+        WHERE nip.communityId = #{communityId}
+    </select>
+
+    <select id="getUserReadCount" resultType="Integer">
+        SELECT IFNULL(count(1), 0) as "count"
+        from xccj_community.bus_notice_read bnd
+        where user_id = #{userId}
+          and type = #{type}
+          and community_id = #{communityId}
+    </select>
+
+    <!--    信息发布-->
+    <select id="getInvestCount" resultType="Integer">
+        SELECT IFNULL(count(1), 0) AS "count"
+        FROM xccj_community.bus_invest `bi`
+        WHERE `bi`.`del_flag` = '0'
+          AND `bi`.`invest_status` = '0'
+          AND bi.estate_id = #{estateId}
+          and bi.community_id = #{communityId}
+    </select>
+
+    <!--    通知公告数量-->
+    <select id="getNoticeCount" resultType="Integer">
+        SELECT IFNULL(count(1), 0)
+        FROM xccj_community.bus_notice bn
+        WHERE bn.`del_flag` = '0'
+          AND bn.`notice_status` = '0'
+          AND bn.`range` != '2'
+          AND bn.estate_id = #{estateId}
+          and bn.community_id=#{communityId}
+    </select>
+
+
+    <!--    节日通知公告数量-->
+    <select id="getNoticeFestivalCount" resultType="Integer">
+        SELECT IFNULL(count(1), 0)
+        FROM xccj_community.bus_notice_festival bnf
+        WHERE bnf.`del_flag` = '0'
+          AND bnf.user_id = #{userId}
+          AND bnf.community_id = #{communityId}
+    </select>
+
+    <!--    防控信息数量-->
+    <select id="getPreventCount" resultType="Integer">
+        select IFNULL(count(1), 0)
+        from xccj_govern.bus_prevent `bp`
+        where `bp`.`del_flag` = '0'
+          and estate_id = #{estateId}
+          and `bp`.community_id = #{communityId}
+    </select>
+
+    <select id="getByUserIdTypeNoticeRead" resultType="Integer">
+        SELECT count(1)
+        from xccj_community.bus_notice_read_owner
+        where user_id = #{userId}
+          and type = #{type}
+          and notice_id = #{id}
+          and community_id = #{communityId}
+    </select>
+
+    <insert id="insertNoticeRead">
+        insert into xccj_community.bus_notice_read_owner (community_id, notice_id, user_id, type, flag, create_time, del_flag,like_user)
+        values (#{communityId}, #{noticeId}, #{userId}, #{type}, #{flag}, NOW(), '0',#{likeUser})
+    </insert>
+
+    <select id="selectCountSafety" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            sa.prevent_id AS id,
+            sa.brief_introduction AS briefIntroduction,
+            sa.prevent_title AS noticeTitle,
+            sa.content AS content,
+            sa.create_time
+        FROM
+            xccj_govern.bus_prevent_safety sa
+        LEFT JOIN xccj_community.bus_notice_read_owner re ON sa.prevent_id = re.notice_id AND re.type = '0' AND re.user_id = #{ownerId}
+        WHERE
+        sa.del_flag = '0'
+        AND re.notice_id IS NULL
+        AND sa.estate_id = #{estateId}
+        AND sa.community_id = #{communityId}
+        ORDER BY sa.create_time DESC
+    </select>
+
+    <select id="selectCountWarranty" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            wa.id id,
+            wa.report_remark briefIntroduction,
+            CONCAT(wa.report_name, '已提交成功，物业服务中心已安排人员前去检查和处理，请耐心等待！') noticeTitle,
+            wa.order_feedback content,
+            wa.create_time
+        FROM
+            xccj_community.bus_reporting_warranty wa
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON wa.id = re.notice_id AND re.user_id = #{ownerId}
+                AND re.type = '1'
+        WHERE
+            wa.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND wa.account_id = #{accountId}
+          AND wa.community_id = #{communityId}
+        ORDER BY wa.create_time DESC
+    </select>
+    <select id="selectCountNotice" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            no.notice_id id,
+            no.notice_title noticeTitle,
+            no.brief_introduction briefIntroduction,
+            no.content content,
+            no.create_time
+           FROM
+            xccj_community.bus_notice no
+            LEFT JOIN xccj_community.bus_notice_read_owner re ON no.notice_id = re.notice_id
+            AND re.type = '2' AND re.user_id = #{ownerId}
+            WHERE
+            no.del_flag = '0'
+            AND re.notice_id IS NULL
+            AND no.estate_id = #{estateId}
+            AND no.community_id = #{communityId}
+           AND no.notice_status = '0'
+            ORDER BY
+            no.create_time DESC
+    </select>
+    <select id="selectCountStatute" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            st.id id,
+            st.name noticeTitle,
+            st.list_content briefIntroduction,
+            st.content content,
+            st.create_time
+        FROM
+            xccj_community.bus_autonomy_statute st
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON st.id = re.notice_id
+                AND re.type = '3' AND re.user_id = #{ownerId}
+        WHERE
+            st.del_flag = '0'
+            AND re.notice_id IS NULL
+            AND st.estate_id = #{estateId}
+            AND st.community_id = #{communityId}
+            ORDER BY
+            st.create_time DESC
+    </select>
+
+    <select id="selectCountProperty" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            pro.id id,
+            pro.notice_title noticeTitle,
+            pro.content content,
+            pro.content briefIntroduction,
+            pro.create_time
+        FROM
+            xccj_community.bus_notice_property pro
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON pro.id = re.notice_id
+                AND re.type = '41' AND re.user_id = #{ownerId}
+        WHERE
+            pro.del_flag = '0'
+            AND re.notice_id IS NULL
+            AND pro.account_id = #{accountId}
+            AND pro.community_id = #{communityId}
+            ORDER BY
+            pro.create_time DESC
+    </select>
+
+    <select id="selectCountFestival" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            fes.id id,
+            fes.notice_title noticeTitle,
+            fes.content content,
+            fes.content briefIntroduction,
+            fes.create_time
+        FROM
+            xccj_community.bus_notice_festival fes
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON fes.id = re.notice_id
+                AND re.type = '42' AND re.user_id = #{ownerId}
+        WHERE
+            fes.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND fes.user_id = #{accountId}
+          AND fes.community_id = #{communityId}
+        ORDER BY
+            fes.create_time DESC
+    </select>
+
+    <select id="selectCountBulletin" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            bu.bulletin_id id,
+            bu.user_name noticeTitle,
+            bu.crime_reason content,
+            bu.crime_level briefIntroduction,
+            bu.create_time
+        FROM
+            xccj_govern.bus_bulletin bu
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON bu.bulletin_id = re.notice_id
+                AND re.type = '5' AND re.user_id = #{ownerId}
+        WHERE
+            bu.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND bu.archive = '0'
+          AND bu.estate_id = #{estateId}
+        ORDER BY
+            bu.create_time DESC
+    </select>
+
+    <select id="selectCountSocial" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            com.comment_id id,
+            socal.content noticeTitle,
+            CONCAT(ow.owner_name, ' 评论了你发布的内容') briefIntroduction,
+            com.content content,
+            com.create_time,
+            com.user_id likeUser
+        FROM
+            xccj_govern.bus_social socal
+                LEFT JOIN xccj_govern.bus_social_comment com ON socal.social_id = com.social_id
+                LEFT JOIN xccj_community.bus_owner ow ON com.user_id = ow.owner_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON com.comment_id = re.notice_id
+                AND re.type = '61' AND re.user_id = #{ownerId}
+        WHERE
+            socal.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND com.comment_id IS NOT NULL
+          AND socal.estate_id = #{estateId}
+          AND socal.community_id = #{communityId}
+          AND socal.user_id = #{ownerId}
+          AND socal.user_type = '1'
+        ORDER BY
+            socal.create_time DESC
+    </select>
+
+    <select id="selectCountSocialLike" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            li.social_id id,
+            socal.content noticeTitle,
+            CONCAT(ac.account_nick, '点赞了你发布的内容') briefIntroduction,
+            socal.content content,
+            li.create_time,
+            li.user_id likeUser
+        FROM
+            xccj_govern.bus_social socal
+                LEFT JOIN xccj_govern.bus_social_like li ON li.social_id = socal.social_id
+                LEFT JOIN xccj_community.bus_account ac ON li.user_id = ac.account_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON li.social_id = re.notice_id
+                AND re.type = '62' AND re.user_id = #{ownerId}
+        WHERE
+            socal.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND li.social_id IS NOT NULL
+          AND socal.estate_id = #{estateId}
+          AND socal.community_id = #{communityId}
+          AND socal.user_id = #{ownerId}
+          AND socal.user_type = '1'
+        ORDER BY
+            socal.create_time DESC
+    </select>
+
+    <select id="selectCountSection" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            com.comment_id id,
+            sec.content noticeTitle,
+            CONCAT(ow.owner_name, ' 评论了你发布的内容') briefIntroduction,
+            com.content content,
+            com.create_time,
+            com.user_id likeUser
+        FROM
+            xccj_govern.bus_featured_section sec
+                LEFT JOIN xccj_govern.bus_featured_comment com ON sec.featured_id = com.featured_id
+                LEFT JOIN xccj_community.bus_owner ow ON com.user_id = ow.owner_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON com.comment_id = re.notice_id
+                AND re.type = '63' AND re.user_id = #{ownerId}
+        WHERE
+            sec.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND com.comment_id IS NOT NULL
+          AND sec.estate_id = #{estateId}
+          AND sec.community_id = #{communityId}
+          AND sec.user_id = #{ownerId}
+          AND sec.user_type = '1'
+        ORDER BY
+            sec.create_time DESC
+    </select>
+
+    <select id="selectCountSectionLike" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            li.featured_id id,
+            sec.content noticeTitle,
+            CONCAT(ac.account_nick, '点赞了你发布的内容') briefIntroduction,
+            sec.content content,
+            li.create_time,
+            li.user_id likeUser
+        FROM
+            xccj_govern.bus_featured_section sec
+                LEFT JOIN xccj_govern.bus_featured_like li ON sec.featured_id = li.featured_id
+                LEFT JOIN xccj_community.bus_account ac ON li.user_id = ac.account_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON li.featured_id = re.notice_id
+                AND re.type = '64' AND re.user_id = #{ownerId}
+        WHERE
+            sec.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND li.featured_id IS NOT NULL
+          AND sec.estate_id = #{estateId}
+          AND sec.community_id = #{communityId}
+          AND sec.user_id = #{ownerId}
+          AND sec.user_type = '1'
+        ORDER BY
+            sec.create_time DESC
+    </select>
+
+    <select id="selectCountInvest" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            inv.invest_id id,
+            inv.invest_title noticeTitle,
+            inv.brief_introduction briefIntroduction,
+            inv.content content,
+            inv.create_time
+        FROM
+            xccj_community.bus_invest inv
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON inv.invest_id = re.notice_id
+                AND re.type = '7' AND re.user_id = #{ownerId}
+        WHERE
+            inv.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND inv.estate_id = #{estateId}
+          AND inv.community_id = #{communityId}
+        ORDER BY
+            inv.create_time DESC
+    </select>
+
+    <select id="selectListProperty" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            pro.id id,
+            pro.notice_title noticeTitle,
+            pro.content content,
+            pro.content briefIntroduction,
+            pro.create_time
+        FROM
+            xccj_community.bus_notice_property pro
+        WHERE
+            pro.del_flag = '0'
+          AND pro.account_id = #{accountId}
+          AND pro.community_id = #{communityId}
+            UNION
+        SELECT
+            fes.id id,
+            fes.notice_title noticeTitle,
+            fes.content content,
+            fes.content briefIntroduction,
+            fes.create_time
+        FROM
+            xccj_community.bus_notice_festival fes
+        WHERE
+            fes.del_flag = '0'
+          AND fes.user_id = #{accountId}
+          AND fes.community_id = #{communityId}
+        ORDER BY
+            create_time DESC
+    </select>
+
+    <select id="selectListSocialFeatured" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            com.comment_id id,
+            socal.content noticeTitle,
+            CONCAT(ow.owner_name, ' 评论了你发布的内容') briefIntroduction,
+            com.content content,
+            com.create_time,
+            '61' code,
+            socal.social_id codeId
+        FROM
+            xccj_govern.bus_social socal
+                LEFT JOIN xccj_govern.bus_social_comment com ON socal.social_id = com.social_id
+                LEFT JOIN xccj_community.bus_owner ow ON com.user_id = ow.owner_id
+        WHERE
+            socal.del_flag = '0'
+          AND com.comment_id IS NOT NULL
+          AND socal.estate_id = #{estateId}
+          AND socal.community_id = #{communityId}
+          AND socal.user_id = #{ownerId}
+          AND socal.user_type = '1'
+        UNION
+        SELECT
+            li.social_id id,
+            socal.content noticeTitle,
+            CONCAT(ac.account_nick, '点赞了你发布的内容') briefIntroduction,
+            socal.content content,
+            li.create_time,
+            '61' code,
+            socal.social_id codeId
+        FROM
+            xccj_govern.bus_social socal
+                LEFT JOIN xccj_govern.bus_social_like li ON li.social_id = socal.social_id
+                LEFT JOIN xccj_community.bus_account ac ON li.user_id = ac.account_id
+        WHERE
+            socal.del_flag = '0'
+          AND li.social_id IS NOT NULL
+          AND socal.estate_id = #{estateId}
+          AND socal.community_id = #{communityId}
+          AND socal.user_id = #{ownerId}
+          AND socal.user_type = '1'
+        UNION
+        SELECT
+            com.comment_id id,
+            sec.content noticeTitle,
+            CONCAT(ow.owner_name, ' 评论了你发布的内容') briefIntroduction,
+            com.content content,
+            com.create_time,
+            '62' code,
+            sec.featured_id codeId
+        FROM
+            xccj_govern.bus_featured_section sec
+                LEFT JOIN xccj_govern.bus_featured_comment com ON sec.featured_id = com.featured_id
+                LEFT JOIN xccj_community.bus_owner ow ON com.user_id = ow.owner_id
+        WHERE
+            sec.del_flag = '0'
+          AND com.comment_id IS NOT NULL
+          AND sec.estate_id = #{estateId}
+          AND sec.community_id = #{communityId}
+          AND sec.user_id = #{ownerId}
+          AND sec.user_type = '1'
+        UNION
+        SELECT
+            li.featured_id id,
+            sec.content noticeTitle,
+            CONCAT(ac.account_nick, '点赞了你发布的内容') briefIntroduction,
+            sec.content content,
+            li.create_time,
+            '62' code,
+            sec.featured_id codeId
+        FROM
+            xccj_govern.bus_featured_section sec
+                LEFT JOIN xccj_govern.bus_featured_like li ON sec.featured_id = li.featured_id
+                LEFT JOIN xccj_community.bus_account ac ON li.user_id = ac.account_id
+        WHERE
+            sec.del_flag = '0'
+          AND li.featured_id IS NOT NULL
+          AND sec.estate_id = #{estateId}
+          AND sec.community_id = #{communityId}
+          AND sec.user_id = #{ownerId}
+          AND sec.user_type = '1'
+    </select>
+
+    <select id="findOneMessage" resultType="com.wr.api.owner.entity.home.notice.NoticeOwnerVO">
+        SELECT
+            sa.prevent_id AS id,
+            sa.brief_introduction AS briefIntroduction,
+            sa.prevent_title AS noticeTitle,
+            sa.content AS content,
+            sa.create_time
+        FROM
+            xccj_govern.bus_prevent_safety sa
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON sa.prevent_id = re.notice_id AND re.type = '0' AND re.user_id = #{ownerId}
+        WHERE
+            sa.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND sa.estate_id = #{estateId}
+          AND sa.community_id = #{communityId}
+        UNION
+        SELECT
+            wa.id id,
+            wa.report_remark briefIntroduction,
+            CONCAT(wa.report_name, '已提交成功，物业人员正在处理中，请耐心等待！') noticeTitle,
+            wa.order_feedback content,
+            wa.create_time
+        FROM
+            xccj_community.bus_reporting_warranty wa
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON wa.id = re.notice_id AND re.user_id = #{ownerId}
+                AND re.type = '1'
+        WHERE
+            wa.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND wa.account_id = #{accountId}
+          AND wa.community_id = #{communityId}
+        UNION
+        SELECT
+            no.notice_id id,
+            no.notice_title noticeTitle,
+            no.brief_introduction briefIntroduction,
+            no.content content,
+            no.create_time
+        FROM
+            xccj_community.bus_notice no
+            LEFT JOIN xccj_community.bus_notice_read_owner re ON no.notice_id = re.notice_id
+            AND re.type = '2' AND re.user_id = #{ownerId}
+        WHERE
+            no.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND no.estate_id = #{estateId}
+          AND no.community_id = #{communityId}
+          AND no.notice_status = '0'
+        UNION
+        SELECT
+            st.id id,
+            st.name noticeTitle,
+            st.list_content briefIntroduction,
+            st.content content,
+            st.create_time
+        FROM
+            xccj_community.bus_autonomy_statute st
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON st.id = re.notice_id
+                AND re.type = '3' AND re.user_id = #{ownerId}
+        WHERE
+            st.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND st.estate_id = #{estateId}
+          AND st.community_id = #{communityId}
+        UNION
+        SELECT
+            pro.id id,
+            pro.notice_title noticeTitle,
+            pro.content content,
+            pro.content briefIntroduction,
+            pro.create_time
+        FROM
+            xccj_community.bus_notice_property pro
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON pro.id = re.notice_id
+                AND re.type = '41' AND re.user_id = #{ownerId}
+        WHERE
+            pro.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND pro.account_id = #{accountId}
+          AND pro.community_id = #{communityId}
+        UNION
+        SELECT
+            fes.id id,
+            fes.notice_title noticeTitle,
+            fes.content content,
+            fes.content briefIntroduction,
+            fes.create_time
+        FROM
+            xccj_community.bus_notice_festival fes
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON fes.id = re.notice_id
+                AND re.type = '42' AND re.user_id = #{ownerId}
+        WHERE
+            fes.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND fes.user_id = #{accountId}
+          AND fes.community_id = #{communityId}
+        UNION
+        SELECT
+            bu.bulletin_id id,
+            bu.user_name noticeTitle,
+            bu.crime_reason content,
+            bu.crime_level briefIntroduction,
+            bu.create_time
+        FROM
+            xccj_govern.bus_bulletin bu
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON bu.bulletin_id = re.notice_id
+                AND re.type = '5' AND re.user_id = #{ownerId}
+        WHERE
+            bu.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND bu.archive = '0'
+          AND bu.estate_id = #{estateId}
+        UNION
+        SELECT
+            com.comment_id id,
+            socal.content noticeTitle,
+            CONCAT(ow.owner_name, ' 评论了你发布的内容') briefIntroduction,
+            com.content content,
+            com.create_time
+        FROM
+            xccj_govern.bus_social socal
+                LEFT JOIN xccj_govern.bus_social_comment com ON socal.social_id = com.social_id
+                LEFT JOIN xccj_community.bus_owner ow ON com.user_id = ow.owner_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON com.comment_id = re.notice_id
+                AND re.type = '61' AND re.user_id = #{ownerId}
+        WHERE
+            socal.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND com.comment_id IS NOT NULL
+          AND socal.estate_id = #{estateId}
+          AND socal.community_id = #{communityId}
+          AND socal.user_id = #{ownerId}
+          AND socal.user_type = '1'
+        UNION
+        SELECT
+            li.social_id id,
+            socal.content noticeTitle,
+            CONCAT(ac.account_nick, '点赞了你发布的内容') briefIntroduction,
+            socal.content content,
+            li.create_time
+        FROM
+            xccj_govern.bus_social socal
+                LEFT JOIN xccj_govern.bus_social_like li ON li.social_id = socal.social_id
+                LEFT JOIN xccj_community.bus_account ac ON li.user_id = ac.account_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON li.social_id = re.notice_id
+                AND re.type = '62' AND re.user_id = #{ownerId}
+        WHERE
+            socal.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND li.social_id IS NOT NULL
+          AND socal.estate_id = #{estateId}
+          AND socal.community_id = #{communityId}
+          AND socal.user_id = #{ownerId}
+          AND socal.user_type = '1'
+        UNION
+        SELECT
+            com.comment_id id,
+            sec.content noticeTitle,
+            CONCAT(ow.owner_name, ' 评论了你发布的内容') briefIntroduction,
+            com.content content,
+            com.create_time
+        FROM
+            xccj_govern.bus_featured_section sec
+                LEFT JOIN xccj_govern.bus_featured_comment com ON sec.featured_id = com.featured_id
+                LEFT JOIN xccj_community.bus_owner ow ON com.user_id = ow.owner_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON com.comment_id = re.notice_id
+                AND re.type = '63' AND re.user_id = #{ownerId}
+        WHERE
+            sec.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND com.comment_id IS NOT NULL
+          AND sec.estate_id = #{estateId}
+          AND sec.community_id = #{communityId}
+          AND sec.user_id = #{ownerId}
+          AND sec.user_type = '1'
+        UNION
+        SELECT
+            li.featured_id id,
+            sec.content noticeTitle,
+            CONCAT(ac.account_nick, '点赞了你发布的内容') briefIntroduction,
+            sec.content content,
+            li.create_time
+        FROM
+            xccj_govern.bus_featured_section sec
+                LEFT JOIN xccj_govern.bus_featured_like li ON sec.featured_id = li.featured_id
+                LEFT JOIN xccj_community.bus_account ac ON li.user_id = ac.account_id
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON li.featured_id = re.notice_id
+                AND re.type = '64' AND re.user_id = #{ownerId}
+        WHERE
+            sec.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND li.featured_id IS NOT NULL
+          AND sec.estate_id = #{estateId}
+          AND sec.community_id = #{communityId}
+          AND sec.user_id = #{ownerId}
+          AND sec.user_type = '1'
+            UNION
+        SELECT
+            inv.invest_id id,
+            inv.invest_title noticeTitle,
+            inv.brief_introduction briefIntroduction,
+            inv.content content,
+            inv.create_time
+        FROM
+            xccj_community.bus_invest inv
+                LEFT JOIN xccj_community.bus_notice_read_owner re ON inv.invest_id = re.notice_id
+                AND re.type = '7' AND re.user_id = #{ownerId}
+        WHERE
+            inv.del_flag = '0'
+          AND re.notice_id IS NULL
+          AND inv.estate_id = #{estateId}
+          AND inv.community_id = #{communityId}
+        ORDER BY
+            create_time DESC
+        LIMIT 1
+    </select>
+</mapper>
+

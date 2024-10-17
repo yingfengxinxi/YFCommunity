@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.investigation.InvestigationMapper">
+
+	<resultMap type="com.wr.remote.govern.autonomy.investigation.Questionnaire" id="QuestionnaireResult">
+		<id     property="questionnaireId"     column="questionnaire_id"     />
+		<result property="estateId"   column="estate_id"   />
+		<result property="quesName"  column="ques_name"   />
+		<result property="quesStatus"   column="ques_status"   />
+		<result property="createBy"   column="create_by"   />
+		<result property="createTime" column="create_time" />
+		<result property="startDate"   column="start_date"   />
+		<result property="endDate" column="end_date" />
+		<result property="updateBy"   column="update_by"   />
+		<result property="updateTime" column="update_time" />
+		<result property="delFlag" column="del_flag" />
+	</resultMap>
+
+	<sql id="selectQuestionnaireVo">
+		SELECT
+			d.*
+		FROM
+			(
+				SELECT
+					bh.questionnaire_id,
+					(
+						SELECT
+							group_concat( bc.community_name ) AS community_name
+						FROM
+							xccj_govern.bus_questionnaire bh1
+								LEFT JOIN xccj_govern.bus_ques_community bhc ON  bh1.questionnaire_id = bhc.questionnaire_id
+								LEFT JOIN xccj_community.bus_community bc ON find_in_set( bc.community_id, bhc.community_id )
+						WHERE
+							bh1.questionnaire_id = bh.questionnaire_id
+					) AS estateName,
+					(
+						SELECT
+							group_concat( bc.community_id ) AS community_id
+						FROM
+							xccj_govern.bus_questionnaire bh1
+								LEFT JOIN xccj_govern.bus_ques_community bhc ON  bh1.questionnaire_id = bhc.questionnaire_id
+								LEFT JOIN xccj_community.bus_community bc ON find_in_set( bc.community_id, bhc.community_id )
+						WHERE
+							bh1.questionnaire_id = bh.questionnaire_id
+					) AS community_id,
+					bh.estate_id,
+					ques_name,
+					ques_status,
+					bh.del_flag,
+					bh.create_by,
+					bh.create_time,
+				    bh.start_date,
+				    bh.end_date,
+					bh.update_by,
+					bh.update_time
+				FROM
+					xccj_govern.bus_questionnaire bh
+			) d
+	</sql>
+
+	<select id="selectQuestionnaireList" parameterType="com.wr.remote.govern.autonomy.investigation.Questionnaire" resultMap="QuestionnaireResult">
+		<include refid="selectQuestionnaireVo"/>
+		<where>
+			d.del_flag = '0'
+			<if test="quesName != null and quesName !=''">
+				and ques_name like concat('%', #{quesName}, '%')
+			</if>
+			<if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+				AND date_format(d.start_date,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+			</if>
+			<if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+				AND date_format(d.start_date,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+			</if>
+			<if test="communityId != null">
+				and d.community_id like concat('%', #{communityId}, '%')
+			</if>
+			<if test="estateId != null">
+				AND d.estate_id = #{estateId}
+			</if>
+		</where>
+		order by d.create_time desc
+	</select>
+
+
+	<select id="selectQuestionnaireById" parameterType="Long" resultMap="QuestionnaireResult">
+		<include refid="selectQuestionnaireVo"/>
+		where questionnaire_id = #{questionnaireId}
+	</select>
+
+	<select id="selectCommunityById" parameterType="Long" resultType="com.wr.remote.domain.Community">
+	    select community_id,community_name from xccj_govern.bus_community
+		where community_id = #{communityId}
+	</select>
+
+    <insert id="insertQuestionnaire" parameterType="com.wr.remote.govern.autonomy.investigation.Questionnaire" useGeneratedKeys="true" keyProperty="questionnaireId">
+		insert into xccj_govern.bus_questionnaire(
+		<if test="questionnaireId != null and questionnaireId != 0">questionnaire_id,</if>
+		<if test="estateId != null and estateId != 0">estate_id,</if>
+		<if test="quesName != null and quesName !=''">ques_name,</if>
+		<if test="quesStatus != null and quesStatus !=''">ques_status,</if>
+		<if test="startDate != null">start_date,</if>
+		<if test="endDate != null">end_date,</if>
+		<if test="createBy != null and createBy != ''">create_by,</if>
+		create_time
+		)values(
+		<if test="questionnaireId != null and questionnaireId !=0">#{questionnaireId},</if>
+		<if test="estateId != null and estateId !=0">#{estateId},</if>
+		<if test="quesName != null and quesName !=''">#{quesName},</if>
+		<if test="quesStatus != null and quesStatus !=''">#{quesStatus},</if>
+		<if test="startDate != null">#{startDate},</if>
+		<if test="endDate != null">#{endDate},</if>
+		<if test="createBy != null and createBy != ''">#{createBy},</if>
+		sysdate()
+		)
+	</insert>
+
+
+	<delete id="deleteQuestionnaireById" parameterType="java.lang.Long">
+		update xccj_govern.bus_questionnaire set del_flag = '1'    WHERE questionnaire_id IN
+		<foreach item="questionnaireId" collection="array" open="(" separator="," close=")">
+			#{questionnaireId}
+		</foreach>
+	</delete>
+
+</mapper> 

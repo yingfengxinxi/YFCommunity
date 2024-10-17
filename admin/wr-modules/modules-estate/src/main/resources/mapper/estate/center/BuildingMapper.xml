@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.BuildingMapper">
+    <!-- 批量新增楼宇 -->
+    <insert id="insertBatch">
+        INSERT INTO xccj_community.bus_building
+        (community_id, building_name, create_by, create_time, update_by, update_time, del_flag)
+        VALUES
+        <foreach collection="list" item="l" separator=",">
+            (#{l.communityId},#{l.buildingName},#{l.createBy},NOW(),#{l.updateBy},NOW(),'0')
+        </foreach>
+    </insert>
+
+    <!-- 新增楼宇 -->
+    <insert id="insert">
+        INSERT INTO xccj_community.bus_building
+        (community_id, building_name, create_by, create_time, update_by, update_time, del_flag)
+        VALUES
+            (#{communityId},#{buildingName},#{createBy},NOW(),#{updateBy},NOW(),'0')
+    </insert>
+
+    <!-- 根据id获取楼栋详情 -->
+    <select id="getDetailByBuildingId" resultType="com.wr.remote.estate.center.Building">
+        SELECT building_id,
+               community_id,
+               building_name,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        FROM xccj_community.bus_building
+        WHERE building_id = #{buildingId}
+    </select>
+
+    <select id="getBuildingNameId" resultType="Long">
+        select building_id
+        from xccj_community.bus_building
+        WHERE building_name = #{buildingName}
+          and community_id = #{communityId}
+    </select>
+
+    <!-- 根据单元id获取楼栋详情 -->
+    <select id="getDetailByUnitId" resultType="com.wr.remote.estate.center.Building">
+        SELECT bb.building_id,
+               bb.community_id,
+               bb.building_name,
+               bb.create_by,
+               bb.create_time,
+               bb.update_by,
+               bb.update_time,
+               bb.del_flag
+        FROM xccj_community.bus_building bb
+                 LEFT JOIN xccj_community.bus_unit bu ON bb.building_id = bu.building_id
+        WHERE bu.unit_id = #{unitId}
+    </select>
+
+    <!-- 修改楼宇 -->
+    <update id="updateBuildingById">
+        UPDATE xccj_community.bus_building
+        SET building_name = #{buildingName},
+            update_by     = #{updateBy},
+            update_time   = NOW()
+        WHERE building_id = #{buildingId}
+    </update>
+
+    <!-- 删除楼栋 -->
+    <update id="deleteById">
+        UPDATE xccj_community.bus_building
+        SET del_flag = '1'
+        WHERE building_id = #{id}
+    </update>
+
+    <!-- 根据小区id查询所有楼栋 -->
+    <select id="listByCommunityId" resultType="com.wr.remote.estate.center.Building">
+        SELECT building_id,
+               community_id,
+               building_name,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        FROM xccj_community.bus_building
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+    </select>
+
+    <select id="getCommunityIdBuildingName" resultType="com.wr.remote.estate.center.Building">
+        SELECT building_id as "buildingId",
+               building_name as "buildingName",
+               "0" AS "flag"
+        FROM xccj_community.bus_building bb
+        WHERE bb.community_id =#{communityId}
+          AND bb.del_flag = '0'
+        ORDER BY building_id
+    </select>
+</mapper>

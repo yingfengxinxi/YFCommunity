@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.AccessMapper">
+    <sql id="accessColumns">
+        dba.access_id, dba.index_code, dba.access_name, dba.dev_type_code, dba.dev_type_desc, dba.access_ip, dba.access_port,
+        dba.treaty_type, dba.capability, dba.card_capacity, dba.finger_capacity, dba.face_capacity, dba.door_capacity,
+        dba.data_version, dba.dev_serial_num, dba.create_time, dba.update_time, dba.online, dba.manufacturer,
+        dba.renewal_by, dba.renewal_time, dba.update_by, dba.operate_time, dba.community_id, dba.building_id, dba.unit_id,
+        dba.address, dba.inout_type, dba.door_id, dba.device_qr, dba.del_flag
+    </sql>
+
+    <select id="selectAccessList" resultType="com.wr.remote.aiot.Access">
+        SELECT
+            cbb.building_name, cbu.unit_name, dbd.door_name,dbd.index_code as "doorIndexCode",
+            <include refid="accessColumns"/>
+        FROM xccj_device.bus_access dba
+            LEFT JOIN xccj_community.bus_building cbb ON cbb.building_id = dba.building_id
+            LEFT JOIN xccj_community.bus_unit cbu ON cbu.unit_id = dba.unit_id
+            LEFT JOIN xccj_device.bus_door dbd ON dbd.door_id = dba.door_id
+        WHERE dba.del_flag = '0' AND dba.community_id = #{communityId}
+        <if test="accessName != null and accessName != ''">
+            AND dba.access_name LIKE concat('%', #{accessName}, '%')
+        </if>
+        <if test="indexCode != null and indexCode != ''">
+            AND dba.index_code LIKE concat('%', #{indexCode}, '%')
+        </if>
+        <if test="online != null">
+            AND dba.online=#{online}
+        </if>
+        ORDER BY dba.operate_time DESC
+    </select>
+
+    <!--UPDATE xccj_device.bus_access SET `online` = #{online} WHERE access_id = #{accessId}-->
+    <update id="updateAccessOnline">
+        INSERT INTO xccj_device.bus_access (index_code, `online`) VALUES
+        <foreach item="item" index="index" collection="accessList" separator=",">
+            ( #{item.indexCode}, #{item.online} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        index_code = values(index_code), online = values(online)
+    </update>
+    <insert id="insert">
+        INSERT INTO xccj_device.bus_access (
+            index_code,
+            access_name,
+            dev_type_code,
+            dev_type_desc,
+            online,
+            access_ip,
+            access_port,
+            treaty_type,
+            capability,
+            card_capacity,
+            finger_capacity,
+            face_capacity,
+            door_capacity,
+            data_version,
+            dev_serial_num,
+            create_time,
+            update_time,
+            manufacturer,
+            renewal_by,
+            renewal_time,
+            update_by,
+            community_id)
+        VALUES (
+                #{indexCode},
+                #{name},
+                #{devTypeCode},
+                #{devTypeDesc},
+                #{online},
+                #{ip},
+                #{port},
+                #{treatyType},
+                #{capability},
+                #{cardCapacity},
+                #{fingerCapacity},
+                #{faceCapacity},
+                #{doorCapacity},
+                #{dataVersion},
+                #{devSerialNum},
+                #{createTime},
+                #{updateTime},
+                #{manufacturer},
+                #{renewalBy},
+                sysdate(),
+                '',
+                #{communityId}
+               )
+    </insert>
+    <update id="update">
+        update xccj_device.bus_access
+        set index_code=#{indexCode},
+            access_name=#{accessName},
+            dev_type_code=#{devTypeCode},
+            dev_type_desc=#{devTypeDesc},
+            online=#{online},
+            access_ip=#{accessIp},
+            access_port=#{accessPort},
+            treaty_type=#{treatyType},
+            capability=#{capability},
+            card_capacity=#{cardCapacity},
+            finger_capacity=#{fingerCapacity},
+            face_capacity=#{faceCapacity},
+            door_capacity=#{doorCapacity},
+            data_version=#{dataVersion},
+            dev_serial_num=#{devSerialNum},
+            create_time=NOW(),
+            update_time=NOW(),
+            manufacturer=#{manufacturer},
+            renewal_by=#{renewalBy},
+            renewal_time=NOW(),
+            update_by=#{renewalBy},
+            community_id=#{communityId}
+        where access_id = #{accessId}
+    </update>
+    <select id="getByIndexCodeInfo" resultType="com.wr.remote.aiot.Access">
+        select
+        <include refid="accessColumns"/>
+        from xccj_device.bus_access dba where dba.index_code=#{indexCode}
+    </select>
+    <delete id="delete">
+        delete
+        from xccj_device.bus_access
+        where DATE_FORMAT(renewal_time, "%Y-%m-%d") != DATE_FORMAT(NOW(), "%Y-%m-%d")
+    </delete>
+    <insert id="insertOrUpdateAccess">
+        INSERT INTO xccj_device.bus_access (
+            index_code, access_name, dev_type_code, dev_type_desc, access_ip, access_port, treaty_type, capability,
+            card_capacity, finger_capacity, face_capacity, door_capacity, data_version, dev_serial_num, create_time,
+            update_time, manufacturer, renewal_by, renewal_time, update_by, community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="dataList" separator=",">
+            (
+                #{item.indexCode}, #{item.name}, #{item.devTypeCode}, #{item.devTypeDesc}, #{item.ip}, #{item.port},
+                #{item.treatyType}, #{item.capability}, #{item.cardCapacity}, #{item.fingerCapacity}, #{item.faceCapacity},
+                #{item.doorCapacity}, #{item.dataVersion}, #{item.devSerialNum}, #{item.createTime}, #{item.updateTime},
+                #{manufacturer}, #{renewalBy}, sysdate(), '', #{communityId}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+                index_code = values(index_code), access_name  = values(access_name), dev_type_code  = values(dev_type_code),
+                dev_type_desc = values(dev_type_desc), access_ip = values(access_ip), access_port = values(access_port),
+                treaty_type = values(treaty_type), capability = values(capability), card_capacity = values(card_capacity),
+                finger_capacity = values(finger_capacity), face_capacity = values(face_capacity), door_capacity = values(door_capacity),
+                data_version = values(data_version), dev_serial_num = values(dev_serial_num), create_time = values(create_time),
+                update_time = values(update_time), manufacturer = values(manufacturer), renewal_by = values(renewal_by),
+                renewal_time = values(renewal_time), update_by = values(update_by), community_id = values(community_id)
+    </insert>
+
+    <select id="selectAccessById" resultType="com.wr.remote.aiot.Access">
+        SELECT
+            cbc.community_name, cbb.building_name, cbu.unit_name, dbd.door_name,
+            <include refid="accessColumns"/>
+        FROM xccj_device.bus_access dba
+            LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dba.community_id
+            LEFT JOIN xccj_community.bus_building cbb ON cbb.building_id = dba.building_id
+            LEFT JOIN xccj_community.bus_unit cbu ON cbu.unit_id = dba.unit_id
+            LEFT JOIN xccj_device.bus_door dbd ON dbd.door_id = dba.door_id
+        WHERE dba.del_flag = '0' AND dba.access_id = #{accessId}
+    </select>
+
+    <update id="updateAccess">
+        UPDATE xccj_device.bus_access SET
+            door_id = #{doorId}, inout_type = #{inoutType}, address = #{address},
+            update_by = #{updateBy}, operate_time = sysdate()
+            <if test="buildingId != null">,building_id = #{buildingId}</if>
+            <if test="unitId != null">,unit_id = #{unitId}</if>
+        WHERE access_id = #{accessId}
+    </update>
+
+    <update id="batchUpdateAccess">
+        UPDATE xccj_device.bus_access SET
+            inout_type = #{inoutType}, update_by = #{updateBy}, operate_time = sysdate()
+        WHERE access_id IN
+        <foreach collection="ids" item="accessId" open="(" separator="," close=")">
+            #{accessId}
+        </foreach>
+    </update>
+
+    <select id="selectIdsOfNotQrCode" resultType="com.wr.remote.aiot.Access">
+        SELECT access_id,index_code, access_name FROM xccj_device.bus_access
+        WHERE del_flag = '0' AND (device_qr IS NULL OR device_qr = '')
+    </select>
+
+    <update id="batchUpdateDeviceQr">
+        INSERT INTO xccj_device.bus_access ( access_id, device_qr ) VALUES
+        <foreach item="item" index="index" collection="accessList" separator=",">
+            ( #{item.accessId}, #{item.deviceQr} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        access_id = values(access_id), device_qr = values(device_qr)
+    </update>
+
+    <select id="selectUnbindDoors" resultType="com.wr.remote.aiot.Door">
+        SELECT
+            dbd.door_id, dbd.index_code, dbd.door_name, dbd.door_no, dbd.door_serial, dbd.channel_type, dbd.channel_no,
+            dbd.treaty_type, dbd.control_one_id, dbd.control_two_id, dbd.reader_in_id, dbd.reader_out_id,
+            dbd.create_time, dbd.update_time, dbd.online, dbd.manufacturer, dbd.renewal_by, dbd.renewal_time,
+            dbd.update_by, dbd.operate_time, dbd.community_id, dbd.address, dbd.del_flag
+        FROM xccj_device.bus_door dbd
+        WHERE dbd.del_flag = '0' AND dbd.community_id = #{communityId}
+          AND dbd.door_id NOT IN (
+            SELECT door_id FROM xccj_device.bus_access
+            WHERE del_flag = '0' AND access_id != #{accessId}
+            AND door_id IS NOT NULL AND door_id != 0
+        )
+    </select>
+
+    <!-- 根据门禁ids查询门禁设备 -->
+    <select id="selectAccessByIds" resultType="com.wr.remote.aiot.Access">
+        SELECT access_id,index_code, access_name FROM xccj_device.bus_access
+        <where>
+            <foreach collection="list" item="id" open="AND access_id IN (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+</mapper>

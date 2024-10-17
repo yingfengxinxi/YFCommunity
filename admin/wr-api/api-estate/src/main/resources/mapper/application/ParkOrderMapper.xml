@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.serve.ParkOrderMapper">
+
+    <select id="getList" resultType="com.wr.api.estate.entity.vo.application.serve.ParkOrderVo">
+        SELECT bpo.id                as "id",
+               bsp.plate_no          AS "plateNo",
+               bsp.vehicle_no        AS "vehicleNo",
+               bpo.lease_purchase    AS "leasePurchase",
+               bpo.purchase_package  AS "purchasePackage",
+               bpo.end_time          AS "endTime",
+               bpo.`year_month`      AS "yearMonth",
+               bpo.fee               AS "fee",
+               bpo.order_no          AS "orderNo",
+               bpo.`status`          AS "status",
+               bpo.update_time       AS "updateTime",
+               bpo.staff_property_id AS "staffPropertyId",
+               bpo.is_renew          AS "isRenew",
+               bpo.fee_success_time  as "feeSuccessTime"
+        FROM xccj_community.bus_park_order bpo
+                 LEFT JOIN xccj_community.bus_staff_property bsp ON bsp.id = bpo.staff_property_id
+        WHERE bsp.user_id = #{userId}
+          AND bpo.del_flag = '0'
+        ORDER BY bpo.`status` ASC,
+                 bpo.end_time DESC,
+                 bpo.update_time DESC;
+    </select>
+
+    <select id="get" resultType="com.wr.api.estate.entity.vo.application.serve.ParkOrderVo">
+        SELECT DISTINCT
+            bsp.plate_no AS "plateNo",
+            bsp.vehicle_no AS "vehicleNo",
+            (case when bpo.`status`='0' then bpo.lease_purchase else bsp.lease_purchase end) AS "leasePurchase",
+            (case when bpo.`status`='0' then bpo.purchase_package else bsp.purchase_package end) AS "purchasePackage",
+            (case when bpo.`status`='0' then bpo.end_time else bsp.end_time end) AS "endTime",
+            (case when bpo.`status`='0' then bpo.`year_month` else bsp.`year_month` end) AS "yearMonth",
+            bpo.fee AS "fee",
+            bpo.order_no AS "orderNo",
+            bpo.`status` AS "status",
+            bpo.update_time AS "updateTime",
+            bpo.staff_property_id AS "staffPropertyId",
+            bpo.is_renew AS "isRenew"
+        FROM
+            xccj_community.bus_park_order bpo
+                LEFT JOIN xccj_community.bus_staff_property bsp ON bsp.id = bpo.staff_property_id
+        WHERE
+            bpo.id = #{id}
+          AND bpo.del_flag = '0'
+    </select>
+</mapper>

@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.featured.FeaturedSectionMapper">
+    <!--获取信息列表-->
+    <select id="getList" resultType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT
+        bfs.featured_id,
+        comm.community_name AS 'user_community_name',
+        ( CASE bfs.user_type WHEN '0' THEN su.nick_name WHEN '1' THEN own.owner_name ELSE ten.tenant_name END ) AS
+        'userName',
+        bfs.create_time,
+        bfs.content,
+        bfs.featured_section_type_id as "featuredSectionTypeId"
+        FROM
+        xccj_govern.bus_featured_section AS bfs
+        LEFT JOIN xccj_community.bus_account account ON account.account_id = bfs.user_id
+        LEFT JOIN xccj_community.bus_owner AS own ON account.account_type = '0' AND own.account_id = account.account_id
+        LEFT JOIN xccj_community.bus_tenant AS ten ON account.account_type = '1' AND ten.account_id = account.account_id
+        LEFT JOIN xccj_community.bus_community AS comm ON comm.community_id = bfs.community_id
+        LEFT JOIN xccj_estate_sys.sys_user AS su ON su.user_id = bfs.user_id
+        WHERE
+        bfs.del_flag = '0'
+        <if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+            <!-- 开始时间检索 -->
+            AND date_format(bfs.create_time,'%Y-%m-%d') between #{startTime} and #{endTime}
+        </if>
+        <if test="userName!=null and userName!= '' ">
+            and (own.owner_name like concat('%', #{userName}, '%')
+            or ten.tenant_name like concat('%', #{userName}, '%')
+            or su.nick_name like concat('%', #{userName}, '%'))
+        </if>
+
+        <if test="featuredSectionTypeId!=null and featuredSectionTypeId!=''">
+            and bfs.featured_section_type_id=#{featuredSectionTypeId}
+        </if>
+        <if test="communityId!=null and communityId!=''">
+            and comm.community_id=#{communityId}
+        </if>
+        <if test="estateId != null">
+            AND bfs.estate_id = #{estateId}
+        </if>
+        order by bfs.create_time desc
+    </select>
+
+
+    <!--获取系统信息列表-->
+    <select id="systemList" resultType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT
+        soc.featured_id,
+        soc.content,
+        soc.create_time
+        FROM xccj_govern.bus_featured_section AS soc
+
+        where soc.del_flag = '0'
+        and soc.social_type = '0'
+        and user_type = 0
+        <if test="params.beginTime != null and params.beginTime != ''">
+            <!-- 开始时间检索 -->
+            AND date_format(soc.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''">
+            <!-- 结束时间检索 -->
+            AND date_format(soc.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="estateId != null">
+            AND soc.estate_id = #{estateId}
+        </if>
+    </select>
+
+    <!--新增系统信息-->
+    <insert id="addSystemFeatured" useGeneratedKeys="true" keyProperty="featuredId">
+        insert into xccj_govern.bus_featured_section
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="featuredSectionTypeId != null and featuredSectionTypeId !=''">
+                featured_section_type_id,
+            </if>
+            <if test="content != null and content !=''">
+                content,
+            </if>
+            <if test="userId != null ">
+                user_id,
+            </if>
+            <if test="featuredUrl != null and featuredUrl !=''  ">
+                featured_url,
+            </if>
+            user_type,
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                #{estateId},
+            </if>
+            <if test="communityId != null">
+                #{communityId},
+            </if>
+            <if test="featuredSectionTypeId != null and featuredSectionTypeId !=''">
+                #{featuredSectionTypeId},
+            </if>
+            <if test="content != null and content !=''">
+                #{content},
+            </if>
+            <if test="userId != null ">
+                #{userId},
+            </if>
+            <if test="featuredUrl != null and featuredUrl !=''  ">
+                #{featuredUrl},
+            </if>
+            '1',
+            #{createBy},sysdate()
+        </trim>
+    </insert>
+
+
+    <!--发布的小区存储到关联表-->
+    <insert id="addFeaturedRang">
+        INSERT INTO xccj_govern.bus_featured_rang(
+        featured_id,community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.featuredId},#{item.communityId})
+        </foreach>
+    </insert>
+
+
+    <!--删除社交记录-->
+    <update id="delMessageFeatured" parameterType="Long">
+        update xccj_govern.bus_featured_section
+        set del_flag='1'
+        where featured_id in
+        <foreach collection="array" item="featuredId" open="(" separator="," close=")">
+            #{featuredId}
+        </foreach>
+    </update>
+
+    <!--删除系统管理关联表-->
+    <delete id="delFeaturedRang" parameterType="Long">
+        delete
+        from xccj_govern.bus_featured_rang
+        where featured_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <!--修改系统信息-->
+    <update id="updateSysFeatured">
+        update xccj_govern.bus_featured_section as soc
+        <set>
+            <if test="content != null ">
+                soc.content = #{content},
+            </if>
+            <if test="featuredUrl != null and featuredUrl != ''">
+                soc.featured_url = #{featuredUrl},
+            </if>
+            soc.update_by=#{updateBy},
+            soc.update_time = sysdate()
+        </set>
+        where soc.featured_id = #{featuredId}
+    </update>
+
+    <!--查询社交详情-->
+    <select id="getFeaturedById" parameterType="Long"
+            resultType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT *
+        FROM xccj_govern.bus_featured_section as soc
+        where soc.del_flag = '0'
+          and soc.featured_id = #{featuredId}
+    </select>
+
+
+    <!--查询详情内容-->
+    <select id="queryFeaturedRangById" parameterType="Long" resultType="Long">
+        SELECT ran.community_id
+        FROM xccj_govern.bus_featured_rang as ran
+        where ran.featured_id = #{featuredId}
+    </select>
+
+
+    <!--删除社交表中的信息-->
+    <delete id="delFeaturedRangByIds" parameterType="Long">
+        delete
+        from xccj_govern.bus_featured_rang
+        where featured_id = #{featuredId}
+    </delete>
+
+    <!--发布的小区存储到关联表-->
+    <insert id="saveFeaturedRang" parameterType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        INSERT INTO xccj_govern.bus_featured_rang(featured_id, community_id) VALUE (#{featuredId},#{communityId})
+    </insert>
+
+    <select id="findListSection" resultType="com.wr.remote.govern.autonomy.featured.FeaturedSection"
+            parameterType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT
+        bs.featured_id,
+        bs.estate_id,
+        bs.community_id,
+        bs.featured_section_type_id,
+        bs.featured_url,
+        bs.content,
+        bs.create_time,
+        bs.user_id,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.avatar
+        WHEN bs.user_type = '1' THEN test2.avatar END) AS avatarUrl,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.nick_name
+        WHEN bs.user_type = '1' THEN test2.account_nick END) AS accountNick,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.user_id
+        WHEN bs.user_type = '1' THEN test2.owner_id END) AS ownerId,
+        test4.number AS numberLike,
+        IF(test4.number > 0, '1', '0') AS whetherPraise
+        FROM xccj_govern.bus_featured_section AS bs
+        LEFT JOIN (SELECT user_id, avatar, nick_name
+        FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bs.user_id
+        LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_owner AS bo
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id) AS test2
+        ON test2.owner_id = bs.user_id
+
+        LEFT JOIN (SELECT COUNT(*) number, user_id, featured_id, user_type
+        FROM xccj_govern.bus_featured_like
+        GROUP BY featured_id) AS test4
+        ON test4.featured_id = bs.featured_id
+        <where>
+            1 = 1
+            AND bs.estate_id = #{estateId}
+            AND bs.community_id = #{communityId}
+            AND bs.featured_section_type_id = #{featuredSectionTypeId}
+            AND bs.del_flag = '0'
+        </where>
+        ORDER BY bs.create_time DESC
+    </select>
+
+    <select id="selectFeaturedCommentList" resultType="com.wr.remote.govern.autonomy.featured.FeaturedCommentVO"
+            parameterType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT
+        bsc.comment_id,
+        bsc.featured_id,
+        bsc.user_type,
+        bsc.user_id,
+        bsc.reply_id,
+        bsc.content,
+        bsc.parent_comment_id,
+        (CASE
+        WHEN bsc.user_type = '0' THEN test1.avatar
+        WHEN bsc.user_type = '1' THEN test2.avatar
+        WHEN bsc.user_type = '2' THEN test3.avatar END) AS avatarUrlContent,
+        (CASE
+        WHEN bsc.user_type = '0' THEN test1.nick_name
+        WHEN bsc.user_type = '1' THEN test2.account_nick
+        WHEN bsc.user_type = '2' THEN test3.account_nick END) AS nickNameContent,
+        bsc.create_time,
+        test4.number AS numberLikeContent,
+        test5.number AS whetherPraiseContent
+        FROM xccj_govern.bus_featured_comment AS bsc
+        LEFT JOIN (SELECT user_id, avatar, nick_name
+        FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bsc.user_id
+        LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_owner AS bo
+        LEFT JOIN xccj_community.bus_account AS ba
+        ON ba.account_id = bo.account_id) AS test2
+        ON test2.owner_id = bsc.user_id
+        LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_tenant AS bt
+        LEFT JOIN xccj_community.bus_account AS ba
+        ON ba.account_id = bt.account_id) AS test3
+        ON test3.tenant_id = bsc.user_id
+        LEFT JOIN (SELECT COUNT(*) number, featured_id, user_id, user_type
+        FROM xccj_govern.bus_featured_like
+        GROUP BY featured_id) AS test4
+        ON test4.featured_id = bsc.featured_id AND test4.user_type = bsc.user_type AND
+        bsc.user_id = bsc.user_id
+        LEFT JOIN (SELECT COUNT(*) number, user_id, featured_id, user_type
+        FROM xccj_govern.bus_featured_like
+        GROUP BY featured_id) AS test5
+        ON test5.user_id = bsc.user_id AND test5.user_type = bsc.user_type AND
+        test5.featured_id = bsc.featured_id
+        <where>
+            bsc.featured_id = #{featuredId} AND bsc.reply_id = '0'
+        </where>
+        ORDER BY bsc.create_time DESC
+    </select>
+
+    <insert id="saveFeaturedLike" parameterType="com.wr.remote.govern.autonomy.featured.FeaturedLikeVO">
+        <!--@mbg.generated-->
+        insert into xccj_govern.bus_featured_like
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="featuredId != null">
+                featured_id,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="featuredId != null">
+                #{featuredId,jdbcType=BIGINT},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=CHAR},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="removeFeaturedLike">
+        DELETE
+        FROM xccj_govern.bus_featured_like
+        WHERE featured_id = #{featuredId}
+          AND user_type = #{userType}
+          AND user_id = #{userId}
+    </delete>
+
+    <select id="checkFeaturedLike" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_govern.bus_featured_like
+        WHERE featured_id = #{featuredId}
+          AND user_id = #{userId}
+    </select>
+
+    <insert id="saveComment" keyColumn="comment_id" keyProperty="commentId"
+            parameterType="com.wr.remote.govern.autonomy.featured.FeaturedCommentVO" useGeneratedKeys="true">
+        insert into xccj_govern.bus_featured_comment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="featuredId != null">
+                featured_id,
+            </if>
+            <if test="userType != null">
+                user_type,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="replyId != null">
+                reply_id,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="parentCommentId != null">
+                parent_comment_id,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="featuredId != null">
+                #{featuredId,jdbcType=BIGINT},
+            </if>
+            <if test="userType != null">
+                #{userType,jdbcType=CHAR},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="replyId != null">
+                #{replyId,jdbcType=BIGINT},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="parentCommentId != null">
+                #{parentCommentId,jdbcType=BIGINT},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="findCommentByPrimaryKey" parameterType="java.lang.Long"
+            resultType="com.wr.remote.govern.autonomy.featured.FeaturedCommentVO">
+        select *
+        from xccj_govern.bus_featured_comment
+        where comment_id = #{commentId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectNextFeaturedCommentList" resultType="com.wr.remote.govern.autonomy.featured.FeaturedCommentVO"
+            parameterType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT
+        bsc.comment_id,
+        bsc.featured_id,
+        bsc.user_type,
+        bsc.user_id,
+        bsc.reply_id,
+        bsc.content,
+        bsc.parent_comment_id,
+        (CASE
+        WHEN bsc.user_type = '0' THEN test1.avatar
+        WHEN bsc.user_type = '1' THEN test2.avatar
+        WHEN bsc.user_type = '2' THEN test3.avatar END) AS avatarUrlContent,
+        (CASE
+        WHEN bsc.user_type = '0' THEN test1.nick_name
+        WHEN bsc.user_type = '1' THEN test2.account_nick
+        WHEN bsc.user_type = '2' THEN test3.account_nick END) AS nickNameContent,
+        bsc.create_time,
+        test4.number AS numberLikeContent,
+        test5.number AS whetherPraiseContent
+        FROM xccj_govern.bus_featured_comment AS bsc
+        LEFT JOIN (SELECT user_id, avatar, nick_name
+        FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bsc.user_id
+        LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_owner AS bo
+        LEFT JOIN xccj_community.bus_account AS ba
+        ON ba.account_id = bo.account_id) AS test2
+        ON test2.owner_id = bsc.user_id
+        LEFT JOIN (SELECT bt.tenant_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_tenant AS bt
+        LEFT JOIN xccj_community.bus_account AS ba
+        ON ba.account_id = bt.account_id) AS test3
+        ON test3.tenant_id = bsc.user_id
+        LEFT JOIN (SELECT COUNT(*) number, featured_id, user_id, user_type
+        FROM xccj_govern.bus_featured_like
+        GROUP BY featured_id) AS test4
+        ON test4.featured_id = bsc.featured_id AND test4.user_type = bsc.user_type AND
+        bsc.user_id = bsc.user_id
+        LEFT JOIN (SELECT COUNT(*) number, user_id, featured_id, user_type
+        FROM xccj_govern.bus_featured_like
+        GROUP BY featured_id) AS test5
+        ON test5.user_id = bsc.user_id AND test5.user_type = bsc.user_type AND
+        test5.featured_id = bsc.featured_id
+        <where>
+            bsc.reply_id = #{commentId}
+        </where>
+        ORDER BY bsc.create_time DESC
+    </select>
+    <select id="selectCountFeaturedComment" resultType="Integer">
+        SELECT COUNT(*) FROM xccj_govern.bus_featured_comment WHERE featured_id= #{featuredId} AND del_flag = '0'
+    </select>
+
+    <select id="detilFeaturedSection" resultType="com.wr.remote.govern.autonomy.featured.FeaturedSection">
+        SELECT
+        bs.featured_id,
+        bs.estate_id,
+        bs.community_id,
+        bs.featured_section_type_id,
+        bs.featured_url,
+        bs.content,
+        bs.create_time,
+        bs.user_id,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.avatar
+        WHEN bs.user_type = '1' THEN test2.avatar END) AS avatarUrl,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.nick_name
+        WHEN bs.user_type = '1' THEN test2.account_nick END) AS accountNick,
+        (CASE
+        WHEN bs.user_type = '0' THEN test1.user_id
+        WHEN bs.user_type = '1' THEN test2.owner_id END) AS ownerId,
+        test4.number AS numberLike,
+        IF(test4.number > 0, '1', '0') AS whetherPraise
+        FROM xccj_govern.bus_featured_section AS bs
+        LEFT JOIN (SELECT user_id, avatar, nick_name
+        FROM xccj_estate_sys.sys_user) AS test1 ON test1.user_id = bs.user_id
+        LEFT JOIN (SELECT bo.owner_id, ba.avatar, ba.account_nick
+        FROM xccj_community.bus_owner AS bo
+        LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bo.account_id) AS test2
+        ON test2.owner_id = bs.user_id
+
+        LEFT JOIN (SELECT COUNT(*) number, user_id, featured_id, user_type
+        FROM xccj_govern.bus_featured_like
+        GROUP BY featured_id) AS test4
+        ON test4.featured_id = bs.featured_id
+        WHERE
+            bs.featured_id = #{featuredId}
+    </select>
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.property.StaffPropertyMapper">
+
+    <update id="updateByIdStaffProperty">
+        UPDATE `xccj_community`.`bus_staff_property`
+        SET `update_time`      = NOW(),
+            `lease_purchase`   = #{leasePurchase},
+            `purchase_package` = #{purchasePackage},
+            `end_time`         = #{endTime},
+            `year_month`       = #{yearMonth}
+        WHERE `id` = #{id}
+    </update>
+</mapper>
+

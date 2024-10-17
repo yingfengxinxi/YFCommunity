@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.visitor.ApiVisitorMapper">
+
+    <resultMap type="com.wr.api.owner.entity.home.visitor.vo.OwnerHouseVo" id="houseVoMap">
+        <id     property="ownerId"     column="owner_id"     />
+        <result property="ownerName"   column="owner_name"   />
+        <result property="ownerPhone"   column="owner_phone"   />
+        <result property="cardNo"   column="card_no"   />
+        <collection property="ownerHouseList" ofType="com.wr.api.owner.entity.home.visitor.OwnerHouse"  >
+            <id     property="roomId"     column="room_id"     />
+            <result property="roomName" column="room_name"/>
+            <result property="communityName" column="community_name"/>
+            <result property="communityId" column="community_id"/>
+            <result property="buildingName" column="building_name"/>
+            <result property="unitName" column="unit_name"/>
+            <result property="buildingId" column="building_id"/>
+            <result property="unitId" column="unit_id"/>
+            <result property="roomAttribute" column="room_attribute"/>
+            <result property="houseAddress" column="house_address"/>
+            <result property="totalArea" column="total_area"/>
+        </collection>
+    </resultMap>
+
+    <!--根据业主id查询我的访客列表-->
+    <select id="getList" resultType="com.wr.api.owner.entity.home.visitor.vo.ApiLiaisonVo"
+            parameterType="com.wr.api.owner.entity.home.visitor.vo.ApiLiaisonVo">
+        select
+        bl.liaison_id,
+        bl.user_name,
+        bl.begin_time,
+        bl.user_phone,
+        bl.with_num,
+        bo.owner_name,
+        com.community_name,
+        bui.building_name,
+        uni.unit_name,
+        oom.room_name,
+        bl.liaison_status
+        from xccj_community.bus_liaison as bl
+        left join xccj_community.bus_owner as bo on bo.owner_id = bl.owner_id
+        left join xccj_community.bus_community as com on bo.community_id = com.community_id
+        left join xccj_community.bus_room as oom on bl.room_id = oom.room_id
+        left join xccj_community.bus_building as bui on oom.building_id = bui.building_id
+        left join xccj_community.bus_unit as uni on oom.unit_id = uni.unit_id
+        where bl.del_flag='0'
+        <if test="ownerId != null">
+            and bl.owner_id=#{ownerId}
+        </if>
+        <if test="communityId != null">
+            and bo.community_id=#{communityId}
+        </if>
+    </select>
+
+    <!--根据通行表id查询详情-->
+    <select id="getVisitorById" parameterType="Long" resultType="com.wr.api.owner.entity.home.visitor.vo.ApiLiaisonVo">
+        select bl.user_name,
+               bl.user_phone,
+               bl.card_no,
+               bl.with_num,
+               bl.plant_no,
+               bl.apply_time,
+               com.community_name,
+               bui.building_name,
+               uni.unit_name,
+               oom.room_name,
+               bo.owner_name,
+               bo.owner_phone,
+               bl.liaison_status,
+               bl.begin_time,
+               bl.end_time
+        from xccj_community.bus_liaison as bl
+                 left join xccj_community.bus_owner as bo on bo.owner_id = bl.owner_id
+                 left join xccj_community.bus_room as oom on bl.room_id = oom.room_id
+                 left join xccj_community.bus_community as com on oom.community_id=com.community_id
+                 left join xccj_community.bus_building as bui on oom.building_id = bui.building_id
+                 left join xccj_community.bus_unit as uni on oom.unit_id = uni.unit_id
+        where bl.liaison_id = #{visitorId}
+    </select>
+
+<!--查询访客信息-->
+    <select id="visitorInfo" parameterType="String" resultType="com.wr.api.owner.entity.home.visitor.ApiAccount">
+        select
+            *
+        from xccj_community.bus_account as unt
+        where unt.login_name=#{loginName}
+    </select>
+
+
+<!--新增通行证表-->
+    <insert id="addLiaison" parameterType="com.wr.api.owner.entity.home.visitor.vo.ApiLiaisonVo">
+        insert into xccj_community.bus_liaison
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="accountId!=null ">account_id,</if>
+            <if test="roomId!=null ">room_id,</if>
+            <if test="ownerId!=null ">owner_id,</if>
+            <if test="userName!=null and userName!=''">user_name,</if>
+            <if test="userPhone!=null and userPhone!=''">user_phone,</if>
+            <if test="cardNo!=null and cardNo!=''">card_no,</if>
+            <if test="withNum!=null">with_num,</if>
+            <if test="plantNo!=null and plantNo!=''">plant_no,</if>
+            <if test="beginTime!=null">begin_time,</if>
+            <if test="endTime!=null">end_time,</if>
+            <if test="liaisonType!=null and liaisonType!=''">liaison_type,</if>
+            <if test="passTime!=null">pass_time,</if>
+            <if test="liaisonStatus!=null and liaisonStatus!=''">liaison_status,</if>
+            apply_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="accountId!=null ">#{accountId},</if>
+            <if test="roomId!=null ">#{roomId},</if>
+            <if test="ownerId!=null">#{ownerId},</if>
+            <if test="userName!=null and userName!=''">#{userName},</if>
+            <if test="userPhone!=null and userPhone!=''">#{userPhone},</if>
+            <if test="cardNo!=null and cardNo!=''">#{cardNo},</if>
+            <if test="withNum!=null">#{withNum},</if>
+            <if test="plantNo!=null and plantNo!=''">#{plantNo},</if>
+            <if test="beginTime!=null">#{beginTime},</if>
+            <if test="endTime!=null">#{endTime},</if>
+            <if test="liaisonType!=null and liaisonType!=''">#{liaisonType},</if>
+            <if test="passTime!=null">#{passTime},</if>
+            <if test="liaisonStatus!=null and liaisonStatus!=''">#{liaisonStatus},</if>
+            SYSDATE()
+        </trim>
+    </insert>
+
+    <!--新增访客档案表-->
+    <insert id="addVisitor" parameterType="com.wr.api.owner.entity.home.visitor.ApiVisitor">
+        insert into xccj_community.bus_visitor
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId!=null ">community_id,</if>
+            <if test="accountId!=null">account_id,</if>
+            <if test="visitorName!=null and visitorName!=''">visitor_name,</if>
+            <if test="visitorPhone!=null and visitorPhone!=''">visitor_phone,</if>
+            <if test="cardType!=null and cardType!=''">card_type,</if>
+            <if test="cardNo!=null and cardNo!=''">card_no,</if>
+            <if test="visitorNum!=null and visitorNum!=''">visitor_num,</if>
+            <if test="createBy!=null and createBy!=''">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId!=null ">#{communityId},</if>
+            <if test="accountId!=null ">#{accountId},</if>
+            <if test="visitorName!=null and visitorName!=''">#{visitorName},</if>
+            <if test="visitorPhone!=null and visitorPhone!=''">#{visitorPhone},</if>
+            <if test="cardType!=null and cardType!=''">#{cardType},</if>
+            <if test="cardNo!=null and cardNo!=''">#{cardNo},</if>
+            <if test="visitorNum!=null and visitorNum!=''">#{visitorNum},</if>
+            <if test="createBy!=null and createBy!=''">#{createBy},</if>
+            SYSDATE()
+        </trim>
+    </insert>
+
+
+    <update id="updateStatus" parameterType="com.wr.api.owner.entity.home.visitor.vo.ApiLiaisonVo">
+        UPDATE xccj_community.bus_liaison as bl
+        SET bl.liaison_status=#{liaisonStatus}
+        WHERE bl.liaison_id = #{liaisonId}
+    </update>
+
+
+
+
+
+    <select id="ownerInfo" parameterType="Long" resultMap="houseVoMap">
+        select oom.owner_id,
+               own.owner_name,
+               own.owner_phone,
+               oom.room_id,
+               oom.room_name,
+               com.community_name,
+               com.community_id,
+               bui.building_name,
+               uni.unit_name,
+               own.card_no,
+               oom.building_id,
+               oom.unit_id,
+               oom.room_attribute,
+               oom.house_address,
+               oom.total_area
+        from xccj_community.bus_room as oom
+                 left join xccj_community.bus_community as com on oom.community_id = com.community_id
+                 left join xccj_community.bus_building as bui on oom.building_id = bui.building_id
+                 left join xccj_community.bus_unit as uni on oom.unit_id = uni.unit_id
+                 left join xccj_community.bus_owner as own on oom.owner_id = own.owner_id
+        where oom.del_flag = '0'
+          and oom.owner_id = #{ownerId}
+        UNION ALL
+        select oom.owner_id,
+               own.owner_name,
+               own.owner_phone,
+               oom.room_id,
+               oom.room_name,
+               com.community_name,
+               com.community_id,
+               bui.building_name,
+               uni.unit_name,
+               own.card_no,
+               oom.building_id,
+               oom.unit_id,
+               oom.room_attribute,
+               oom.house_address,
+               oom.total_area
+        from xccj_community.bus_room as oom
+                 left join xccj_community.bus_community as com on oom.community_id = com.community_id
+                 left join xccj_community.bus_building as bui on oom.building_id = bui.building_id
+                 left join xccj_community.bus_unit as uni on oom.unit_id = uni.unit_id
+                 left join xccj_community.bus_owner as own on oom.owner_id = own.owner_id
+                 left join xccj_community.bus_owner as ow on own.owner_id = ow.parent_id
+        where oom.del_flag = '0'
+          and ow.audit_status = '1'
+          and ow.owner_id = #{ownerId}
+    </select>
+
+
+
+
+</mapper>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.mapper.GovernLoginMapper">
+    <sql id="userColumns">
+        su.user_id, su.user_name, su.nick_name, su.user_type, su.email, su.dept_id, su.phonenumber,
+        su.sex, su.avatar, su.password, su.status, su.del_flag, su.login_ip, su.login_date, su.create_by,
+        su.create_time, su.update_by, su.update_time, su.remark
+    </sql>
+
+    <sql id="roleColumns">
+        sr.role_id, sr.role_name, sr.role_key, sr.role_sort, sr.data_scope, sr.menu_check_strictly, sr.dept_check_strictly,
+        sr.status, sr.role_type, sr.del_flag, sr.create_by, sr.create_time,  sr.update_by, sr.update_time, sr.remark
+    </sql>
+
+    <insert id="insertLoginInfo">
+        INSERT INTO xccj_estate_sys.sys_logininfor(
+            user_name, user_type, ipaddr, status, msg, access_time
+        ) VALUES (
+            #{userName}, 'GOVERN_USER', #{ipaddr}, #{status}, #{msg}, sysdate()
+        )
+    </insert>
+
+    <select id="selectUserById" resultType="com.wr.remote.domain.SysUser">
+        SELECT
+            <include refid="userColumns"/>
+        FROM xccj_estate_sys.sys_user su
+        WHERE su.del_flag = '0' AND su.user_type = '10' AND su.user_id = #{userId}
+    </select>
+
+    <select id="selectUserByUserName" resultType="com.wr.remote.domain.SysUser">
+        SELECT
+            <include refid="userColumns"/>
+        FROM xccj_estate_sys.sys_user su
+        WHERE su.del_flag = '0' AND su.user_type = '10' AND su.user_name = #{username}
+    </select>
+
+    <select id="selectDeptByEstateId" resultType="com.wr.remote.domain.SysDept">
+        SELECT dept_id,parent_id,dept_name,dept_type
+        FROM xccj_estate_sys.sys_dept
+        WHERE del_flag = '0'
+          AND dept_id = (SELECT dept_id FROM xccj_community.bus_estate WHERE del_flag='0' AND estate_id = #{estateId})
+    </select>
+
+    <select id="selectEstateIdByDeptId" resultType="java.lang.Long">
+        SELECT estate_id FROM xccj_community.bus_estate
+        WHERE del_flag = '0' AND dept_id = #{deptId}
+    </select>
+
+    <select id="getCurrentEstateId" resultType="java.lang.Long">
+        SELECT
+            xbe.estate_id
+        FROM xccj_community.bus_estate xbe
+        WHERE xbe.del_flag = '0'
+          AND xbe.dept_id = #{deptId}
+    </select>
+
+    <select id="selectDeptByDeptId" resultType="com.wr.remote.domain.SysDept">
+        SELECT
+            dept_id, parent_id, dept_name, dept_type, del_flag
+        FROM xccj_estate_sys.sys_dept
+        WHERE del_flag = '0' AND dept_id = #{deptId}
+    </select>
+
+    <select id="selectRoleListByUserId" resultType="com.wr.remote.domain.SysRole">
+        SELECT
+            <include refid="roleColumns"/>
+        FROM xccj_estate_sys.sys_role sr
+        WHERE sr.del_flag = '0' AND sr.role_type IN ('10','11')
+            AND sr.role_id IN (
+                SELECT sur.role_id FROM xccj_estate_sys.sys_user_role sur
+                WHERE sur.user_id = #{userId}
+            )
+    </select>
+
+    <select id="selectMenuPermsByRoleId" resultType="java.lang.String">
+        SELECT DISTINCT sm.perms
+        FROM xccj_estate_sys.sys_menu sm
+                 LEFT JOIN xccj_community.bus_server_ver_menu svm ON svm.menu_id = sm.menu_id
+                 LEFT JOIN xccj_community.bus_role_ver rv ON rv.version_id = svm.version_id
+        WHERE sm.status = '0' AND rv.role_id = #{roleId}
+    </select>
+
+    <select id="selectMenuPermsByUserRoleId" resultType="java.lang.String">
+        SELECT DISTINCT sm.perms
+        FROM xccj_estate_sys.sys_menu sm
+                 LEFT JOIN xccj_estate_sys.sys_role_menu rm on sm.menu_id = rm.menu_id
+                 LEFT JOIN xccj_estate_sys.sys_role ro on rm.role_id = ro.role_id
+        WHERE sm.status = '0' AND ro.role_id = #{roleId}
+    </select>
+
+    <select id="selectMenuPermsByUserId" resultType="java.lang.String">
+        SELECT DISTINCT sm.perms
+        FROM xccj_estate_sys.sys_menu sm
+                 LEFT JOIN xccj_community.bus_server_ver_menu svm ON svm.menu_id = sm.menu_id
+                 LEFT JOIN xccj_community.bus_role_ver rv ON rv.version_id = svm.version_id
+                 LEFT JOIN xccj_estate_sys.sys_role sr ON sr.role_id = rv.role_id
+                 LEFT JOIN xccj_estate_sys.sys_user_role sur ON sur.role_id = sr.role_id
+                 LEFT JOIN xccj_estate_sys.sys_user su ON su.user_id = sur.user_id
+        WHERE sm.status = '0' AND su.user_id = #{userId}
+    </select>
+
+    <select id="selectMenuPermsByRoleUserId" resultType="java.lang.String">
+        SELECT DISTINCT sm.perms
+        FROM xccj_estate_sys.sys_menu sm
+                 LEFT JOIN xccj_estate_sys.sys_role_menu rm on sm.menu_id = rm.menu_id
+                 LEFT JOIN xccj_estate_sys.sys_user_role ur on rm.role_id = ur.role_id
+                 LEFT JOIN xccj_estate_sys.sys_role ro on ur.role_id = ro.role_id
+                 LEFT JOIN xccj_estate_sys.sys_user u on ur.user_id = u.user_id
+        WHERE sm.status = '0' AND u.user_id = #{userId}
+    </select>
+
+    <select id="selectMenuTreeAll" resultType="com.wr.remote.domain.SysMenu">
+        SELECT DISTINCT m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.plat_type, m.create_time
+        FROM xccj_estate_sys.sys_menu m
+        WHERE m.menu_type in ('M', 'C') and m.status = 0 and m.plat_type = 'GOVERN'
+        ORDER BY m.parent_id, m.order_num
+    </select>
+
+    <select id="selectMenuTreeByUserId" resultType="com.wr.remote.domain.SysMenu">
+        SELECT DISTINCT m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.plat_type, m.create_time
+        FROM xccj_estate_sys.sys_menu m
+             LEFT JOIN xccj_estate_sys.sys_role_menu rm on m.menu_id = rm.menu_id
+             LEFT JOIN xccj_estate_sys.sys_user_role ur on rm.role_id = ur.role_id
+             LEFT JOIN xccj_estate_sys.sys_role ro on ur.role_id = ro.role_id
+             LEFT JOIN xccj_estate_sys.sys_user u on ur.user_id = u.user_id
+        WHERE u.user_id = #{userId} and m.menu_type in ('M', 'C') and m.status = 0  AND ro.status = 0 and m.plat_type = 'GOVERN'
+        ORDER BY m.parent_id, m.order_num
+    </select>
+
+    <select id="selectMenuTreeByRoleUserId" resultType="com.wr.remote.domain.SysMenu">
+        SELECT DISTINCT m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.plat_type, m.create_time
+        FROM xccj_estate_sys.sys_menu m
+             LEFT JOIN xccj_estate_sys.sys_role_menu rm on m.menu_id = rm.menu_id
+             LEFT JOIN xccj_estate_sys.sys_user_role ur on rm.role_id = ur.role_id
+             LEFT JOIN xccj_estate_sys.sys_role ro on ur.role_id = ro.role_id
+             LEFT JOIN xccj_estate_sys.sys_user u on ur.user_id = u.user_id
+        WHERE u.user_id = #{userId} and m.menu_type in ('M', 'C') and m.status = 0  AND ro.status = 0 and m.plat_type = 'GOVERN'
+        ORDER BY m.parent_id, m.order_num
+    </select>
+
+</mapper>

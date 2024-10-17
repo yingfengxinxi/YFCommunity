@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.estate.EstateStaffRoleMapper">
+
+    <select id="getByStaffIdList" resultType="com.wr.remote.domain.EstateStaffRole">
+        select estate_role_id as "estateRoleId",
+               staff_id       as "staffId"
+        from xccj_community.bus_estate_staff_role
+        where staff_id = #{staffId}
+    </select>
+
+
+    <insert id="insert">
+        insert into xccj_community.bus_estate_staff_role(estate_role_id, staff_id)
+        values (#{estateRoleId}, #{staffId})
+    </insert>
+
+    <delete id="deleteByStaffId">
+        delete
+        from xccj_community.bus_estate_staff_role
+        where staff_id = #{staffId}
+    </delete>
+
+
+    <select id="getByEstateRoleIdCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM xccj_community.bus_estate_staff_role
+        where estate_role_id = #{estateRoleId}
+    </select>
+</mapper>

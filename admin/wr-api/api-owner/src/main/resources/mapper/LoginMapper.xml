@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.LoginMapper">
+    <select id="selectAccountByLoginName" resultType="com.wr.remote.estate.customer.decorate.Account">
+        SELECT
+            account_id,community_id,login_name,password,avatar,account_type,account_name,account_nick,is_property_council
+            data_source,volunteer,wechat_id,open_id,union_id,create_by,create_time,update_by,update_time,del_flag
+        FROM xccj_community.bus_account
+        WHERE del_flag = '0'
+          AND login_name = #{loginName}
+    </select>
+
+    <select id="selectEstateIdByCommunityId" resultType="java.lang.Long">
+        SELECT estate_id
+        FROM xccj_community.bus_community
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+
+    <select id="selectMemberByAccountId" resultType="com.wr.remote.govern.party.Member">
+        SELECT
+            member_id,community_id,building_id,unit_id,room_id,account_id,join_time,party_id,
+            prove_url,audit_status,audit_time,reject_reason,member_duty,party_fee,create_by,
+            create_time,update_by,update_time,del_flag
+        FROM xccj_govern.bus_member
+        WHERE del_flag = '0'
+          AND account_id = #{accountId}
+    </select>
+
+    <select id="selectOwnerByAccountId" resultType="com.wr.remote.estate.manage.contract.Owner">
+            SELECT
+                own.owner_id,own.community_id,own.building_id,own.unit_id,own.room_id,own.parent_id,own.account_id,
+                own.license_url,own.owner_relation,own.owner_name,own.owner_phone,own.gender,own.card_type,
+                own.card_no,own.card_font,own.card_back,own.face_url,own.domicile_address,own.politics_status,
+                own.nation,own.native_place,own.religion,own.edu_level,own.military,own.marriage_status,
+                own.nationality,own.population,own.career,own.qq_number,own.email,own.data_source,own.self_intro,
+                hous.audit_status,hous.audit_time,hous.reject_reason,own.create_by,own.create_time,own.update_by,own.update_time,own.del_flag
+            FROM xccj_community.bus_owner own
+                LEFT JOIN xccj_community.bus_house hous ON own.owner_id = hous.owner_id
+            WHERE own.del_flag = '0' and hous.del_flag = '0'
+              AND own.account_id = #{accountId} AND hous.audit_status = '1'
+            UNION
+            SELECT
+                own.owner_id,own.community_id,own.building_id,own.unit_id,own.room_id,own.parent_id,own.account_id,
+                own.license_url,own.owner_relation,own.owner_name,own.owner_phone,own.gender,own.card_type,
+                own.card_no,own.card_font,own.card_back,own.face_url,own.domicile_address,own.politics_status,
+                own.nation,own.native_place,own.religion,own.edu_level,own.military,own.marriage_status,
+                own.nationality,own.population,own.career,own.qq_number,own.email,own.data_source,own.self_intro,
+                own.audit_status,own.audit_time,own.reject_reason,own.create_by,own.create_time,own.update_by,own.update_time,own.del_flag
+            FROM xccj_community.bus_owner own
+            WHERE own.del_flag = '0'
+              AND own.account_id = #{accountId}
+                LIMIT 1
+    </select>
+
+    <select id="selectCommitteeIdByOwnerId" resultType="java.lang.Long">
+        SELECT committee_id
+        FROM xccj_govern.bus_committee_owner
+        WHERE owner_id = #{ownerId}
+        LIMIT 1
+    </select>
+
+    <select id="selectTenantByAccountId" resultType="com.wr.remote.estate.manage.contract.Tenant">
+        SELECT
+            tenant_id,community_id,building_id,unit_id,room_id,account_id,owner_id,tenant_name,
+            tenant_phone,gender,card_type,card_no,card_font,card_back,face_url,domicile_address,
+            politics_status,nation,native_place,religion,edu_level,military,marriage_status,
+            nationality,population,career,qq_number,email,data_source,self_intro,audit_status,
+            audit_time,reject_reason,create_by,create_time,update_by,update_time,del_flag
+        FROM xccj_community.bus_tenant
+        WHERE del_flag = '0'
+          AND account_id = #{accountId}
+    </select>
+
+    <select id="selectVisitorByAccountId" resultType="com.wr.api.owner.entity.vo.VisitorVO">
+        SELECT
+            visitor_id,community_id,account_id,visitor_name,visitor_phone,card_type,card_no,
+            visitor_num,create_by,create_time,update_by,update_time,del_flag
+        FROM xccj_community.bus_visitor
+        WHERE del_flag = '0'
+          AND account_id = #{accountId}
+    </select>
+
+    <select id="selectOwnerByCardNo" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT
+            owner_id,community_id,building_id,unit_id,room_id,parent_id,account_id,
+            license_url,owner_relation,owner_name,owner_phone,gender,card_type,card_no,
+            card_font,card_back,face_url,domicile_address,politics_status,nation,
+            native_place,religion,edu_level,military,marriage_status,nationality,
+            population,career,qq_number,email,data_source,self_intro,audit_status,
+            audit_time,reject_reason,create_by,create_time,update_by,update_time,del_flag
+        FROM xccj_community.bus_owner
+        WHERE del_flag = '0'
+          AND card_no = #{idCardNo}
+    </select>
+
+    <select id="selectTenantByCardNo" resultType="com.wr.remote.estate.manage.contract.Tenant">
+        SELECT
+            tenant_id,community_id,building_id,unit_id,room_id,account_id,owner_id,tenant_name,
+            tenant_phone,gender,card_type,card_no,card_font,card_back,face_url,domicile_address,
+            politics_status,nation,native_place,religion,edu_level,military,marriage_status,
+            nationality,population,career,qq_number,email,data_source,self_intro,audit_status,
+            audit_time,reject_reason,create_by,create_time,update_by,update_time,del_flag
+        FROM xccj_community.bus_tenant
+        WHERE del_flag = '0'
+          AND card_no = #{idCardNo}
+    </select>
+
+    <select id="selectVisitorAccountByCardNo" resultType="java.lang.Long">
+        SELECT account_id
+        FROM xccj_community.bus_visitor
+        WHERE del_flag = '0'
+          AND card_no = #{idCardNo}
+    </select>
+
+    <select id="selectCommunityListByOwner" resultType="com.wr.api.owner.entity.vo.CommunityVO">
+        select community_id,community_name,address,estate_id from xccj_community.bus_community
+        where del_flag = '0' and community_id in (
+        select community_id from xccj_community.bus_room where del_flag = '0' and owner_id = #{ownerId}
+        )
+        <if test="areaId != null">area_id = #{areaId}</if>
+    </select>
+
+    <select id="selectCommunityListByTenant" resultType="com.wr.api.owner.entity.vo.CommunityVO">
+        SELECT
+        xbc.community_id, xbc.community_name, xbc.address,xbc.estate_id
+        FROM xccj_community.bus_community xbc
+        LEFT JOIN xccj_community.bus_tenant xbt ON xbt.community_id = xbc.community_id
+        WHERE xbc.del_flag = '0'
+        <if test="areaId != null">
+            AND xbc.area_id = #{areaId}
+        </if>
+        AND xbt.tenant_id = #{tenantId}
+    </select>
+    <select id="selectCommunityName" resultType="java.lang.String">
+        SELECT xbc.community_name FROM xccj_community.bus_community xbc WHERE xbc.community_id = #{communtityId}
+    </select>
+
+    <update id="updatePassword">
+        UPDATE xccj_community.bus_account
+        SET password = #{password}
+        WHERE account_id = #{accountId}
+    </update>
+
+    <!-- 新增访客账户 -->
+    <insert id="insertAccount" parameterType="com.wr.remote.estate.customer.decorate.Account" useGeneratedKeys="true"
+            keyProperty="accountId">
+        INSERT INTO xccj_community.bus_account(
+            community_id, login_name, password, account_type, account_name,
+            account_nick, data_source, volunteer, create_time, del_flag, avatar
+        ) VALUES (
+            #{communityId}, #{loginName}, #{password}, '2', #{accountName},
+            #{accountNick}, '1', '0', NOW(), '0', #{avatar}
+        )
+    </insert>
+
+    <select id="findOneOwnerByAccount" resultType="Map">
+        SELECT
+            if(own.audit_status = '1',own.owner_id,hou.owner_id) ownerId,
+            ifnull(own.community_id,acc.community_id) communityId,
+            own.building_id buildingId,
+            own.unit_id unitId,
+            own.room_id roomId,
+            own.parent_id parentId,
+            ifnull(own.account_id,acc.account_id) accountId,
+            own.license_url licenseUrl,
+            own.owner_relation ownerRelation,
+            own.owner_name ownerName,
+            own.owner_phone ownerPhone,
+            ifnull(own.gender,vis.gender) gender,
+            ifnull(own.card_type,vis.card_type) cardType,
+            ifnull(own.card_no,vis.card_no) cardNo,
+            own.card_font cardFont,
+            own.card_back cardBack,
+            own.face_url faceUrl,
+            own.domicile_address domicileAddress,
+            own.politics_status politicsStatus,
+            own.nation,
+            own.native_place nativePlace,
+            own.religion,
+            own.edu_level,
+            own.military,
+            own.marriage_status marriageStatus,
+            own.nationality,
+            own.population,
+            own.career,
+            own.qq_number qqNumber,
+            own.email,
+            own.self_intro selfIntro,
+            own.audit_status auditStatus,
+            own.audit_time auditTime,
+            own.reject_reason,
+            acc.account_nick accountNick,
+            acc.account_name accountName,
+            acc.login_name loginName,
+            acc.avatar,
+            acc.account_type accountType,
+            acc.is_property_council isPropertyCouncil,
+            bcc.community_name communityName
+        FROM
+            xccj_community.bus_account acc
+            LEFT JOIN xccj_community.bus_community bcc ON bcc.community_id = acc.community_id
+            LEFT JOIN xccj_community.bus_visitor vis ON vis.account_id = acc.account_id
+            LEFT JOIN xccj_community.bus_owner own ON own.account_id = acc.account_id
+            LEFT JOIN xccj_community.bus_house hou ON own.owner_id = hou.owner_id
+                AND hou.audit_status = '1'
+        WHERE
+            acc.del_flag = '0'
+          AND acc.account_id = #{accountId}
+        ORDER BY hou.create_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="findRegisterByphone" resultType="integer" parameterType="String">
+        SELECT COUNT(1)  FROM xccj_community.bus_account WHERE login_name = #{phone} AND del_flag = '0'
+    </select>
+
+    <select id="selectMemberByCommunityId" resultType="com.wr.remote.govern.party.Member">
+        SELECT
+            member_id,community_id,building_id,unit_id,room_id,account_id,join_time,party_id,
+            prove_url,audit_status,audit_time,reject_reason,member_duty,party_fee,create_by,
+            create_time,update_by,update_time,del_flag
+        FROM xccj_govern.bus_member
+        WHERE del_flag = '0'
+          AND account_id = #{accountId} AND community_id = #{communityId}
+    </select>
+
+    <update id="updateAccountType" parameterType="com.wr.remote.estate.customer.decorate.Account">
+        update xccj_community.bus_account SET account_type = '' WHERE account_id = #{accountId} AND del_flag = '0'
+    </update>
+</mapper>

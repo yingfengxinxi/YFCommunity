@@ -1,0 +1,10 @@
+com\wr\api\base\ApiBaseApplication.class
+com\wr\api\base\mapper\OperateLogMapper.class
+com\wr\api\base\mapper\TableColumnMapper.class
+com\wr\api\base\web\GlobalController.class
+com\wr\api\base\web\OperateLogController.class
+com\wr\api\base\web\TableColumnController.class
+com\wr\api\base\service\TableColumnService.class
+com\wr\api\base\service\impl\OperateLogServiceImpl.class
+com\wr\api\base\service\impl\TableColumnServiceImpl.class
+com\wr\api\base\service\OperateLogService.class

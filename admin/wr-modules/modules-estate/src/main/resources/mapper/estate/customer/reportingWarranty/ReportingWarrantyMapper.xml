@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.reportingWarranty.ReportingWarrantyMapper">
+
+
+    <sql id="sql">
+        SELECT
+            brw.id as "id",
+            brw.community_id AS "communityId",
+            brw.`no` AS "no",
+            brw.account_id AS "accountId",
+            brw.`name` AS "name",
+            brw.phone AS "phone",
+            brw.report_name AS "reportName",
+            brw.report_type AS "reportType",
+            brw.report_status AS "reportStatus",
+            brw.report_address AS "reportAddress",
+            brw.report_remark AS "reportRemark",
+            brw.report_image AS "reportImage",
+            brw.order_feedback AS "orderFeedback",
+            brw.order_image AS "orderImage",
+            su.nick_name AS "executorBy",
+            su.phonenumber as "executorPhone",
+            brw.evaluate AS "evaluate",
+            brw.order_end_time AS "orderEndTime",
+            brw.create_by AS "createBy",
+            brw.create_time AS createTime,
+            brw.update_by AS "updateBy",
+            brw.update_time AS "updateTime",
+            brw.del_flag AS "delFlag"
+        FROM
+            xccj_community.bus_reporting_warranty brw
+                LEFt JOIN xccj_estate_sys.sys_user su on su.user_name=brw.executor_by
+    </sql>
+
+    <!-- 报事报修 -->
+    <select id="getList"  resultType="com.wr.remote.domain.ReportingWarranty">
+
+        <include refid="sql"></include>
+        where brw.del_flag='0' and brw.community_id=#{communityId}
+        <if test="no !=null and no !=''">
+            and brw.`no` like CONCAT('%',#{no},'%')
+        </if>
+        <if test="reportType !=null and reportType !=''">
+            and brw.report_type=#{reportType}
+        </if>
+        <if test="reportStatus !=null and reportStatus !=''">
+            and brw.report_status=#{reportStatus}
+        </if>
+        <if test="searchValue !=null and searchValue !=''">
+            and (brw.`name` like CONCAT('%',#{searchValue},'%') or brw.`phone` like CONCAT('%',#{searchValue},'%') or
+            su.nick_name like CONCAT('%',#{searchValue},'%'))
+        </if>
+        order by brw.create_time desc
+    </select>
+
+    <select id="get" resultType="com.wr.remote.domain.ReportingWarranty">
+        <include refid="sql"></include>
+        where brw.del_flag='0' and brw.id=#{id}
+    </select>
+
+</mapper>

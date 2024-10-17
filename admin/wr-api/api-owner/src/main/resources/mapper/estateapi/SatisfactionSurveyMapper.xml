@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.satisfaction.SatisfactionSurveyMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.SatisfactionSurvey">
+        SELECT *
+        FROM (SELECT
+        id,
+        community_id as "communityId",
+        satisfaction_no as "satisfactionNo",
+        title as "title",
+        start_time as "startTime",
+        end_time as "endTime",
+        description as "description",
+        create_time as "createTime",
+        IF(DATE_FORMAT(now(),'%Y-%m-%d') > DATE_FORMAT(bv.end_time,'%Y-%m-%d'),'已结束',IF(DATE_FORMAT(now(),'%Y-%m-%d') > DATE_FORMAT(bv.start_time,'%Y-%m-%d'), '进行中', '未开始')) AS "state"
+        FROM xccj_community.bus_satisfaction_survey bv
+        WHERE bv.del_flag = "0" order by bv.create_time desc) a
+        <where>
+            communityId=#{communityId}
+            <if test="state !=null and state !=''">
+                and a.state = #{state}
+            </if>
+
+            <if test="satisfactionNo !=null and satisfactionNo !=''">
+                and a.satisfactionNo like CONCAT('%',#{satisfactionNo},'%')
+            </if>
+            <if test="title !=null and title !=''">
+                and a.title like CONCAT('%',#{title},'%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据楼栋id查询所有房子 -->
+    <select id="listByBuildingId" resultType="com.wr.remote.estate.center.Room">
+        SELECT br.room_id     AS id,
+               br.room_name   AS roomName,
+               br.room_status AS roomStatus
+        FROM xccj_community.bus_room br
+        WHERE br.building_id = #{buildingId}
+          AND br.del_flag = '0'
+    </select>
+
+    <select id="findListSatisfaction" parameterType="com.wr.remote.domain.SatisfactionSurvey" resultType="com.wr.remote.domain.SatisfactionSurvey">
+        SELECT DISTINCT
+        su.*,
+        CASE
+        WHEN su.end_time &lt; now() THEN '已结束'
+        WHEN ow.owner_id IS NOT NULL AND su.end_time &gt; now() THEN '已提交'
+        ELSE '进行中'
+        END AS showStatus,
+        ow.id ownerId,
+        COUNT( DISTINCT ow.owner_id ) AS countnum
+        FROM
+        xccj_community.bus_satisfaction_survey su
+        LEFT JOIN xccj_community.bus_satisfaction_survey_problem pr ON su.id = pr.satisfaction_survey_id
+        LEFT JOIN xccj_community.bus_satisfaction_survey_building bu ON pr.id = bu.survey_problem_id
+        LEFT JOIN xccj_community.bus_satisfaction_survey_owner ow ON ow.satisfaction_survey_building = bu.id AND ow.owner_id = #{ownerId}
+        WHERE
+        su.start_time &lt; now()
+        AND su.community_id = #{communityId}
+        AND bu.building_id = #{buildingId}
+        <if test="state != null and state != ''">
+            <if test="state == '0'.toString()">
+                AND su.end_time &gt; now()
+                AND NOT EXISTS (
+                SELECT 1
+                FROM xccj_community.bus_satisfaction_survey_owner o
+                WHERE o.satisfaction_survey_building = bu.id
+                AND o.owner_id = #{ownerId}
+                )
+            </if>
+            <if test="state == '1'.toString()">
+                AND ow.owner_id = #{ownerId} AND su.end_time &gt; now()
+            </if>
+            <if test="state == '2'.toString()">
+                AND su.end_time  &lt; now()
+            </if>
+        </if>
+        GROUP BY
+        su.id
+        ORDER BY su.end_time DESC,
+        su.start_time DESC
+    </select>
+</mapper>

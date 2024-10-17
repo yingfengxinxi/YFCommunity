@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.serve.InvestMapper">
+    <update id="increaseReadNumById">
+        update xccj_community.bus_invest set read_num=read_num+1 where invest_id=#{id}
+    </update>
+    <select id="searchByCommunityId" resultType="com.wr.api.estate.entity.vo.application.serve.InvestVO">
+        SELECT invest_id          AS "investId",
+               invest_title       AS "noticeTitle",
+               bi.create_time     AS "time",
+               brief_introduction AS "briefIntroduction",
+               invest_type        AS "investType",
+               su.nick_name       AS "createBy"
+        FROM xccj_community.bus_invest bi
+                 LEFT JOIN xccj_estate_sys.sys_user su ON bi.create_by = su.user_name
+        WHERE invest_status = '0'
+          AND bi.del_flag = '0'
+          AND bi.community_id = #{communityId}
+          AND bi.invest_type = #{investType}
+        ORDER BY bi.create_time DESC
+    </select>
+    <select id="getByEstateIdInvestId" resultType="String">
+        SELECT invest_id AS "investId"
+        FROM xccj_community.bus_invest bi
+        WHERE invest_status = '0'
+          AND bi.estate_id =#{estateId} and bi.community_id=#{communityId}
+          AND bi.del_flag = '0'
+    </select>
+    <select id="detailByInvestId" resultType="com.wr.api.estate.entity.vo.application.serve.InvestVO">
+        SELECT bi.invest_title AS "noticeTitle",
+               bi.create_time  AS "time",
+               su.nick_name    AS "createBy",
+               bi.invest_type  AS "investType",
+               bi.content      AS "content",
+               bi.read_num     AS "readNum"
+        FROM xccj_community.bus_invest bi
+                 LEFT JOIN xccj_estate_sys.sys_user su ON bi.create_by = su.user_name
+        WHERE bi.invest_id = #{investId}
+    </select>
+</mapper>

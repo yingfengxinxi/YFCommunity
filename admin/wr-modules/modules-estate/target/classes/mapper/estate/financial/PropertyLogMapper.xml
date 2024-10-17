@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.PropertyLogMapper">
+    <update id="updatePayStatus">
+        update xccj_community.bus_property_log bpl
+        set pay_status='1'
+        where log_id = #{logId}
+    </update>
+    <update id="updateById">
+        update xccj_community.bus_property_log
+        <set>
+            send_type=#{sendType},
+            send_status=#{sendStatus},
+            send_error_msg=#{sendErrorMsg}
+        </set>
+        where log_id=#{logId}
+    </update>
+
+    <update id="updateByLogIdAmount">
+        update xccj_community.bus_property_log
+        set discount_amount=#{discountAmount},
+            paid_amount=#{paidAmount},
+            paid_amount=#{paidAmount}
+        where log_id = #{logId}
+    </update>
+
+    <select id="getByRoomIdAmount" resultType="com.wr.remote.domain.PropertyLog">
+        SELECT yj_amount       AS "yjAmount",
+               discount_amount as "discountAmount",
+               start_time      AS "startTime",
+               end_time        AS "endTime"
+        FROM xccj_community.bus_property_log
+        WHERE pay_status != '2'
+	AND room_id = #{roomId}
+          and is_unpaid_property_fee=#{isUnpaidPropertyFee}
+        ORDER BY
+            start_time ASC
+            LIMIT 1
+    </select>
+
+    <select id="getList" resultType="com.wr.remote.domain.PropertyLog">
+        SELECT
+        bpl.log_id AS "logId",
+        bpl.property_fee_id AS "propertyFeeId",
+        bpl.order_no AS "orderNo",
+        bpl.community_id AS "communityId",
+        bpl.building_id AS "buildingId",
+        bb.building_name as "buildingName",
+        bpl.unit_id AS "unitId",
+        bu.unit_name as "unitName",
+        bpl.room_id AS "roomId",
+        br.room_name as "roomName",
+        bpl.room_area AS "roomArea",
+        bpl.pay_status AS "payStatus",
+        bpl.send_type as "sendType",
+        bpl.send_status as "sendStatus",
+        bpl.send_error_msg as "sendErrorMsg",
+        bpl.fee_type AS "feeType",
+        bpl.fee_amount AS "feeAmount",
+        bpl.yj_amount AS "yjAmount",
+        bpl.discount_amount as "discountAmount",
+        bpl.pay_amount AS "payAmount",
+        YEAR ( bpl.start_time ) AS "payYear",
+        bpl.pay_method AS "payMethod",
+        bpl.is_unpaid_property_fee as "isUnpaidPropertyFee",
+        bpl.pay_way AS "payWay",
+        bpl.pay_time AS "payTime",
+        bpl.start_time AS "startTime",
+        bpl.end_time AS "endTime",
+        bpl.create_time AS "createTime",
+        bo.owner_name as "ownerName",
+        bo.owner_phone as "ownerPhone"
+        FROM
+        xccj_community.bus_property_log bpl
+        LEFT JOIN xccj_community.bus_building bb on bb.building_id=bpl.building_id
+        LEFT JOIN xccj_community.bus_unit bu on bu.unit_id=bpl.unit_id
+        LEFT JOIN xccj_community.bus_room br on br.room_id=bpl.room_id
+        LEFT JOIN xccj_community.bus_owner bo on bo.owner_id=br.owner_id
+        where bpl.del_flag="0"
+        and bpl.community_id=#{communityId}
+        <if test="buildingId!=null">
+            and bpl.building_id=#{buildingId}
+        </if>
+        <if test="unitId!=null">
+            and bpl.unit_id=#{unitId}
+        </if>
+        <if test="roomId!=null">
+            and bpl.room_id=#{roomId}
+        </if>
+        <if test="payStatus!=null and payStatus!=''">
+            and bpl.pay_status=#{payStatus}
+        </if>
+        <if test="payMethod!=null and payMethod !=''">
+            and bpl.pay_method=#{payMethod}
+        </if>
+        <if test="isUnpaidPropertyFee !=null and isUnpaidPropertyFee !=''">
+            and bpl.is_unpaid_property_fee=#{isUnpaidPropertyFee}
+        </if>
+        <if test="payYear!=null and payYear !=''">
+            and YEAR(bpl.start_time) =#{payYear}
+        </if>
+        order by bpl.create_time desc
+    </select>
+
+    <sql id="columns">
+        select bpl.log_id          AS "logId",
+               bpl.property_fee_id AS "propertyFeeId",
+               bpl.order_no        AS "orderNo",
+               bpl.community_id    AS "communityId",
+               bpl.building_id     AS "buildingId",
+               bpl.unit_id         AS "unitId",
+               bpl.room_id         AS "roomId",
+               bpl.room_area       AS "roomArea",
+               bpl.pay_status      AS "payStatus",
+               bpl.fee_type        AS "feeType",
+               bpl.fee_amount      AS "feeAmount",
+               bpl.yj_amount       AS "yjAmount",
+               bpl.paid_amount       AS "paidAmount",
+               bpl.discount_amount       AS "discountAmount",
+               bpl.pay_amount      AS "payAmount",
+               bpl.pay_method      AS "payMethod",
+               bpl.pay_way         AS "payWay",
+               bpl.pay_time        AS "payTime",
+               bpl.start_time      AS "startTime",
+               bpl.end_time        AS "endTime",
+               bpl.create_time     AS "createTime"
+        FROM xccj_community.bus_property_log bpl
+    </sql>
+    <select id="getById" resultType="com.wr.remote.domain.PropertyLog">
+        <include refid="columns"></include>
+        where bpl.log_id = #{logId}
+
+    </select>
+
+    <select id="getByDateCount" resultType="com.wr.estate.entity.vo.PropertyLogCountVo">
+        SELECT be.estate_id      as "estateId",
+               bc.community_name as "communityName",
+               count(1)          AS "count"
+        FROM xccj_community.bus_property_log bpl
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bpl.community_id
+                 LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bc.estate_id
+        WHERE DATE_FORMAT(bpl.create_time, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+        GROUP BY be.estate_id
+    </select>
+
+    <insert id="insertPropertyLog">
+        INSERT INTO xccj_community.bus_property_log(
+        <if test="propertyFeeId !=null and propertyFeeId !=''">property_fee_id,</if>
+        <if test="orderNo !=null and orderNo !=''">order_no,</if>
+        <if test="communityId !=null ">community_id,</if>
+        <if test="buildingId !=null">building_id,</if>
+        <if test="unitId !=null">unit_id,</if>
+        <if test="roomId !=null">room_id,</if>
+        <if test="roomArea !=null">room_area,</if>
+        <if test="payStatus!=null and payStatus!=''">pay_status,</if>
+        <if test="isUnpaidPropertyFee!=null and isUnpaidPropertyFee!=''">is_unpaid_property_fee,</if>
+        <if test="feeType!=null and feeType!=''">fee_type,</if>
+        <if test="feeAmount!=null">fee_amount,</if>
+        <if test="yjAmount!=null">yj_amount,</if>
+        <if test="discountAmount!=null">discount_amount,</if>
+        <if test="payAmount!=null">pay_amount,</if>
+        <if test="paidAmount!=null">paid_amount,</if>
+        <if test="payMethod!=null and payMethod!=''">pay_method,</if>
+        <if test="payYear!=null">pay_year,</if>
+        <if test="payWay!=null">pay_way,</if>
+        <if test="payTime!=null">pay_time,</if>
+        <if test="startTime!=null">start_time,</if>
+        <if test="endTime!=null">end_time,</if>
+        create_time,
+        del_flag
+        )
+        VALUES (
+        <if test="propertyFeeId !=null and propertyFeeId !=''">#{propertyFeeId},</if>
+        <if test="orderNo !=null and orderNo !=''">#{orderNo},</if>
+        <if test="communityId !=null ">#{communityId},</if>
+        <if test="buildingId !=null">#{buildingId},</if>
+        <if test="unitId !=null">#{unitId},</if>
+        <if test="roomId !=null">#{roomId},</if>
+        <if test="roomArea !=null">#{roomArea},</if>
+        <if test="payStatus!=null and payStatus!=''">#{payStatus},</if>
+        <if test="isUnpaidPropertyFee!=null and isUnpaidPropertyFee!=''">#{isUnpaidPropertyFee},</if>
+        <if test="feeType!=null and feeType!=''">#{feeType},</if>
+        <if test="feeAmount!=null">#{feeAmount},</if>
+        <if test="yjAmount!=null">#{yjAmount},</if>
+        <if test="discountAmount!=null">#{discountAmount},</if>
+        <if test="payAmount!=null">#{payAmount},</if>
+        <if test="paidAmount!=null">#{paidAmount},</if>
+        <if test="payMethod!=null and payMethod!=''">#{payMethod},</if>
+        <if test="payYear!=null">#{payYear},</if>
+        <if test="payWay!=null">#{payWay},</if>
+        <if test="payTime!=null">#{payTime},</if>
+        <if test="startTime!=null">DATE_FORMAT(#{startTime}, '%Y-%m-%d'),</if>
+        <if test="endTime!=null">DATE_FORMAT(#{endTime}, '%Y-%m-%d'),</if>
+        now(),
+        '0'
+        )
+    </insert>
+
+    <update id="updatePropertyLog">
+        update xccj_community.bus_property_log
+        <set>
+            <if test="payStatus!=null and payStatus!=''">pay_status=#{payStatus},</if>
+            <if test="payAmount!=null">pay_amount=#{payAmount},</if>
+            <if test="paidAmount!=null">paid_amount=#{paidAmount},</if>
+            <if test="discountAmount!=null">discount_amount=#{discountAmount},</if>
+            <if test="yjAmount!=null">yj_amount=#{yjAmount},</if>
+            <if test="payWay!=null">pay_way=#{payWay},</if>
+            <if test="payTime!=null">pay_time=#{payTime}</if>
+        </set>
+        where
+        community_id=#{communityId}
+        and building_id=#{buildingId}
+        and unit_id=#{unitId}
+        and room_id=#{roomId}
+        and start_time=#{startTime}
+        and end_time=#{endTime}
+    </update>
+
+    <select id="getOrderNoInfo" resultType="com.wr.remote.domain.PropertyLog">
+        <include refid="columns"></include>
+        where bpl.order_no like CONCAT('%',#{orderNo},'%')
+    </select>
+    <update id="updateByLogIdPropertyLog">
+        update xccj_community.bus_property_log
+        set pay_amount=#{payAmount},
+            discount_amount=#{discountAmount},
+            yj_amount=#{yjAmount},
+            paid_amount=#{paidAmount},
+            start_time=#{startTime},
+            end_time=#{endTime}
+        where log_id = #{logId}
+    </update>
+    <delete id="deleteByOrderNo">
+        delete
+        from xccj_community.bus_property_log
+        where order_no like CONCAT('%', #{orderNo}, '%')
+    </delete>
+
+    <select id="getRoomIdCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_property_log
+        <where>
+            <if test="communityId!=null">
+                AND community_id = #{communityId}
+            </if>
+            <if test="buildingId!=null">
+                and building_id = #{buildingId}
+            </if>
+            <if test="unitId!=null">
+                and unit_id = #{unitId}
+            </if>
+            <if test="roomId!=null">
+                and room_id = #{roomId}
+            </if>
+            <if test="startTime!=null">
+                and DATE_FORMAT(start_time, '%Y-%m-%d') = DATE_FORMAT(#{startTime}, '%Y-%m-%d')
+            </if>
+            <if test="endTime!=null">
+                and DATE_FORMAT(end_time, '%Y-%m-%d') = DATE_FORMAT(#{endTime}, '%Y-%m-%d')
+            </if>
+        </where>
+
+    </select>
+
+
+    <select id="getByRoomIdEntTime" resultType="java.util.Date">
+        select DATE_FORMAT(end_time, '%Y-%m-%d') as "endTime"
+        from xccj_community.bus_property_log
+        <where>
+            <if test="communityId!=null">
+                AND community_id = #{communityId}
+            </if>
+            <if test="buildingId!=null">
+                and building_id = #{buildingId}
+            </if>
+            <if test="unitId!=null">
+                and unit_id = #{unitId}
+            </if>
+            <if test="roomId!=null">
+                and room_id = #{roomId}
+            </if>
+        </where>
+        ORDER BY
+        end_time DESC LIMIT 1
+
+    </select>
+</mapper>

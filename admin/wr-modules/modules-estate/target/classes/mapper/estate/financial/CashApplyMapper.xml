@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.CashApplyMapper">
+    <resultMap type="com.wr.remote.estate.financial.EstateCash" id="estateCashTypeResult">
+        <id     property="voteId"       column="vote_id"      />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="ownerName"    column="owner_name"    />
+        <result property="ownerPhone"    column="owner_name"    />
+        <result property="voteStatus"    column="vote_status"    />
+        <result property="voteTime"    column="vote_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <select id="selectList" resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+        bfv.*,
+        bo.owner_name,
+        IF(bfv.audit_status ='1' AND NOW() >= bfv.ent_time AND bfv.has_notice = 0, 1, 0) AS hasFinish,
+        IF(bfv.audit_status ='0' AND bfv.ent_time >= NOW() AND bfv.has_notice = 0, 1, 0) AS finish
+        FROM
+        xccj_community.bus_fund_vote bfv
+        LEFT JOIN xccj_community.bus_owner bo ON bfv.owner_id = bo.owner_id
+        WHERE
+        bfv.del_flag = 0
+        <if test="communityId != null "> and bfv.community_id = #{communityId}</if>
+        <if test="voteTitle != null  and voteTitle != ''"> and bfv.vote_title like concat('%', #{voteTitle}, '%')</if>
+        <if test="ownerName != null  and ownerName != ''"> and bo.owner_name like concat('%', #{ownerName}, '%')</if>
+        <if test="auditStatus != null "> and bfv.audit_status = #{auditStatus}</if>
+        <if test="years != null"> and bfv.apply_time like concat(#{years}, '%')</if>
+        <if test="voteType != null "> and bfv.vote_type = #{voteType}</if>
+        <if test="yearVo != null "> and apply_time like concat(#{yearVo}, '%')</if>
+        <if test="null != estateId">
+        AND bfv.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+        ORDER BY bfv.vote_id DESC
+    </select>
+
+
+    <select id="voteResultSum" resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+            IFNULL(( SELECT count(*) FROM xccj_community.bus_fund_user WHERE vote_id = #{voteId} AND vote_status = 0 AND del_flag = 0 ), 0) AS agreeSum,
+            IFNULL(( SELECT count(*) FROM xccj_community.bus_fund_user WHERE vote_id = #{voteId} AND vote_status = 1 AND del_flag = 0 ), 0) AS disagreeSum
+    </select>
+
+    <!-- 已发布通知 -->
+    <update id="updateHasNotice">
+        UPDATE xccj_community.bus_fund_vote SET has_notice = 1 WHERE vote_id = #{voteId}
+    </update>
+
+    <!--根据年份查询累计金额-->
+    <select id="cashCountByTime" resultType="BigDecimal">
+        SELECT
+            SUM( grant_amount ) AS cashCount
+        FROM
+            xccj_community.bus_fund_grant bfg
+                LEFT JOIN xccj_community.bus_fund_vote bfv ON bfg.vote_id = bfv.vote_id
+        WHERE
+            bfg.grant_time LIKE concat(#{yearVo}, '%')
+        <if test="communityId != null "> and bfv.community_id = #{communityId}</if>
+    </select>
+
+    <!--查询所有累计金额-->
+    <select id="allCashCount" resultType="BigDecimal">
+        SELECT
+        SUM( grant_amount ) AS cashCount
+        FROM
+        xccj_community.bus_fund_grant bfg
+        LEFT JOIN xccj_community.bus_fund_vote bfv ON bfg.vote_id = bfv.vote_id
+        <if test="communityId != null "> where bfv.community_id = #{communityId}</if>
+    </select>
+
+    <!--查询投票详情-->
+    <select id="voteInfoById" resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+            bft.*,bo.owner_name,
+            IFNULL(GROUP_CONCAT(building.building_name), '-') AS buildingName,
+            IFNULL(GROUP_CONCAT(unit.unit_name), '-') AS unitName
+        FROM
+            xccj_community.bus_fund_vote bft
+                LEFT JOIN xccj_community.bus_owner bo on bft.owner_id = bo.owner_id
+                LEFT JOIN xccj_community.bus_fund_vote_building voteBuilding ON bft.vote_id = voteBuilding.vote_id
+                LEFT JOIN xccj_community.bus_building building ON building.building_id = voteBuilding.building_id
+                LEFT JOIN xccj_community.bus_fund_vote_unit voteUnit ON bft.vote_id = voteUnit.vote_id
+                LEFT JOIN xccj_community.bus_unit unit ON unit.unit_id = voteUnit.unit_id
+        WHERE
+            bft.vote_id = #{voteId}
+          AND bft.del_flag = 0
+        GROUP BY bft.vote_id
+    </select>
+
+    <!--查询投票详情List-->
+    <select id="ownerVoteList"  parameterType="com.wr.remote.estate.financial.EstateCash" resultType="com.wr.remote.estate.financial.EstateCash">
+        SELECT
+            bfu.*,
+        IF
+        ( bfu.vote_status = '0', '同意', '不同意' ) AS `voteStatusValue`,
+            bo.owner_name,
+            bo.owner_phone
+        FROM
+            xccj_community.bus_fund_user bfu
+                LEFT JOIN xccj_community.bus_owner bo ON bfu.owner_id = bo.owner_id
+        WHERE
+            bfu.vote_id = #{voteId}
+          AND bfu.del_flag = 0
+        <if test="ownerName != null  and ownerName != ''"> and bo.owner_name like concat('%', #{ownerName}, '%')</if>
+        <if test="ownerPhone != null  and ownerPhone != ''"> and bo.owner_phone like concat('%', #{ownerPhone}, '%')</if>
+        <if test="voteStatus != null "> and bfu.vote_status = #{voteStatus}</if>
+    </select>
+
+    <!--通过主键修改数据-->
+    <update id="updateApply" parameterType="com.wr.remote.estate.financial.EstateCash">
+        UPDATE xccj_community.bus_fund_vote
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason = #{rejectReason},</if>
+        </set>
+        WHERE vote_id = #{voteId}
+    </update>
+
+    <insert id="insertGrant" parameterType="com.wr.remote.estate.financial.EstateCash">
+        insert into xccj_community.bus_fund_grant(
+        <if test="voteId != null">vote_id,</if>
+        <if test="createBy != null">create_by,</if>
+        create_time
+        )values(
+        <if test="voteId != null">#{voteId},</if>
+        <if test="createBy != null">#{createBy},</if>
+         sysdate()
+        )
+    </insert>
+
+
+</mapper>

@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.patrol.PatrolPlanMapper">
+    <resultMap type="com.wr.remote.work.patrol.PatrolPlan" id="PatrolPlanResult">
+        <result property="planId" column="plan_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="planName" column="plan_name"/>
+        <result property="tourId" column="tour_id"/>
+        <result property="pointId" column="point_id"/>
+        <result property="planOrder" column="plan_order"/>
+        <result property="planModel" column="plan_model"/>
+        <result property="planNum" column="plan_num"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="gapTime" column="gap_time"/>
+        <result property="allotWay" column="allot_way"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectPatrolPlanVo">
+        select plan_id,
+               community_id,
+               plan_name,
+               tour_id,
+               point_id,
+               plan_order,
+               plan_model,
+               plan_num,
+               start_time,
+               end_time,
+               gap_time,
+               allot_way,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        from xccj_work.bus_patrol_plan
+    </sql>
+
+    <select id="selectPatrolPlanList" parameterType="com.wr.remote.work.patrol.PatrolPlan" resultMap="PatrolPlanResult">
+        <include refid="selectPatrolPlanVo"/>
+        <where>
+            <if test="communityId != null ">
+                and community_id = #{communityId}
+            </if>
+            <if test="planName != null  and planName != ''">
+                and plan_name like concat('%', #{planName}, '%')
+            </if>
+            <if test="tourId != null ">
+                and tour_id = #{tourId}
+            </if>
+            <if test="pointId != null ">
+                and point_id = #{pointId}
+            </if>
+            <if test="planOrder != null  and planOrder != ''">
+                and plan_order = #{planOrder}
+            </if>
+            <if test="planModel != null  and planModel != ''">
+                and plan_model = #{planModel}
+            </if>
+            <if test="planNum != null ">
+                and plan_num = #{planNum}
+            </if>
+            <if test="startTime != null  and startTime != ''">
+                and start_time = #{startTime}
+            </if>
+            <if test="endTime != null  and endTime != ''">
+                and end_time = #{endTime}
+            </if>
+            <if test="gapTime != null ">
+                and gap_time = #{gapTime}
+            </if>
+            <if test="allotWay != null  and allotWay != ''">
+                and allot_way = #{allotWay}
+            </if>
+        </where>
+        ORDER BY plan_id DESC
+    </select>
+
+    <select id="selectPatrolPlanByPlanId" parameterType="Long" resultMap="PatrolPlanResult">
+        <include refid="selectPatrolPlanVo"/>
+        where plan_id = #{planId}
+    </select>
+
+    <insert id="insertPatrolPlan" parameterType="com.wr.remote.work.patrol.PatrolPlan" useGeneratedKeys="true"
+            keyProperty="planId">
+        insert into xccj_work.bus_patrol_plan
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="planName != null and planName != ''">
+                plan_name,
+            </if>
+            <if test="tourId != null">
+                tour_id,
+            </if>
+            <if test="pointId != null">
+                point_id,
+            </if>
+            <if test="planOrder != null and planOrder != ''">
+                plan_order,
+            </if>
+            <if test="planModel != null and planModel != ''">
+                plan_model,
+            </if>
+            <if test="planNum != null">
+                plan_num,
+            </if>
+            <if test="startTime != null and startTime != ''">
+                start_time,
+            </if>
+            <if test="endTime != null and endTime != ''">
+                end_time,
+            </if>
+            <if test="gapTime != null">
+                gap_time,
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                allot_way,
+            </if>
+            <if test="createBy != null and createBy != ''">
+                create_by,
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by,
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                del_flag,
+            </if>
+            create_time,update_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId},
+            </if>
+            <if test="planName != null and planName != ''">
+                #{planName},
+            </if>
+            <if test="tourId != null">
+                #{tourId},
+            </if>
+            <if test="pointId != null">
+                #{pointId},
+            </if>
+            <if test="planOrder != null and planOrder != ''">
+                #{planOrder},
+            </if>
+            <if test="planModel != null and planModel != ''">
+                #{planModel},
+            </if>
+            <if test="planNum != null">
+                #{planNum},
+            </if>
+            <if test="startTime != null and startTime != ''">
+                #{startTime},
+            </if>
+            <if test="endTime != null and endTime != ''">
+                #{endTime},
+            </if>
+            <if test="gapTime != null">
+                #{gapTime},
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                #{allotWay},
+            </if>
+            <if test="createBy != null and createBy != ''">
+                #{createBy},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                #{updateBy},
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                #{delFlag},
+            </if>
+            NOW(),NOW()
+        </trim>
+    </insert>
+
+    <update id="updatePatrolPlan" parameterType="com.wr.remote.work.patrol.PatrolPlan">
+        update xccj_work.bus_patrol_plan
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id = #{communityId},
+            </if>
+            <if test="planName != null and planName != ''">
+                plan_name = #{planName},
+            </if>
+            <if test="tourId != null">
+                tour_id = #{tourId},
+            </if>
+            <if test="pointId != null">
+                point_id = #{pointId},
+            </if>
+            <if test="planOrder != null and planOrder != ''">
+                plan_order = #{planOrder},
+            </if>
+            <if test="planModel != null and planModel != ''">
+                plan_model = #{planModel},
+            </if>
+            <if test="planNum != null">
+                plan_num = #{planNum},
+            </if>
+            <if test="startTime != null and startTime != ''">
+                start_time = #{startTime},
+            </if>
+            <if test="endTime != null and endTime != ''">
+                end_time = #{endTime},
+            </if>
+            <if test="gapTime != null">
+                gap_time = #{gapTime},
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                allot_way = #{allotWay},
+            </if>
+            <if test="createBy != null and createBy != ''">
+                create_by = #{createBy},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by = #{updateBy},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                del_flag = #{delFlag},
+            </if>
+        </trim>
+        where plan_id = #{planId}
+    </update>
+
+    <delete id="deletePatrolPlanByPlanId" parameterType="Long">
+        delete
+        from xccj_work.bus_patrol_plan
+        where plan_id = #{planId}
+    </delete>
+
+    <update id="deletePatrolPlanByPlanIds" parameterType="String">
+        update xccj_work.bus_patrol_plan set del_flag = '1' where plan_id in
+        <foreach item="planId" collection="array" open="(" separator="," close=")">
+            #{planId}
+        </foreach>
+    </update>
+
+    <!-- 修改巡查计划生成工单状态 -->
+    <update id="updatePatrolPlanOrder">
+        update xccj_work.bus_patrol_plan set plan_order = #{planOrder} where plan_id = #{planId}
+    </update>
+
+    <!-- 巡查计划分页列表 -->
+    <select id="listPage" parameterType="com.wr.remote.work.patrol.vo.PatrolPlanQueryVO"
+            resultType="com.wr.remote.work.patrol.vo.PatrolPlanListVO">
+        SELECT bpp.plan_id,
+        bpp.plan_name,
+        bt.tour_name,
+        bp.point_name,
+        bpp.create_time,
+        bpp.plan_order
+        FROM xccj_work.bus_patrol_plan bpp
+        LEFT JOIN xccj_work.bus_tour bt ON bpp.tour_id = bt.tour_id
+        LEFT JOIN xccj_work.bus_point bp ON bpp.point_id = bp.point_id
+        WHERE bpp.del_flag = '0'
+        <if test="communityId != null">
+            AND bpp.community_id = #{communityId}
+        </if>
+        <if test="patrolTypeId != null">
+            AND bpp.tour_id = #{patrolTypeId}
+        </if>
+        <if test="patrolType != null and patrolType != ''">
+            AND bt.tour_name LIKE CONCAT('%',#{patrolType}, '%')
+        </if>
+        <if test="planOrder != null">
+            AND bpp.plan_order = #{planOrder}
+        </if>
+        <if test="planName != null and planName != ''">
+            AND bpp.plan_name LIKE CONCAT('%',#{planName},'%')
+        </if>
+        ORDER BY plan_id DESC
+    </select>
+
+    <!-- 根据id查询计划详情 -->
+    <select id="getDetailById" resultType="com.wr.remote.work.patrol.vo.PatrolPlanDetailVO">
+        SELECT
+            bpp.plan_name,
+            bt.tour_name,
+            bp.point_name,
+            IF(bpp.plan_order = '0', '激活', '未激活') AS planOrder,
+            bpp.plan_model,
+            bpp.plan_num,
+            bpp.gap_time,
+            bpp.start_time,
+            bpp.end_time
+        FROM
+            xccj_work.bus_patrol_plan bpp
+                LEFT JOIN xccj_work.bus_tour bt ON bpp.tour_id = bt.tour_id
+                LEFT JOIN xccj_work.bus_point bp ON bpp.point_id = bp.point_id
+        WHERE bpp.plan_id = #{planId}
+    </select>
+
+    <!-- 根据名字校验计划名是否存在 -->
+    <select id="countByName" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM xccj_work.bus_patrol_plan WHERE plan_name = #{planName}
+        <if test="planId != null">
+            AND plan_id != #{planId}
+        </if>
+        AND community_id = #{communityId}
+    </select>
+
+    <!-- 查询所有定时开启的工单计划 -->
+    <select id="selectPlanByPlanOrder" resultType="com.wr.remote.work.patrol.PatrolPlan">
+        SELECT * FROM xccj_work.bus_patrol_plan WHERE plan_order = #{planOrder} AND del_flag = '0'
+    </select>
+</mapper>

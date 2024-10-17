@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.icon.XcWstServiceMapper">
+
+    <resultMap type="com.wr.api.owner.entity.home.icon.XcWstService" id="XcWstServiceResult">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="url" column="url"/>
+        <result property="goTo" column="go_to"/>
+        <result property="goType" column="go_type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="status" column="status"/>
+        <result property="isHot" column="is_hot"/>
+        <result property="sort" column="sort"/>
+        <result property="classify" column="classify"/>
+        <result property="classifyName" column="classifyName"/>
+    </resultMap>
+
+    <sql id="selectXcWstServiceVo">
+        select s.id,
+               s.name,
+               s.url,
+               s.go_to,
+               s.go_type,
+               s.create_time,
+               s.update_time,
+               s.create_by,
+               s.update_by,
+               s.status,
+               s.is_hot,
+               s.sort,
+               s.classify,
+               t.name classifyName
+        from xccj_community.xc_wst_service s
+                 left join xccj_community.xc_icon_type t on t.id = s.classify
+    </sql>
+
+    <select id="selectXcWstServiceList" parameterType="com.wr.api.owner.entity.home.icon.XcWstService" resultMap="XcWstServiceResult">
+        <include refid="selectXcWstServiceVo"/>
+        <where>
+            <if test="name != null  and name != ''">
+                and s.name like concat('%', #{name}, '%')
+            </if>
+            <if test="url != null  and url != ''">
+                and s.url = #{url}
+            </if>
+            <if test="goTo != null  and goTo != ''">
+                and s.go_to = #{goTo}
+            </if>
+            <if test="goType != null ">
+                and s.go_type = #{goType}
+            </if>
+            <if test="status != null ">
+                and s.status = #{status}
+            </if>
+            <if test="isHot != null ">
+                and s.is_hot = #{isHot}
+            </if>
+            <if test="sort != null ">
+                and s.sort = #{sort}
+            </if>
+            <if test="classify != null ">
+                and s.classify = #{classify}
+            </if>
+        </where>
+        order by s.sort
+    </select>
+
+
+    <select id="selectXcWstServiceListByKey" parameterType="com.wr.api.owner.entity.home.icon.XcWstService" resultMap="XcWstServiceResult">
+        <include refid="selectXcWstServiceVo"/>
+        <where>
+            <if test="key != null  and key != ''">
+                and position(#{key} in s.name)
+            </if>
+        </where>
+        order by s.create_time desc limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectXcWstServiceById" parameterType="Long"
+            resultMap="XcWstServiceResult">
+        <include refid="selectXcWstServiceVo"/>
+        where s.id = #{id}
+    </select>
+
+
+    <resultMap type="com.wr.api.owner.entity.home.icon.XcWstServiceType" id="XcWstServiceResultByGroup">
+
+        <result property="classifyName" column="classifyName"/>
+        <result property="classifyId" column="classifyId"/>
+
+        <collection property="list" ofType="com.wr.api.owner.entity.home.icon.XcWstService" columnPrefix="children_" javaType="java.util.List">
+            <result property="id" column="id"/>
+            <result property="name" column="name"/>
+            <result property="url" column="url"/>
+            <result property="goTo" column="go_to"/>
+            <result property="goType" column="go_type"/>
+            <result property="createTime" column="create_time"/>
+            <result property="updateTime" column="update_time"/>
+            <result property="createBy" column="create_by"/>
+            <result property="updateBy" column="update_by"/>
+            <result property="status" column="status"/>
+            <result property="isHot" column="is_hot"/>
+            <result property="sort" column="sort"/>
+            <result property="classify" column="classify"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectWstServiceListByGroup" resultMap="XcWstServiceResultByGroup">
+        select t.name classifyName,
+               t.id classifyId,
+               s.id          children_id,
+               s.name        children_name,
+               s.url         children_url,
+               s.go_to       children_go_to,
+               s.go_type     children_go_type,
+               s.create_time children_create_time,
+               s.update_time children_update_time,
+               s.create_by   children_create_by,
+               s.update_by   children_update_by,
+               s.status      children_status,
+               s.is_hot      children_is_hot,
+               s.sort        children_sort,
+               s.classify    children_classify
+        from xccj_community.xc_icon_type t
+                 left join xccj_community.xc_wst_service s on t.id = s.classify
+        where t.status = 1
+          and s.status = 1
+    </select>
+
+</mapper>

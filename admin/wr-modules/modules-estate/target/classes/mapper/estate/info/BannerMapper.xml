@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.info.BannerMapper">
+  <resultMap type="com.wr.remote.estate.info.Banner" id="BannerResult">
+    <id property="estateId" column="estate_id"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="bannerId" column="banner_id"/>
+    <result property="orderNum" column="order_num"/>
+    <result property="bannerUrl" column="banner_url"/>
+
+  </resultMap>
+  <!--带操作用户，操作时间，更新用户，更新时间的sql片段-->
+  <sql id="selectBannerVo">
+    SELECT
+            banner_id,
+	          estate_id,
+	          order_num,
+	          banner_url,
+	          create_by,
+	          create_time,
+	          update_by,
+	          update_time
+    FROM xccj_community.bus_banner
+    </sql>
+
+  <!--根据主键获取对象-->
+  <select id="selectBannerById" parameterType="java.lang.Long" resultMap="BannerResult">
+    <include refid="selectBannerVo"/>
+    where banner_id = #{bannerId}
+  </select>
+
+
+  <!-- 校验序号唯一性 -->
+  <select id="checkOrderNumUnique" resultType="com.wr.remote.estate.info.Banner"
+          parameterType="com.wr.remote.estate.info.Banner">
+    <include refid="selectBannerVo"/>
+    where del_flag = '0'
+    and estate_id = #{estateId}
+    and order_num = trim(#{orderNum})
+
+  </select>
+
+  <!-- 校验文序号唯一性 -->
+  <select id="checkOrderNumUnique2" resultType="com.wr.remote.estate.info.Banner"
+          parameterType="com.wr.remote.estate.info.Banner">
+    <include refid="selectBannerVo"/>
+    where del_flag = '0'
+    and order_num = trim(#{orderNum}) and banner_id!= #{bannerId}
+  </select>
+
+
+  <!--分页列表-->
+  <select id="selectList" parameterType="com.wr.remote.estate.info.Banner"
+          resultMap="BannerResult">
+    <include refid="selectBannerVo"/>
+    <where>
+      del_flag='0'
+      and estate_id = #{estateId}
+      <if test="orderNum != null">
+        and order_num = #{orderNum}
+      </if>
+    </where>
+    order by order_num asc
+    ${params.dataScope}
+  </select>
+
+  <!--添加轮播图设置-->
+  <insert id="insertBanner" parameterType="com.wr.remote.estate.info.Banner">
+    insert into xccj_community.bus_banner (
+    banner_id,
+    order_num,
+	  estate_id,
+	  banner_url,
+	  create_by,
+	  create_time
+    )values(
+    #{bannerId},
+    #{orderNum},
+    #{estateId},
+    #{bannerUrl},
+    #{createBy},
+    sysdate()
+    )
+  </insert>
+
+  <!--编辑轮播图设置-->
+  <update id="updateBanner" parameterType="com.wr.remote.estate.info.Banner">
+    update xccj_community.bus_banner
+    <set>
+      <if test="orderNum != null">order_num = #{orderNum},</if>
+      <if test="bannerUrl != null and bannerUrl != ''">banner_url = #{bannerUrl},</if>
+      update_by = #{updateBy},
+      update_time = sysdate()
+    </set>
+    where banner_id = #{bannerId}
+  </update>
+
+
+  <!--删除轮播图设置-->
+  <delete id="deleteBannerByIds" parameterType="java.lang.Long">
+    UPDATE xccj_community.bus_banner
+    SET del_flag = '1'
+    WHERE banner_id IN
+    <foreach item="bannerId" collection="array" open="(" separator="," close=")">
+      #{bannerId}
+    </foreach>
+  </delete>
+
+</mapper>

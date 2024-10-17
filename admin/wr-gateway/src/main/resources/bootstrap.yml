@@ -1,0 +1,48 @@
+# Tomcat
+server:
+  port: 9100
+
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: gateway
+  profiles:
+    # 环境配置
+    active: @profile.name@
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: @config.server-addr@
+        group: @config.group@
+#        namespace: 94dd0c34-f7eb-4261-b45e-d8611cc462ad
+      config:
+        # 配置中心地址
+        server-addr: @config.server-addr@
+        group: @config.group@
+#        namespace: 94dd0c34-f7eb-4261-b45e-d8611cc462ad
+        # 配置文件格式
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+    sentinel:
+      # 取消控制台懒加载
+      eager: true
+      transport:
+        # 控制台地址
+        dashboard: 127.0.0.1:8718
+      # nacos配置持久化
+      datasource:
+        ds1:
+          nacos:
+            server-addr: @config.server-addr@
+            dataId: sentinel-gateway
+            groupId: DEFAULT_GROUP
+            data-type: json
+            rule-type: flow

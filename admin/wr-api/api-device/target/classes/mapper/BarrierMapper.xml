@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.BarrierMapper">
+    <select id="getByParkIndex" resultType="com.wr.remote.aiot.Park">
+        SELECT
+            sp.park_id, sp.index_code, sp.parent_index_code, sp.park_name, sp.create_time, sp.update_time,
+            sp.manufacturer, sp.renewal_by, sp.renewal_time, sp.update_by, sp.operate_time, sp.community_id,
+            sp.park_type, sp.pay_code, sp.del_flag,sc.community_name
+        FROM xccj_device.bus_park sp
+        LEFT JOIN xccj_community.bus_community sc ON sc.community_id = sp.community_id
+        WHERE sp.del_flag = '0' AND sp.index_code = #{parkIndex}
+    </select>
+
+    <select id="getByPlateNo" resultType="com.wr.remote.estate.center.BusVehicle">
+        SELECT
+            vehicle_id, account_id, community_id, plate_no,plate_color,
+            vehicle_color, vehicle_status, vehicle_brand, vehicle_type,
+            create_by, create_time, update_by, update_time, del_flag
+        FROM xccj_community.bus_vehicle
+        WHERE del_flag = '0' AND plate_no = #{plateNo}
+    </select>
+
+    <select id="getCarportByAccountId" resultType="com.wr.remote.estate.center.BusCarport">
+        SELECT
+            carport_id, community_id, carport_no, carport_nature,
+            carport_status, rental_type, carport_fee, rental_start, rental_end, account_id,
+            vehicle_id, create_by, create_time, update_by, update_time, del_flag
+        FROM xccj_community.bus_carport
+        WHERE del_flag = '0' AND account_id = #{accountId}
+    </select>
+
+    <select id="getByGateIndex" resultType="com.wr.remote.aiot.Entrance">
+        SELECT
+            entrance_id, index_code, entrance_name, park_index_code, road_num, create_time, update_time, del_flag
+        FROM xccj_device.bus_entrance
+        WHERE del_flag = '0' AND index_code = #{gateIndex}
+    </select>
+
+    <select id="getByRoadwayIndex" resultType="com.wr.remote.aiot.Roadway">
+        SELECT
+            roadway_id, index_code, roadway_name, roadway_type, entrance_index_code, create_time, update_time, del_flag
+        FROM xccj_device.bus_roadway
+        WHERE del_flag = '0' AND index_code = #{roadwayIndex}
+    </select>
+
+    <select id="getVehicleByPlateNo" resultType="com.wr.remote.estate.center.BusVehicle">
+        SELECT
+            vehicle_id, community_id, account_id, plate_no, plate_color, plate_type, vehicle_brand, vehicle_type,
+            vehicle_status, vehicle_color, audit_status, audit_time, create_by, create_time, update_by, update_time
+        FROM xccj_community.bus_vehicle
+        WHERE del_flag = '0' AND plate_no = #{plateNo}
+    </select>
+
+    <select id="getSwitchTypeByCommunityId" resultType="java.lang.String">
+        SELECT switch_type FROM xccj_community.bus_park_pay WHERE community_id = #{communityId} LIMIT 1
+    </select>
+
+    <select id="selectNewestPayByPlantNo" resultType="com.wr.remote.estate.log.PayLog">
+        SELECT
+            log_id, pay_type, pay_amount, pay_time, user_type, user_name, user_phone, plate_no,
+            community_id, community_name, building_id, unit_id, room_id, pay_way, pay_status,
+            out_trade_no, transaction_id, agent_sign_no, bill_no, trace_no, trade_status, del_flag
+        FROM ${tableName}
+        WHERE del_flag = '0' AND plate_no = #{plateNo}
+        AND date_format(pay_time,'%y%m') = date_format(sysdate(),'%y%m')
+        ORDER BY pay_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectDurationByCommunityId" resultType="com.wr.remote.estate.financial.Duration">
+        SELECT
+               duration_id, community_id, min_hour, max_hour, hour_fee
+        FROM xccj_community.bus_park_duration
+        WHERE community_id = #{communityId}
+        ORDER BY min_hour
+    </select>
+
+</mapper>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.QuesAnswerMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.QuesAnswer">
+        <id column="answer_id" jdbcType="BIGINT" property="answerId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="table_type" jdbcType="CHAR" property="tableType"/>
+        <result column="table_id" jdbcType="BIGINT" property="tableId"/>
+        <result column="question_id" jdbcType="BIGINT" property="questionId"/>
+        <result column="user_answer" jdbcType="VARCHAR" property="userAnswer"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        answer_id,
+        account_id,
+        table_type,
+        table_id,
+        question_id,
+        user_answer,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_ques_answer
+        where answer_id = #{answerId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_govern.bus_ques_answer
+        <set>
+            del_flag = '1',
+        </set>
+        where answer_id = #{answerId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="answer_id" keyProperty="answerId"
+            parameterType="com.wr.api.owner.entity.serve.QuesAnswer"
+            useGeneratedKeys="true">
+        insert into xccj_govern.bus_ques_answer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="tableType != null">
+                table_type,
+            </if>
+            <if test="tableId != null">
+                table_id,
+            </if>
+            <if test="questionId != null">
+                question_id,
+            </if>
+            <if test="userAnswer != null">
+                user_answer,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="tableType != null">
+                #{tableType,jdbcType=CHAR},
+            </if>
+            <if test="tableId != null">
+                #{tableId,jdbcType=BIGINT},
+            </if>
+            <if test="questionId != null">
+                #{questionId,jdbcType=BIGINT},
+            </if>
+            <if test="userAnswer != null">
+                #{userAnswer,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.QuesAnswer">
+        <!--@mbg.generated-->
+        update xccj_govern.bus_ques_answer
+        <set>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="tableType != null">
+                table_type = #{tableType,jdbcType=CHAR},
+            </if>
+            <if test="tableId != null">
+                table_id = #{tableId,jdbcType=BIGINT},
+            </if>
+            <if test="questionId != null">
+                question_id = #{questionId,jdbcType=BIGINT},
+            </if>
+            <if test="userAnswer != null">
+                user_answer = #{userAnswer,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where answer_id = #{answerId,jdbcType=BIGINT}
+    </update>
+
+    <select id="answerDetail" resultType="com.wr.api.owner.entity.vo.serve.AnswerVo">
+        SELECT bqa.question_id, bqa.user_answer, bq.question_type
+        FROM xccj_govern.bus_question AS bq
+                 LEFT JOIN xccj_govern.bus_ques_answer AS bqa ON bqa.question_id = bq.question_id
+        WHERE bqa.table_type = '1'
+          AND bqa.table_id = #{param1}
+          AND bqa.account_id = #{param2}
+          AND bq.del_flag = '0'
+    </select>
+</mapper>

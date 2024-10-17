@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.voluntary.RescueMapper">
+    <select id="searchList" resultType="java.util.LinkedHashMap">
+        select * from (
+                SELECT
+                r.rescue_title,
+                IF
+                ( r.release_type = '0',
+                (SELECT owner_name FROM xccj_community.bus_owner o WHERE o.owner_id = r.release_id),
+                (SELECT tenant_name FROM xccj_community.bus_tenant t WHERE t.tenant_id = r.release_id)
+                ) AS 'user_name',
+                IF
+                (r.release_type = '0',
+                (SELECT timestampdiff(YEAR,substring( card_no, 7, 8 ),now()) FROM xccj_community.bus_owner o WHERE o.owner_id = r.release_id),
+                (SELECT timestampdiff(YEAR,substring( card_no, 7, 8 ),now()) FROM xccj_community.bus_tenant t WHERE t.tenant_id = r.release_id)
+                ) AS 'age',
+                IF
+                (r.release_type = '0',
+                (SELECT owner_phone FROM xccj_community.bus_owner o WHERE o.owner_id = r.release_id),
+                (SELECT tenant_phone FROM xccj_community.bus_tenant t WHERE t.tenant_id = r.release_id)
+                ) AS 'phone',
+                IF
+                (r.release_type = '0',
+                (SELECT gender FROM xccj_community.bus_owner o WHERE o.owner_id = r.release_id),
+                (SELECT gender FROM xccj_community.bus_tenant t WHERE t.tenant_id = r.release_id)
+                ) AS 'gender',
+                IF
+                (r.release_type = '0',
+                (SELECT card_no FROM xccj_community.bus_owner o WHERE o.owner_id = r.release_id),
+                (SELECT card_no FROM xccj_community.bus_tenant t WHERE t.tenant_id = r.release_id)
+                ) AS 'card_no',
+                IF
+                (( SELECT count( 1 ) FROM xccj_govern.bus_rescue_user WHERE rescue_id = r.rescue_id ) > 0, '是', '否' ) AS 'num',
+                (CASE WHEN DATE_FORMAT(now(),'%Y-%m-%d') >  DATE_FORMAT(r.end_time,'%Y-%m-%d') THEN '已结束'  WHEN DATE_FORMAT(now(),'%Y-%m-%d') &lt; DATE_FORMAT(r.start_time,'%Y-%m-%d') THEN '未开始'  WHEN DATE_FORMAT(now(),'%Y-%m-%d')> DATE_FORMAT(r.start_time,'%Y-%m-%d') THEN '进行中' END ) AS 'state',
+                r.start_time,r.end_time,r.contact_name,r.contact_phone,r.release_time,r.need_num,r.content,r.address
+                FROM xccj_govern.bus_rescue r WHERE r.del_flag = '0' AND community_id = #{community_id}
+        ) as temp
+        <where>
+            <if test="time != null and time != '' ">
+                 DATE_FORMAT(release_time,"%Y-%m-%d") BETWEEN #{time[0]} and #{time[1]}
+            </if>
+            <if test="name != '' and name != null ">
+                and user_name like concat('%',#{name},'%')
+            </if>
+        </where>
+        order by release_time desc
+    </select>
+</mapper>

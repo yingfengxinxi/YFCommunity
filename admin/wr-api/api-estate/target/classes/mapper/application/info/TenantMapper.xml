@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.info.TenantMapper">
+    <select id="getList" resultType="com.wr.api.estate.entity.vo.application.info.TenantVo">
+        SELECT
+        bt.room_id,bt.account_id,bt.tenant_name,bt.card_no,
+        bt.tenant_phone,bt.gender,bu.unit_name,br.room_name,bt.tenant_id,bt.community_id,
+        (substring(now(),1,4)-substring(bt.card_no,7,4))-(substring(bt.card_no,11,4)-date_format(now(),'%m%d')>0) as age
+        FROM xccj_community.bus_tenant bt
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bt.community_id
+        LEFT JOIN xccj_community.bus_building bbg ON bbg.building_id = bt.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bt.unit_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+        WHERE bt.del_flag = '0' AND bt.audit_status = '1' AND bt.community_id = #{communityId}
+        <if test="tenantName != null">AND bt.tenant_name like concat ('%',#{tenantName},'%')</if>
+    </select>
+
+    <select id="getDetail" resultType="com.wr.api.estate.entity.vo.application.info.TenantVo">
+        SELECT
+            bt.tenant_name AS "tenantName",
+            bt.tenant_phone AS "tenantPhone",
+            bt.card_type AS "cardType",
+            bt.card_no AS "cardNo",
+            bt.owner_id AS "ownerId",
+            bt.lease_start_time AS "leaseStartTime",
+            bt.lease_end_time AS "leaseEndTime",
+            bt.deposit_pay_time AS "depositPayTime",
+            bt.deposit AS "deposit",
+            bt.total_money AS "totalMoney",
+            bt.card_font AS "cardFont",
+            bt.card_back AS "cardBack",
+            bt.room_id AS "roomId"
+        FROM
+            xccj_community.bus_tenant bt
+        WHERE
+            bt.del_flag = '0'
+          AND bt.tenant_id = #{tenantId}
+    </select>
+
+    <select id="getRentContractDetail" resultType="com.wr.api.estate.entity.vo.application.serve.RentContractVo">
+        SELECT
+            brc.contract_start AS "contractStart",
+            brc.contract_end AS "contractEnd",
+            brc.deposit_pay_time AS "depositPayTime",
+            brc.total_money AS "totalMoney",
+            brc.deposit AS "deposit"
+        FROM
+            xccj_community.bus_rent_contract brc
+        WHERE
+            brc.tenant_id =#{tenantId}
+    </select>
+    <select id="getHouse" resultType="com.wr.api.estate.entity.vo.application.info.TenantVo">
+        SELECT
+            bc.community_name,bbg.building_name,bu.unit_name,br.room_name,br.room_status,bo.owner_name,bo.owner_phone
+        FROM xccj_community.bus_room br
+                 LEFT JOIN xccj_community.bus_owner bo ON br.owner_id = bo.owner_id
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_building bbg ON bbg.building_id = br.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+        WHERE br.del_flag = '0' AND br.room_id = #{roomId}
+    </select>
+
+
+    <!--    <select id="getCar" resultType="com.wr.api.estate.entity.vo.application.info.TenantVo">
+            SELECT
+                bc.carport_no,bv.plate_no
+            FROM xccj_community.bus_carport bc
+                     LEFT JOIN xccj_community.bus_vehicle bv ON bc.vehicle_id = bv.vehicle_id
+            WHERE bc.del_flag = '0' AND bc.carport_status = '0' AND bc.account_id = #{accountId}
+        </select>-->
+    <select id="getCar" resultType="com.wr.api.estate.entity.vo.application.info.TenantVo">
+        SELECT
+            bv.plate_no
+        FROM xccj_community.bus_vehicle bv
+        WHERE bv.del_flag = '0' AND bv.audit_status = '1' AND bv.account_id = #{accountId}
+    </select>
+    <select id="getCarport" resultType="com.wr.api.estate.entity.vo.application.info.TenantVo">
+        SELECT
+            bc.carport_no
+        FROM xccj_community.bus_carport bc
+        WHERE bc.del_flag = '0' AND bc.carport_status = '0' AND bc.account_id = #{accountId}
+    </select>
+
+    <select id="getTenantCount" resultType="int">
+        SELECT
+            count(*)
+        FROM xccj_community.bus_tenant bt
+        WHERE bt.del_flag = '0' AND bt.audit_status = '1' AND bt.community_id = #{communityId}
+    </select>
+
+
+</mapper>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.home.HomePageMapper">
+    <!--查询入党审核数据-->
+    <select id="selectMemberById" resultType="com.wr.remote.govern.home.Census" parameterType="Long">
+        select
+            ifnull(sum(case xcbm.audit_status when '0' then 1 else 0 end),0) memberAudit,
+            ifnull(sum(case xcbm.audit_status when '2' then 1 else 0 end),0) memberRebut
+        from xccj_govern.bus_member xcbm
+                 left join xccj_community.bus_community xcbc on xcbm.community_id = xcbc.community_id
+        where xcbc.estate_id = #{estateId}
+    </select>
+
+<!--救助信息查询-->
+    <select id="selectRescueByEstateId" resultType="com.wr.remote.govern.home.Census" parameterType="Long">
+        select ifnull(sum(CASE
+                              WHEN plan_status = '0'
+                                  THEN 1
+                              else 0 END), 0) rescueNotStart,
+               ifnull(sum(CASE
+                              WHEN plan_status = '1'
+                                  THEN 1
+                              else 0
+                   END
+                          ), 0)  rescueStart
+        from xccj_govern.bus_member_act as res
+        where
+            res.del_flag='0'
+            and   res.community_id in(
+            select com.community_id from xccj_community.bus_community as com
+            where com.estate_id=#{estateId} and com.del_flag='0'
+            )
+
+    </select>
+
+<!--通报信息查询-->
+    <select id="selectBulletinByEstateId" resultType="com.wr.remote.govern.home.Census" parameterType="Long">
+        select
+            ifnull(sum(case bull.archive when '0' then 1 else 0 end), 0) as bulletinNum,
+            ifnull(sum(case bull.archive when '1' then 1 else 0 end), 0) as fileNum
+        from xccj_govern.bus_bulletin as bull
+        where
+            bull.del_flag='0'
+            and bull.estate_id = #{estateId};
+    </select>
+
+  <!--党员统计-->
+    <select id="selectMemberNumById" resultType="com.wr.remote.govern.home.MemberCensus" parameterType="Long">
+        select com.community_name as CommunityName,
+               count(*)           as MemberNum  
+        from xccj_govern.bus_member AS ber
+                 left join xccj_community.bus_community as com on ber.community_id = com.community_id
+        where
+                com.del_flag='0'
+            and ber.audit_status='1'
+            and com.estate_id = #{estateId}
+        group by ber.community_id
+        order by MemberNum desc
+
+    </select>
+
+    <!--线索反馈次数-->
+    <select id="selectClueNumById" resultType="com.wr.remote.govern.home.Clue" parameterType="Long">
+        select ity.community_name as communityName,
+               count(*) as clueNum
+        from xccj_govern.bus_clue as lue
+                 left join xccj_community.bus_account as unt on lue.account_id = unt.account_id
+                 left join xccj_community.bus_community as ity on unt.community_id = ity.community_id
+        where
+            lue.del_flag = '0'
+          and unt.del_flag='0'
+          and ity.del_flag='0'
+          and lue.estate_id = #{estateId}
+        group by ity.community_id
+        order by clueNum desc
+
+    </select>
+
+    <select id="selectCommitteeNumById" resultType="com.wr.remote.govern.home.Committee" parameterType="Long">
+        SELECT
+            com.community_name communityName,
+            COUNT( 1 ) committeeNum
+        FROM
+            xccj_community.bus_account acc
+                LEFT JOIN xccj_community.bus_community com ON acc.community_id = com.community_id
+        WHERE
+            com.estate_id = #{estateId}
+          AND acc.is_property_council = '1' AND com.del_flag = '0' AND acc.del_flag = '0'
+    </select>
+
+    <select id="selectPartyPayNumById" resultType="com.wr.remote.govern.home.HomePartyPay" parameterType="com.wr.remote.govern.home.Census">
+        select ity.community_name as communityName,
+               ifnull(sum(case pay.pay_type when '1' then pay.party_fee else 0 end), 0) as normalAmount,
+               ifnull(sum(case pay.pay_type when '2' then pay.party_fee else 0 end), 0) as aheadAmount,
+               ifnull(sum(case pay.pay_type when '3' then pay.party_fee else 0 end), 0) as backAmount,
+               ifnull(sum(case pay.pay_way when '3' then pay.party_fee else 0 end), 0)  as offlineAmount
+        from xccj_govern.bus_party_pay as pay
+                 left join xccj_community.bus_community as ity on pay.community_id = ity.community_id
+        where pay.del_flag = '0'
+          and ity.del_flag= '0'
+          and ity.estate_id = #{estateId}
+        <if test="payMonth != null">
+            and  DATE_FORMAT(pay.pay_time, '%y%m') = DATE_FORMAT(#{payMonth}, '%y%m')
+        </if>
+        group by ity.community_id
+    </select>
+</mapper>

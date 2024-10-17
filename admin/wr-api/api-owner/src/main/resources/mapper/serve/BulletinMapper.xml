@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.BulletinMapper">
+    <insert id="addClue">
+        INSERT INTO xccj_govern.bus_clue(
+        <if test="null != estateId">
+            estate_id,
+        </if>
+        <if test="null != bulletinId">
+            bulletin_id,
+        </if>
+        <if test="null != accountId">
+            account_id,
+        </if>
+        <if test="null != address">
+            address,
+        </if>
+        <if test="null != remark">
+            remark,
+        </if>
+        create_time,
+        del_flag
+        ) VALUES (
+        <if test="null != estateId">
+            #{estateId},
+        </if>
+        <if test="null != bulletinId">
+            #{bulletinId},
+        </if>
+        <if test="null != accountId">
+            #{accountId},
+        </if>
+        <if test="null != address">
+            #{address},
+        </if>
+        <if test="null != remark">
+            #{remark},
+        </if>
+        sysdate(),
+        '0'
+        )
+    </insert>
+
+    <select id="getBulletinAll" resultType="com.wr.api.owner.entity.vo.serve.BulletinVO">
+        SELECT bulletin_id,
+               avatar,
+               user_name,
+               crime_level,
+               crime_reason,
+               create_time,
+               card_type,
+               card_no
+        FROM xccj_govern.bus_bulletin
+        WHERE del_flag = '0'
+          AND archive = '0'
+        ORDER BY create_time DESC
+    </select>
+    <select id="getBulletinById" resultType="com.wr.api.owner.entity.vo.serve.BulletinVO">
+        SELECT bulletin_id,
+               avatar,
+               user_name,
+               gender,
+               user_age,
+               crime_level,
+               crime_reason,
+               create_time,
+               card_type,
+               card_no
+        FROM xccj_govern.bus_bulletin
+        WHERE del_flag = '0'
+          AND archive = '0'
+          AND bulletin_id = #{bulletinId}
+    </select>
+    <select id="checkAccountIdUnique" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM xccj_govern.bus_clue WHERE bulletin_id = #{bulletinId} AND account_id = #{accountId}
+    </select>
+</mapper>

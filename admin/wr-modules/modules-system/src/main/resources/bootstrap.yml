@@ -1,0 +1,42 @@
+# Tomcat
+server:
+  port: 9303
+
+# Spring
+spring: 
+  application:
+    # 应用名称
+    name: system
+  profiles:
+    # 环境配置
+    active: @profile.name@
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: @config.server-addr@
+        group: @config.group@
+#        namespace: 94dd0c34-f7eb-4261-b45e-d8611cc462ad
+      config:
+        # 配置中心地址
+        server-addr: @config.server-addr@
+        group: @config.group@
+#        namespace: 94dd0c34-f7eb-4261-b45e-d8611cc462ad
+        # 配置文件格式
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+#日志
+logging:
+  level:
+    com.wr: debug
+    org.springframework: warn
+#mybatis
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true

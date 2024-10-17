@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.disasterOrder.DisasterOrderMapper">
+
+    <select id="getList" resultType="com.wr.remote.work.vo.BusDisasterOrderVo"
+            parameterType="com.wr.remote.work.vo.BusDisasterOrderVo">
+        SELECT
+        bdo.order_id,
+        bdo.audit_id,
+        bdo.order_no,
+        bdo.order_name,
+        bdo.allot_way,
+        bdo.allot_status,
+        bdo.accept_status,
+        bdo.execute_time,
+        bdo.plan_end,
+        bdo.plan_start,
+        bdo.finish_time,
+        bdo.remark,
+        bdo.execute_status,
+        bdo.community_id,
+        bd.disaster_name,
+        bda.address,
+        IF
+        ( bdo.order_id = ba.order_id and ba.order_type='8', '1', '0' ) AS yc,
+        (select staff_name from xccj_community.bus_staff where staff_id = bdo.staff_id) AS staff_name,
+        CASE
+        WHEN complaint.complaint_type IS NULL THEN
+        '待评价'
+        WHEN complaint.complaint_type = '0' THEN
+        '表扬'
+        WHEN complaint.complaint_type = '1' THEN
+        '投诉'
+        END AS complaintType
+        FROM
+        xccj_work.bus_disaster_order  bdo
+        LEFT JOIN xccj_community.bus_complaint complaint ON complaint.order_type = '3' AND complaint.order_id = bdo.order_id
+        LEFT JOIN xccj_work.bus_disaster_audit bda ON bdo.audit_id = bda.audit_id
+        LEFT JOIN xccj_work.bus_disaster bd ON bd.disaster_id = bda.disaster_id
+        LEFT JOIN xccj_work.bus_abnormal ba ON bdo.order_id = ba.order_id
+        <where>
+            bdo.del_flag = 0 AND bd.disaster_status = 0
+            AND bd.estate_id =#{estateId}
+            <if test="orderName != null and orderName != ''">
+                AND bdo.order_name = #{orderName}
+            </if>
+            <if test="communityId != null and communityId != ''">
+                AND bdo.community_id = #{communityId}
+            </if>
+            <if test="disasterId != null and disasterId != ''">
+                AND bd.disaster_id = #{disasterId}
+            </if>
+            <if test="executeStatus !=null and executeStatus !=''">
+                AND bdo.execute_status = #{executeStatus}
+            </if>
+
+        </where>
+        group by bdo.order_id
+        ORDER BY bdo.create_time DESC
+    </select>
+    <select id="getInfoList" resultType="com.wr.remote.work.vo.BusDisasterOrderVo"
+            parameterType="com.wr.remote.work.vo.BusDisasterOrderVo">
+        SELECT bdo.execute_id,
+               bs.staff_name,
+               bs.staff_phone,
+               bs.card_no,
+               IF(bdo.execute_id = bs.staff_id, '是', '-') AS mainStaffName,
+               bs.work_post
+        FROM `xccj_work`.`bus_disaster_order` AS bdo
+                 LEFT JOIN `xccj_community`.`bus_staff` AS bs on bdo.execute_id = bs.staff_id
+                 LEFT JOIN (SELECT dict_label, dict_value
+                            FROM xccj_estate_sys.sys_dict_data
+                            WHERE dict_type = 'work_post') AS test ON test.dict_value = bs.staff_type
+        WHERE bdo.del_flag = '0'
+          and bdo.order_id = #{orderId}
+    </select>
+    <select id="getNameList" resultType="com.wr.remote.work.vo.BusDisasterOrderVo">
+        SELECT *
+        FROM xccj_community.bus_staff
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+    <select id="getRecord" resultType="com.wr.remote.work.vo.BusDisasterOrderVo"></select>
+
+
+    <update id="updateById">
+        update `xccj_work`.`bus_disaster_order` set del_flag = '1'
+        <where>
+            order_id = #{orderId}
+        </where>
+    </update>
+
+
+    <insert id="insertOrder" parameterType="com.wr.remote.work.vo.BusDisasterOrderVo">
+        insert into `xccj_work`.`bus_disaster_order`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderId != null and orderId != ''">order_id,</if>
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="auditId != null and auditId != ''">audit_id,</if>
+            <if test="orderNo != null and orderNo != ''">order_no,</if>
+            <if test="orderName != null and orderName != ''">order_name,</if>
+            <if test="planStart != null">plan_start,</if>
+            <if test="planEnd != null">plan_end,</if>
+            <if test="allotWay != null and allotWay != ''">allot_way,</if>
+            <if test="staffId != null and staffId != ''">staff_id,</if>
+            <if test="assistNum != null and assistNum != ''">assist_num,</if>
+            <if test="transferStatus != null and transferStatus != ''">transfer_status,</if>
+            <if test="allotStatus != null and allotStatus != ''">allot_status,</if>
+            <if test="acceptStatus != null and acceptStatus != ''">accept_status,</if>
+            <if test="executeStatus != null and executeStatus != ''">execute_status,</if>
+            <if test="executeId != null and executeId != ''">execute_id,</if>
+            <if test="executeTime != null and executeTime != ''">execute_time,</if>
+            <if test="finishTime != null and finishTime != ''">finish_time,</if>
+            <if test="imageUrl != null and imageUrl != ''">image_url,</if>
+            <if test="appraiseStatus != null and appraiseStatus != ''">appraise_status,</if>
+            <if test="appraiseStar != null and appraiseStar != ''">appraise_star,</if>
+            <if test="appraiseRemark != null and appraiseRemark != ''">appraise_remark,</if>
+            <if test="remark != null ">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderId != null and orderId != ''">#{orderId},</if>
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="auditId != null and auditId != ''">#{auditId},</if>
+            <if test="orderNo != null and orderNo != ''">#{orderNo},</if>
+            <if test="orderName != null and orderName != ''">#{orderName},</if>
+            <if test="planStart != null">#{planStart},</if>
+            <if test="planEnd != null">#{planEnd},</if>
+            <if test="allotWay != null and allotWay != ''">#{allotWay},</if>
+            <if test="staffId != null and staffId != ''">#{staffId},</if>
+            <if test="assistNum != null and assistNum != ''">#{assistNum},</if>
+            <if test="transferStatus != null and transferStatus != ''">#{transferStatus},</if>
+            <if test="allotStatus != null and allotStatus != ''">#{allotStatus},</if>
+            <if test="acceptStatus != null and acceptStatus != ''">#{acceptStatus},</if>
+            <if test="executeStatus != null and executeStatus != ''">#{executeStatus},</if>
+            <if test="executeId != null and executeId != ''">#{executeId},</if>
+            <if test="executeTime != null and executeTime != ''">#{executeTime},</if>
+            <if test="finishTime != null and finishTime != ''">#{finishTime},</if>
+            <if test="imageUrl != null and imageUrl != ''">#{imageUrl},</if>
+            <if test="appraiseStatus != null and appraiseStatus != ''">#{appraiseStatus},</if>
+            <if test="appraiseStar != null and appraiseStar != ''">#{appraiseStar},</if>
+            <if test="appraiseRemark != null and appraiseRemark != ''">#{appraiseRemark},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate()
+        </trim>
+    </insert>
+
+    <update id="updateOrder">
+        update `xccj_work`.`bus_disaster_order` bdo
+        set bdo.order_name=#{orderName},
+            bdo.plan_start=#{planStart},
+            bdo.plan_end=#{planEnd},
+            bdo.finish_time=#{finishTime},
+            bdo.remark=#{remark}
+        where bdo.order_id = #{orderId}
+    </update>
+    <update id="updateDisasterOrder" parameterType="com.wr.remote.work.vo.BusDisasterOrderVo">
+        update `xccj_work`.`bus_disaster_order` bdo
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="auditId != null">
+                auditId = #{auditId,jdbcType=BIGINT},
+            </if>
+            <if test="planStart != null">
+                plan_start = #{planStart,jdbcType=TIMESTAMP},
+            </if>
+            <if test="planEnd != null">
+                plan_end = #{planEnd,jdbcType=TIMESTAMP},
+            </if>
+            <if test="allotWay != null">
+                allot_way = #{allotWay,jdbcType=CHAR},
+            </if>
+            <if test="allotStatus != null">
+                allot_status = #{allotStatus,jdbcType=CHAR},
+            </if>
+            <if test="acceptStatus != null">
+                accept_status = #{acceptStatus,jdbcType=CHAR},
+            </if>
+            <if test="staffId != null">
+                staff_id = #{staffId,jdbcType=CHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+                create_by = #{createBy,jdbcType=VARCHAR},
+                create_time = SYSDATE(),
+                update_by = #{updateBy,jdbcType=VARCHAR},
+                update_time = SYSDATE(),
+                del_flag = '0'
+        </set>
+        WHERE order_id = #{orderId,jdbcType=BIGINT}
+    </update>
+
+    <delete id="deleteById">
+        update `xccj_work`.`bus_disaster_order`
+        set del_flag='1'
+        where order_id = #{orderId}
+    </delete>
+
+</mapper>

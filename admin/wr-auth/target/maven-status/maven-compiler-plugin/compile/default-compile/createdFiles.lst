@@ -1,0 +1,7 @@
+com\wr\auth\form\LoginBody.class
+com\wr\auth\AuthApplication.class
+com\wr\auth\controller\TokenController.class
+com\wr\auth\service\SysRecordLogService.class
+com\wr\auth\form\RegisterBody.class
+com\wr\auth\service\SysPasswordService.class
+com\wr\auth\service\SysLoginService.class

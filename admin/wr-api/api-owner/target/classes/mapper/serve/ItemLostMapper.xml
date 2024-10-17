@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.ItemLostMapper">
+
+
+    <sql id="selectItemLostVo">
+        SELECT  lost_id, community_id, account_id, thumbnail, lost_name, lost_date, lost_address, contact_name, contact_phone, lost_info, publish_time, lost_status FROM xccj_community.bus_thing_lost
+    </sql>
+    <!--发布寻物-->
+    <insert id="addItemLost">
+        insert into xccj_community.bus_thing_lost
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="accountId != null and accountId != ''">account_id,</if>
+            <if test="thumbnail != null and thumbnail != ''">thumbnail,</if>
+            <if test="lostName != null and lostName != ''">lost_name,</if>
+            <if test="lostDate != null">lost_date,</if>
+            <if test="lostAddress != null and lostAddress != ''">lost_address,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone,</if>
+            <if test="lostInfo != null and lostInfo != ''">lost_info,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="lostStatus != null and lostStatus != ''">lost_status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="accountId != null and accountId != ''">#{accountId},</if>
+            <if test="thumbnail != null and thumbnail != ''">#{thumbnail},</if>
+            <if test="lostName != null and lostName != ''">#{lostName},</if>
+            <if test="lostDate != null">#{lostDate},</if>
+            <if test="lostAddress != null and lostAddress != ''">#{lostAddress},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="lostInfo != null and lostInfo != ''">#{lostInfo},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="lostStatus != null and lostStatus != ''">#{lostStatus},</if>
+        </trim>
+    </insert>
+    <!--修改寻物状态-->
+    <update id="updateLostStatus">
+        update xccj_community.bus_thing_lost
+        set lost_status=#{lostStatus} where lost_id=#{lostId}
+    </update>
+    <!--查询寻物列表-->
+    <select id="getItemLost" resultType="com.wr.api.owner.entity.dto.ItemLostDTO">
+        <include refid="selectItemLostVo"/>
+        WHERE del_flag = '0'
+        <if test="lostName != null and lostName != ''">AND lost_name = #{lostName}</if>
+        <if test="lostId != null and lostId != ''">AND lost_id = #{lostId}</if>
+        <if test="communityId != null and communityId != ''">AND community_id = #{communityId}</if>
+        <if test="contactName != null and contactName != ''">AND contact_name = #{contactName}</if>
+        <if test="contactPhone != null and contactPhone != ''">AND contact_phone = #{contactPhone}</if>
+        <if test="accountId != null and accountId != ''">AND account_id = #{accountId}</if>
+        and lost_status='0'
+        ORDER BY publish_time DESC
+    </select>
+    <select id="getInfoById" resultType="com.wr.api.owner.entity.vo.serve.ItemLostVo">
+        <include refid="selectItemLostVo"/>
+        WHERE del_flag = '0'
+        and lost_id = #{lostId}
+    </select>
+    <select id="getMyItem" resultType="com.wr.api.owner.entity.dto.MyProItemLostDTO">
+    SELECT CONVERT(CONCAT(bt.lost_id,'-',0),char )AS comId,bt.lost_id , bt.thumbnail,bt.lost_name,bt.publish_time,bt.lost_status from xccj_community.bus_thing_lost bt where bt.account_id=#{accountId}
+  UNION All
+        SELECT CONVERT(CONCAT(bp.lost_id,'-',1),char )AS comId, bp.lost_id, bp.thumbnail,bp.lost_name,bp.publish_time,bp.lost_status from xccj_community.bus_people_lost bp  where  bp.account_id =#{accountId}
+    </select>
+</mapper>
+

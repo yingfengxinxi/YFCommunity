@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.homeorder.HomeOrderMapper">
+    <sql id="homeOrderColumns">
+        bo
+        .
+        *
+        , br.repair_name, bso.owner_name, bso.owner_phone, bs.staff_name, bs.staff_phone
+    </sql>
+
+    <update id="distribution">
+        UPDATE xccj_work.`bus_home_order`
+        SET allot_status  = '1',
+            accept_status = '1',
+            staff_id      = #{staffId},
+            plan_start    = #{params.beginTime},
+            plan_end      = #{params.endTime}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <select id="getHomeOrderAll" resultType="com.wr.estate.entity.vo.HomeOrderVO">
+        SELECT
+        <include refid="homeOrderColumns"/>
+        FROM
+        xccj_work.`bus_home_order` bo
+        LEFT JOIN xccj_work.bus_home_repair br ON br.repair_id = bo.repair_id
+        LEFT JOIN xccj_community.bus_owner bso ON bso.owner_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bo.community_id
+        WHERE bo.del_flag = '0'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != communityId and '' != communityId">
+            AND bo.community_id = #{communityId}
+        </if>
+        <if test="null != orderName and '' != orderName">
+            AND bo.order_name LIKE CONCAT('%',#{orderName},'%')
+        </if>
+        <if test="null != ownerName and '' != ownerName">
+            AND bso.owner_name LIKE CONCAT('%',#{ownerName},'%')
+        </if>
+        <if test="null != repairId">
+            AND br.repair_id = #{repairId}
+        </if>
+        <if test="null != executeStatus and '' != executeStatus">
+            AND bo.execute_status = #{executeStatus}
+        </if>
+        ORDER BY bo.create_time DESC
+    </select>
+    <select id="getHomeOrderById" resultType="com.wr.estate.entity.vo.HomeOrderVO">
+        SELECT
+        <include refid="homeOrderColumns"/>,
+        CASE
+        WHEN complaint.complaint_type IS NULL THEN
+        '待评价'
+        WHEN complaint.complaint_type = '0' THEN
+        '表扬'
+        WHEN complaint.complaint_type = '1' THEN
+        '投诉'
+        END AS complaintType
+        FROM
+        xccj_work.`bus_home_order` bo
+        LEFT JOIN xccj_community.bus_complaint complaint ON complaint.order_type = '1' AND complaint.order_id = bo.order_id
+        LEFT JOIN xccj_work.bus_home_repair br ON br.repair_id = bo.repair_id
+        LEFT JOIN xccj_community.bus_owner bso ON bso.owner_id = bo.owner_id
+        LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bo.community_id
+        WHERE bo.del_flag = '0' AND bo.order_id = #{orderId}
+    </select>
+    <select id="getHomeRepair" resultType="com.wr.estate.entity.HomeRepair">
+        SELECT
+        repair_id , bh.estate_id, repair_name, deposit, repair_status, remark, create_by, create_time, update_by,
+        update_time, bh.del_flag
+        FROM xccj_work.`bus_home_repair` bh
+        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bh.estate_id
+        WHERE bh.del_flag = '0'
+        <if test="null != estateId">
+            and bh.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+    </select>
+    <select id="getPhoto" resultType="java.lang.String">
+        SELECT image_url
+        FROM xccj_work.`bus_order_image`
+        WHERE del_flag = '0'
+          AND image_type = #{imageType}
+          AND table_id = #{tableId}
+    </select>
+    <select id="getAbnormal" resultType="java.lang.String">
+        SELECT abnormal_info
+        FROM xccj_work.`bus_abnormal`
+        WHERE del_flag = '0'
+          AND order_type = #{orderType}
+          AND order_id = #{orderId}
+    </select>
+</mapper>

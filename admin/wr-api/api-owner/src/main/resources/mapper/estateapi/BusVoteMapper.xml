@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.vote.BusVoteMapper">
+
+    <select id="getList" resultType="com.wr.remote.estate.vote.BusVote">
+        SELECT
+        bv.*,
+        CASE
+        WHEN bv.end_time &lt; now() THEN '已结束'
+        WHEN o.owner_status = '0' AND bv.end_time &gt; now() THEN '进行中'
+        WHEN o.owner_status != '0' AND bv.end_time &gt; now()  THEN '已提交' END AS showStatus,
+        o.id ownerId
+        FROM
+        xccj_community.bus_vote bv
+        LEFT JOIN xccj_community.bus_vote_scope s ON bv.id = s.vote_id
+        LEFT JOIN xccj_community.bus_vote_owner o ON s.id = o.vote_scope_id
+        WHERE
+        bv.start_time &lt; now()
+        AND bv.estate_id = #{estateId}
+        AND bv.community_id = #{communityId}
+        AND o.account_id = #{accountId}
+        <if test="state !=null and state !=''">
+            <if test="state == '0'.toString()">
+                AND o.owner_status = '0'
+            </if>
+            <if test="state == '1'.toString()">
+                AND o.owner_status != '0' AND bv.end_time  &gt; now()
+            </if>
+            <if test="state == '2'.toString()">
+                AND bv.end_time  &lt; now()
+            </if>
+        </if>
+        GROUP BY bv.id
+        ORDER BY end_time DESC,
+            start_time DESC
+    </select>
+
+    <select id="findCountNumVote" resultType="String">
+        SELECT
+            COUNT( DISTINCT s.room_id )
+        FROM
+            xccj_community.bus_vote_scope s
+                LEFT JOIN xccj_community.bus_vote_owner o ON s.id = o.vote_scope_id
+        WHERE
+            o.owner_status != '0'
+	AND s.vote_id =#{id}
+    </select>
+
+    <select id="getByIdCount" resultType="com.wr.remote.domain.vo.BusVoteResultVo">
+        SELECT
+            bvo.owner_status AS "ownerStatus",
+            count( 1 ) AS "number"
+        FROM
+            xccj_community.bus_vote bv
+                LEFT JOIN xccj_community.bus_vote_scope bvs ON bv.id = bvs.vote_id
+                LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        WHERE
+            bvs.del_flag = "0"
+          AND bv.del_flag = "0"
+          AND bvo.del_flag = "0"
+          and bv.id=#{id}
+        and bvo.owner_status=#{ownerStatus}
+        GROUP BY
+            bv.id,
+            bvo.owner_status
+    </select>
+
+    <select id="getByIdStatusCount" resultType="Integer">
+        SELECT
+            count( 1 ) AS "number"
+        FROM
+            xccj_community.bus_vote bv
+                LEFT JOIN xccj_community.bus_vote_scope bvs ON bv.id = bvs.vote_id
+                LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        WHERE
+            bvs.del_flag = "0"
+          AND bv.del_flag = "0"
+          AND bvo.del_flag = "0"
+          and bv.id=#{id}
+          <if test="ownerStatusList!=null and ownerStatusList.size()>0">
+              and bvo.owner_status in
+              <foreach collection="ownerStatusList" item="ownerStatus" open="(" separator="," close=")">
+                  #{ownerStatus}
+              </foreach>
+          </if>
+    </select>
+
+    <select id="getByIdStatusArea" resultType="java.math.BigDecimal">
+        SELECT
+        SUM(br.total_area) as "area"
+        FROM
+        xccj_community.bus_vote bv
+        LEFT JOIN xccj_community.bus_vote_scope bvs ON bv.id = bvs.vote_id
+        LEFT JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvs.id
+        LEFt JOIN xccj_community.bus_room br on br.room_id=bvs.room_id
+        WHERE
+        bvs.del_flag = "0"
+        AND bv.del_flag = "0"
+        AND bvo.del_flag = "0"
+        and bv.id=#{id}
+        <if test="ownerStatusList!=null and ownerStatusList.size()>0">
+            and bvo.owner_status in
+            <foreach collection="ownerStatusList" item="ownerStatus" open="(" separator="," close=")">
+                #{ownerStatus}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

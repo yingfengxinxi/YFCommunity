@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.manage.contract.OwnerMapper">
+
+    <!--字段映射-->
+    <resultMap type="com.wr.remote.estate.manage.vo.contract.OwnerVo" id="OwnerVoResult">
+        <id property="communityId" column="community_id"/>
+        <id property="communityName" column="community_name"/>
+        <id property="buildingId" column="building_id"/>
+        <id property="buildingName" column="building_name"/>
+        <id property="unitId" column="unit_id"/>
+        <id property="unitName" column="unit_name"/>
+        <id property="roomId" column="room_id"/>
+        <id property="roomName" column="room_name"/>
+        <id property="ownerName" column="owner_name"/>
+        <id property="ownerPhone" column="owner_phone"/>
+    </resultMap>
+
+    <select id="getOwnerVo" resultMap="OwnerVoResult" resultType="com.wr.remote.estate.manage.vo.contract.OwnerVo">
+        SELECT
+            own.community_id,
+            comm.community_name,
+            own.building_id,
+            bui.building_name,
+            own.unit_id,
+            uni.unit_name,
+            own.room_id,
+            roo.room_name,
+            own.owner_name,
+            own.owner_phone
+        FROM xccj_community.bus_owner AS own
+                 LEFT JOIN xccj_community.bus_community AS comm ON own.community_id=comm.community_id
+                 LEFT JOIN xccj_community.bus_building as bui ON  own.building_id=bui.building_id
+                 LEFT JOIN xccj_community.bus_unit as uni ON own.unit_id=uni.unit_id
+                 LEFT JOIN xccj_community.bus_room as roo ON own.room_id=roo.room_id
+        <where>
+            own.del_flag='0'
+            <if test="communityName!=null and communityName!=''">
+                AND ten.community_name like concat('%', #{communityName}, '%')
+            </if>
+            <if test="buildingName!=null and buildingName!=''">
+                AND ten.building_name like concat('%', #{buildingName}, '%')
+            </if>
+            <if test="roomName!=null and roomName!=''">
+                AND ten.room_name like concat('%', #{roomName}, '%')
+            </if>
+            <if test="ownerName!=null and ownerName!=''">
+                AND ten.owner_name like concat('%', #{ownerName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getAllOwnerInfo" resultType="com.wr.remote.estate.manage.vo.contract.SendOwnerVo">
+        SELECT bo.owner_id           AS "ownerId",
+               bo.owner_phone        AS "ownerPhone",
+               bo.owner_name         AS "ownerName",
+               bo.card_no            AS "cardNo",
+               be.estate_name        AS "estateName",
+               bss.access_key_id     AS "accessKeyId",
+               bss.access_key_secret AS "accessKeySecret",
+               bss.sign_name         AS "signName",
+               bs.template_code      AS "templateCode",
+               bs.id                 AS "sendSmsId",
+               ba.account_id         AS "accountId",
+               bh.community_id       AS "communityId",
+               bc.estate_id          AS "estateId"
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_house bh ON bh.owner_id = bo.owner_id
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bh.community_id
+                 LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bc.estate_id
+                 LEFT JOIN xccj_community.bus_send_setting bss ON bss.estate_id = be.estate_id
+                 LEFT JOIN xccj_community.bus_send_sms bs ON bs.send_setting_id = bss.id
+                 LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bo.account_id
+        WHERE bo.del_flag = "0"
+          AND bss.`status` = '1'
+          AND bs.template_type = '1'
+          AND bs.`status` = '1'
+          AND bo.audit_status = '1'
+          AND bo.owner_relation = "0"
+          AND bo.card_no IS NOT NULL
+          AND bo.card_no != ''
+	AND bo.card_type IN (
+		'I',
+		'S',
+	'T'
+	);
+    </select>
+
+    <select id="getOwnerEstateAllList" resultType="com.wr.remote.estate.manage.vo.contract.SendOwnerVo">
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    bo.owner_phone AS "ownerPhone",
+                    bo.owner_name AS "ownerName",
+                    bss.access_key_id AS "accessKeyId",
+                    bss.access_key_secret AS "accessKeySecret",
+                    bss.sign_name AS "signName",
+                    bs.template_code AS "templateCode",
+                    bs.id AS "sendSmsId",
+                    ba.account_id AS "accountId",
+                    "1" AS "userType",
+                    be.estate_id AS "estateId"
+                FROM
+                    xccj_community.bus_owner bo
+                        LEFT JOIN xccj_community.bus_house bh on bh.owner_id=bo.owner_id
+                        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bh.community_id
+                        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bc.estate_id
+                        LEFT JOIN xccj_community.bus_send_setting bss ON bss.estate_id = be.estate_id
+                        LEFT JOIN xccj_community.bus_send_sms bs ON bs.send_setting_id = bss.id
+                        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bo.account_id
+                WHERE
+                    bo.del_flag = "0"
+                  AND bss.`status` = '1'
+                  AND bs.template_type = '0'
+                  AND bs.`status` = '1'
+                  AND bo.audit_status = '1'
+                  AND bo.owner_relation = "0" UNION ALL
+                SELECT
+                    su.phonenumber AS "ownerPhone",
+                    su.nick_name AS "ownerName",
+                    bss.access_key_id AS "accessKeyId",
+                    bss.access_key_secret AS "accessKeySecret",
+                    bss.sign_name AS "signName",
+                    bsm.template_code AS "templateCode",
+                    bsm.id AS "sendSmsId",
+                    su.user_id AS "accountId",
+                    "0" AS "userType",
+                    be.estate_id as "estateId"
+                FROM
+                    xccj_estate_sys.sys_user su
+                        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = su.dept_id
+                        LEFT JOIN xccj_community.bus_staff bs ON bs.user_id = su.user_id
+                        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bs.community_id
+                        LEFT JOIN xccj_community.bus_community bc1 ON bc1.estate_id = be.estate_id
+                        LEFT JOIN xccj_community.bus_send_setting bss ON bss.estate_id = be.estate_id
+                        LEFT JOIN xccj_community.bus_send_sms bsm ON bsm.send_setting_id = bss.id
+                WHERE
+                    bss.`status` = '1'
+                  AND bsm.template_type = '0'
+                  AND bsm.`status` = '1'
+                  AND su.`status` = '0'
+                GROUP BY
+                    su.user_id
+            ) a
+    </select>
+
+    <select id="getByOwnerIdAccountId" resultType="Long">
+        select account_id from xccj_community.bus_owner bo where owner_id=#{ownerId} and community_id=#{communityId}
+    </select>
+
+    <select id="getByAccountIdOwnerId" resultType="Long">
+        select owner_id from xccj_community.bus_owner bo where account_id=#{accountId}
+    </select>
+
+    <select id="getByOwnerPhoneAccountId" resultType="Long">
+        select account_id from xccj_community.bus_owner bo where owner_phone=#{ownerPhone}
+    </select>
+</mapper>

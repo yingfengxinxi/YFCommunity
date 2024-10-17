@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.meter.MeterRuleMapper">
+
+    <!--根据物业id查询抄表设置详情-->
+    <select id="selectMeterRuleInfo" resultType="com.wr.remote.estate.manage.meter.MeterRuleVo">
+        SELECT * FROM xccj_community.bus_meter_rule WHERE estate_id = #{estateId}
+    </select>
+
+
+    <update id="updateRule" >
+        UPDATE xccj_community.bus_meter_rule
+        <set>
+            <if test="waterDay != null">water_day = #{waterDay},</if>
+            <if test="eleDay != null">ele_day = #{eleDay},</if>
+            <if test="gasDay != null">gas_day = #{gasDay},</if>
+            <if test="meterPush != null">meter_push = #{meterPush},</if>
+            <if test="pushDay != null">push_day = #{pushDay},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        WHERE estate_id = #{estateId}
+    </update>
+
+    <!--新增-->
+    <insert id="insertRule">
+        INSERT INTO
+            xccj_community.bus_meter_rule(estate_id, water_day, ele_day, gas_day,meter_push,push_day, create_by, create_time, update_by, update_time, del_flag)
+        VALUES
+        (#{estateId}, #{waterDay}, #{eleDay}, #{gasDay}, #{meterPush},#{pushDay}, #{createBy}, sysdate(), #{createBy}, sysdate(), '0')
+    </insert>
+
+    <select id="getEstateIds" resultType="com.wr.remote.domain.Estate">
+        SELECT estate_id FROM xccj_community.bus_meter_rule WHERE del_flag = '0'
+    </select>
+
+</mapper>

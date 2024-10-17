@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.vote.VoteCommunityMapper">
+
+    <insert id="insertBusVoteCommunity" parameterType="com.wr.remote.govern.autonomy.vote.VoteCommunity" useGeneratedKeys="true" keyProperty="id">
+        insert into xccj_govern.bus_vote_community
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="voteId != null and voteId != ''">vote_id,</if>
+            <if test="communityId != null and communityId != ''">community_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="voteId != null and voteId != ''">#{voteId},</if>
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+        </trim>
+    </insert>
+
+    <!-- 批量新增社区投票楼栋范围关联 -->
+    <insert id="insertVoteBuildingBatch">
+        INSERT INTO xccj_govern.bus_vote_building (vote_id, building_id)
+        VALUES
+        <foreach collection="buildingIds" item="buildingId" separator=",">
+            (#{voteId}, #{buildingId})
+        </foreach>
+    </insert>
+
+    <!-- 批量新增社区投票楼栋范围关联 -->
+    <insert id="insertVoteUnitBatch">
+        INSERT INTO xccj_govern.bus_vote_unit (vote_id, unit_id)
+        VALUES
+        <foreach collection="unitIds" item="unitId" separator=",">
+            (#{voteId}, #{unitId})
+        </foreach>
+    </insert>
+
+</mapper>

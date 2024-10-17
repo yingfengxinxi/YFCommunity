@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.meter.MeterRecordMapper">
+
+    <!--根据小区id获取所有门牌号及业主-->
+    <select id="getRoomInfo" resultType="com.wr.remote.estate.manage.meter.RecordVo">
+        SELECT
+            DISTINCT
+            br.room_id,
+            br.room_name,
+            bu.unit_name,
+            bb.building_name,
+            owner.owner_name
+        FROM
+            xccj_community.bus_room br
+            LEFT JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+            LEFT JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+            LEFT JOIN xccj_community.bus_owner owner ON br.room_id = owner.room_id AND owner.owner_relation = '0' AND owner.audit_status = '1'
+        WHERE
+            br.community_id = #{communityId} AND br.del_flag = '0'
+        <if test="flag != null and flag != '' and flag == 0"> AND br.building_id = #{roomId}</if>
+        <if test="flag != null and flag != '' and flag == 1"> AND br.unit_id = #{roomId}</if>
+        <if test="flag != null and flag != '' and flag == 2"> AND br.room_id = #{roomId}</if>
+        <if test="ownerName != null and ownerName != ''">AND owner.owner_name LIKE CONCAT('%', #{ownerName}, '%')</if>
+        ORDER BY br.room_id
+    </select>
+
+    <!--查询业主-->
+    <select id="getOwnerName" resultType="string">
+        SELECT owner_name FROM xccj_community.bus_owner WHERE owner_relation = '0' AND audit_status = '1' AND room_id = #{roomId} LIMIT 1
+    </select>
+
+    <select id="getRecordInfo" resultType="com.wr.remote.estate.manage.meter.RecordVo">
+        SELECT * FROM xccj_community.bus_meter_record WHERE room_id = #{roomId} AND DATE_FORMAT(meter_time,'%Y-%m') = #{meterTime} AND del_flag = '0'
+        <if test="meterType != null and meterType != ''">
+            AND meter_type = #{meterType}
+        </if>
+    </select>
+
+
+    <!--获取楼栋树-->
+    <select id="getBuildingTree" resultType="com.wr.remote.estate.manage.meter.TreeSelectVo">
+        SELECT building_id AS id,building_name AS label FROM xccj_community.bus_building WHERE community_id = #{communityId} AND del_flag = '0'
+    </select>
+
+    <!--获取单元树-->
+    <select id="getUnitTree" resultType="com.wr.remote.estate.manage.meter.TreeSelectVo">
+        SELECT unit_id AS id,unit_name AS label FROM xccj_community.bus_unit WHERE building_id = #{buildingId} AND del_flag = '0'
+    </select>
+
+    <!--获取房间树-->
+    <select id="getRoomTree" resultType="com.wr.remote.estate.manage.meter.TreeSelectVo">
+        SELECT room_id AS id,room_name AS label FROM xccj_community.bus_room WHERE unit_id = #{unitId} AND del_flag = '0'
+    </select>
+
+    <select id="getRecordSum" resultType="decimal">
+        SELECT IFNULL(sum(this_consume),0) FROM xccj_community.bus_meter_record WHERE DATE_FORMAT(meter_time,'%Y-%m') = #{meterTime} AND del_flag = '0' AND community_id = #{communityId} AND meter_type = #{meterType}
+    </select>
+
+    <!--修改推送状态-->
+    <update id="updateMeterPushStatus" >
+        UPDATE xccj_community.bus_meter_record
+        <set>
+            meter_push = '1'
+        </set>
+        WHERE record_id = #{recordId}
+    </update>
+</mapper>

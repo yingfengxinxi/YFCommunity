@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.inspect.InspectMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.work.vo.InspectVo">
+        <id column="inspect_id" jdbcType="BIGINT" property="inspectId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="inspect_no" jdbcType="VARCHAR" property="inspectNo"/>
+        <result column="inspect_name" jdbcType="VARCHAR" property="inspectName"/>
+        <result column="data_source" jdbcType="CHAR" property="dataSource"/>
+        <result column="plan_id" jdbcType="BIGINT" property="planId"/>
+        <result column="tour_id" jdbcType="BIGINT" property="tourId"/>
+        <result column="order_no" jdbcType="VARCHAR" property="orderNo"/>
+        <result column="allot_way" jdbcType="CHAR" property="allotWay"/>
+        <result column="patrol_num" jdbcType="INTEGER" property="patrolNum"/>
+        <result column="gap_time" jdbcType="DECIMAL" property="gapTime"/>
+        <result column="start_time" jdbcType="TIMESTAMP" property="startTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="staff_id" jdbcType="BIGINT" property="staffId"/>
+        <result column="assist_num" jdbcType="INTEGER" property="assistNum"/>
+        <result column="transfer_status" jdbcType="CHAR" property="transferStatus"/>
+        <result column="allot_status" jdbcType="CHAR" property="allotStatus"/>
+        <result column="accept_status" jdbcType="CHAR" property="acceptStatus"/>
+        <result column="execute_status" jdbcType="CHAR" property="executeStatus"/>
+        <result column="execute_id" jdbcType="BIGINT" property="executeId"/>
+        <result column="execute_time" jdbcType="TIMESTAMP" property="executeTime"/>
+        <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        inspect_id,
+        community_id,
+        inspect_no,
+        inspect_name,
+        data_source,
+        plan_id,
+        tour_id,
+        order_no,
+        allot_way,
+        patrol_num,
+        gap_time,
+        start_time,
+        end_time,
+        staff_id,
+        assist_num,
+        transfer_status,
+        allot_status,
+        accept_status,
+        execute_status,
+        execute_id,
+        execute_time,
+        finish_time,
+        image_url,
+        remark,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT *
+        FROM xccj_work.bus_inspect
+        WHERE inspect_id = #{inspectId,jdbcType=BIGINT}
+    </select>
+
+    <insert id="insertSelective" keyColumn="inspect_id" keyProperty="inspectId"
+            parameterType="com.wr.remote.work.inspect.Inspect" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        INSERT INTO xccj_work.bus_inspect
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="inspectNo != null">
+                inspect_no,
+            </if>
+            <if test="inspectName != null">
+                inspect_name,
+            </if>
+            <if test="dataSource != null">
+                data_source,
+            </if>
+            <if test="planId != null">
+                plan_id,
+            </if>
+            <if test="tourId != null">
+                tour_id,
+            </if>
+            <if test="orderNo != null">
+                order_no,
+            </if>
+            <if test="allotWay != null">
+                allot_way,
+            </if>
+            <if test="patrolNum != null">
+                patrol_num,
+            </if>
+            <if test="gapTime != null">
+                gap_time,
+            </if>
+            <if test="startTime != null">
+                start_time,
+            </if>
+            <if test="endTime != null">
+                end_time,
+            </if>
+            <if test="staffId != null">
+                staff_id,
+            </if>
+            <if test="assistNum != null">
+                assist_num,
+            </if>
+            <if test="transferStatus != null">
+                transfer_status,
+            </if>
+            <if test="allotStatus != null">
+                allot_status,
+            </if>
+            <if test="acceptStatus != null">
+                accept_status,
+            </if>
+            <if test="executeStatus != null">
+                execute_status,
+            </if>
+            <if test="executeId != null">
+                execute_id,
+            </if>
+            <if test="executeTime != null">
+                execute_time,
+            </if>
+            <if test="finishTime != null">
+                finish_time,
+            </if>
+            <if test="imageUrl != null">
+                image_url,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="inspectNo != null">
+                #{inspectNo,jdbcType=VARCHAR},
+            </if>
+            <if test="inspectName != null">
+                #{inspectName,jdbcType=VARCHAR},
+            </if>
+            <if test="dataSource != null">
+                #{dataSource,jdbcType=CHAR},
+            </if>
+            <if test="planId != null">
+                #{planId,jdbcType=BIGINT},
+            </if>
+            <if test="tourId != null">
+                #{tourId,jdbcType=BIGINT},
+            </if>
+            <if test="orderNo != null">
+                #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="allotWay != null">
+                #{allotWay,jdbcType=CHAR},
+            </if>
+            <if test="patrolNum != null">
+                #{patrolNum,jdbcType=INTEGER},
+            </if>
+            <if test="gapTime != null">
+                #{gapTime,jdbcType=DECIMAL},
+            </if>
+            <if test="startTime != null">
+                #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="staffId != null">
+                #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="assistNum != null">
+                #{assistNum,jdbcType=INTEGER},
+            </if>
+            <if test="transferStatus != null">
+                #{transferStatus,jdbcType=CHAR},
+            </if>
+            <if test="allotStatus != null">
+                #{allotStatus,jdbcType=CHAR},
+            </if>
+            <if test="acceptStatus != null">
+                #{acceptStatus,jdbcType=CHAR},
+            </if>
+            <if test="executeStatus != null">
+                #{executeStatus,jdbcType=CHAR},
+            </if>
+            <if test="executeId != null">
+                #{executeId,jdbcType=BIGINT},
+            </if>
+            <if test="executeTime != null">
+                #{executeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="finishTime != null">
+                #{finishTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="imageUrl != null">
+                #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.remote.work.vo.InspectVo">
+        <!--@mbg.generated-->
+        UPDATE xccj_work.bus_inspect
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="inspectNo != null">
+                inspect_no = #{inspectNo,jdbcType=VARCHAR},
+            </if>
+            <if test="inspectName != null">
+                inspect_name = #{inspectName,jdbcType=VARCHAR},
+            </if>
+            <if test="dataSource != null">
+                data_source = #{dataSource,jdbcType=CHAR},
+            </if>
+            <if test="planId != null">
+                plan_id = #{planId,jdbcType=BIGINT},
+            </if>
+            <if test="tourId != null">
+                tour_id = #{tourId,jdbcType=BIGINT},
+            </if>
+            <if test="orderNo != null">
+                order_no = #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="allotWay != null">
+                allot_way = #{allotWay,jdbcType=CHAR},
+            </if>
+            <if test="patrolNum != null">
+                patrol_num = #{patrolNum,jdbcType=INTEGER},
+            </if>
+            <if test="gapTime != null">
+                gap_time = #{gapTime,jdbcType=DECIMAL},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="staffId != null">
+                staff_id = #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="assistNum != null">
+                assist_num = #{assistNum,jdbcType=INTEGER},
+            </if>
+            <if test="transferStatus != null">
+                transfer_status = #{transferStatus,jdbcType=CHAR},
+            </if>
+            <if test="allotStatus != null">
+                allot_status = #{allotStatus,jdbcType=CHAR},
+            </if>
+            <if test="acceptStatus != null">
+                accept_status = #{acceptStatus,jdbcType=CHAR},
+            </if>
+            <if test="executeStatus != null">
+                execute_status = #{executeStatus,jdbcType=CHAR},
+            </if>
+            <if test="executeId != null">
+                execute_id = #{executeId,jdbcType=BIGINT},
+            </if>
+            <if test="executeTime != null">
+                execute_time = #{executeTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="finishTime != null">
+                finish_time = #{finishTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="imageUrl != null">
+                image_url = #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        WHERE inspect_id = #{inspectId,jdbcType=BIGINT}
+    </update>
+
+    <select id="listPage" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT bi.*,
+               bt.tour_name  AS tourname,
+               bs.staff_name AS staffname
+        FROM xccj_work.bus_inspect AS bi
+                 LEFT JOIN xccj_work.bus_inspect_plan AS bip ON bip.plan_id = bi.plan_id
+                 LEFT JOIN xccj_work.bus_tour AS bt ON bt.tour_id = bi.tour_id
+                 LEFT JOIN xccj_community.bus_staff AS bs ON bs.staff_id = bi.staff_id
+        <where>
+            bi.community_id = #{communityId}
+            <if test="dataSource != null and dataSource != ''">
+                AND bi.data_source = #{dataSource}
+            </if>
+            <if test="allotWay != null and allotWay != ''">
+                AND bi.allot_way = #{allotWay}
+            </if>
+            <if test="staffName != null and staffName != ''">
+                <bind name="staffName" value="'%' + staffName + '%'"/>
+                AND bs.staff_name LIKE #{staffName,jdbcType=VARCHAR}
+            </if>
+            <if test="inspectName != null and inspectName != ''">
+                <bind name="inspectName" value="'%' + inspectName + '%'"/>
+                AND bi.inspect_name LIKE #{inspectName,jdbcType=VARCHAR}
+            </if>
+            <!-- 1待分配，2待接单，3待执行，4转交中，5执行中，6已完成，7超时未完成，8超时完成-->
+            <if test="orderStatus != null and orderStatus != ''">
+                <if test="orderStatus == '1'.toString()">
+                    AND bi.allot_status = '0'
+                </if>
+                <if test="orderStatus == '2'.toString()">
+                    AND bi.accept_status = '0'
+                </if>
+                <if test="orderStatus == '3'.toString()">
+                    AND bi.execute_status = '0'
+                </if>
+                <if test="orderStatus == '4'.toString()">
+                    AND bi.transfer_status = '1'
+                </if>
+                <if test="orderStatus == '5'.toString()">
+                    AND bi.execute_status = '1'
+                </if>
+                <if test="orderStatus == '6'.toString()">
+                    AND bi.execute_status = '2'
+                </if>
+                <if test="orderStatus == '7'.toString()">
+                    AND bi.execute_status = '4'
+                </if>
+                <if test="orderStatus == '8'.toString()">
+                    AND bi.execute_status = '3'
+                </if>
+            </if>
+            AND bi.del_flag = '0'
+        </where>
+        ORDER BY bi.create_time DESC
+    </select>
+
+    <select id="deviceType" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT (CASE
+                    WHEN device_type = 'acsDevice' THEN '门禁设备'
+                    WHEN device_type = 'door' THEN '门禁点'
+                    WHEN device_type = 'visDevice' THEN '单元门可视化设备'
+                    WHEN device_type = 'camera' THEN '监控点设备' END) AS devicetypename,
+               device_type
+        FROM xccj_work.bus_inspect_device
+        WHERE inspect_id = 0
+        GROUP BY device_type
+    </select>
+
+    <select id="deviceNo" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT device_name AS facilityname, index_code AS indexcode, type AS devicetype
+        FROM xccj_device.view_all_device
+        WHERE del_flag = '0' AND index_code != '' AND community_id = #{communityId}
+          AND type = #{deviceType}
+    </select>
+
+    <insert id="insertDevice">
+        INSERT INTO xccj_work.bus_inspect_device (inspect_id, device_type, index_code)
+        VALUES (#{inspectId}, #{deviceType}, #{indexCode});
+    </insert>
+
+    <select id="detailList" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.access_name
+                    WHEN bpd.index_code = test2.index_code THEN test2.door_name
+                    WHEN bpd.index_code = test3.index_code THEN test3.visual_name
+                    WHEN bpd.index_code = test4.index_code THEN test4.camera_name END)  AS facilityname,
+               (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.dev_type_desc
+                    WHEN bpd.index_code = test2.index_code THEN test2.channel_type
+                    WHEN bpd.index_code = test3.index_code THEN test3.device_model
+                    WHEN bpd.index_code = test4.index_code THEN test4.channel_type END) AS facilitytype,
+               (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.dev_type_code
+                    WHEN bpd.index_code = test2.index_code THEN test2.door_no
+                    WHEN bpd.index_code = test3.index_code THEN test3.device_type
+                    WHEN bpd.index_code = test4.index_code THEN test4.chan_num END)     AS facilityno,
+               (CASE
+                    WHEN bpd.index_code = test1.index_code THEN test1.address
+                    WHEN bpd.index_code = test2.index_code THEN test2.address
+                    WHEN bpd.index_code = test3.index_code THEN test3.address
+                    WHEN bpd.index_code = test4.index_code THEN test4.address END)      AS addressname
+        FROM xccj_work.bus_inspect_device AS bpd
+                 LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                            FROM xccj_device.bus_access
+                            WHERE del_flag = '0') AS test1 ON test1.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                            FROM xccj_device.bus_door
+                            WHERE del_flag = '0') AS test2 ON test2.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                            FROM xccj_device.bus_visual
+                            WHERE del_flag = '0') AS test3 ON test3.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                            FROM xccj_device.bus_camera
+                            WHERE del_flag = '0') AS test4 ON test4.index_code = bpd.index_code
+        WHERE bpd.inspect_id = #{inspectId}
+    </select>
+
+    <update id="UpdateRemove">
+        UPDATE xccj_work.bus_inspect
+        SET del_flag = '1'
+        <where>
+            inspect_id = #{id}
+        </where>
+    </update>
+
+    <select id="deatilListTwo" resultMap="BaseResultMap">
+        SELECT bsf.staff_name,
+               bsf.staff_phone,
+               bsf.card_no,
+               test.dict_label AS personnelType
+        FROM xccj_work.bus_order_audit AS boat
+                 LEFT JOIN xccj_work.bus_order_assist AS boar ON boar.audit_id = boat.audit_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = boar.staff_id
+                 LEFT JOIN xccj_work.bus_inspect AS bit ON bit.inspect_id = boat.order_id
+                 LEFT JOIN (SELECT dict_label, dict_value
+                            FROM xccj_estate_sys.sys_dict_data
+                            WHERE dict_type = 'work_post') AS test ON test.dict_value = bsf.staff_type
+        WHERE boat.order_type = #{orderType}
+          AND boat.order_id = #{inspectId}
+          AND boat.del_flag = '0'
+    </select>
+
+    <select id="selectAllotWay" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT *
+        FROM xccj_work.bus_allot
+        WHERE community_id = #{communityId}
+          AND allot_type = #{allotType}
+          AND del_flag = '0'
+        LIMIT 1
+    </select>
+
+    <select id="selectDetail" resultType="com.wr.remote.work.vo.InspectVo">
+        SELECT bi.*, test.device_type, test.index_code, test.devicetypename, test.facilityname
+        FROM xccj_work.bus_inspect AS bi
+                 LEFT JOIN (SELECT bpd.inspect_id,
+                                   (CASE
+                                        WHEN bpd.index_code = test1.index_code THEN test1.access_name
+                                        WHEN bpd.index_code = test2.index_code THEN test2.door_name
+                                        WHEN bpd.index_code = test3.index_code THEN test3.visual_name
+                                        WHEN bpd.index_code = test4.index_code
+                                            THEN test4.camera_name END)                   AS facilityname,
+                                   bpd.index_code,
+                                   (CASE
+                                        WHEN bpd.device_type = 'acsDevice' THEN '门禁设备'
+                                        WHEN bpd.device_type = 'door' THEN '门禁点'
+                                        WHEN bpd.device_type = 'visDevice' THEN '单元门可视化设备'
+                                        WHEN bpd.device_type = 'camera' THEN '监控点设备' END) AS devicetypename,
+                                   bpd.device_type
+                            FROM xccj_work.bus_inspect_device AS bpd
+                                     LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                                                FROM xccj_device.bus_access
+                                                WHERE del_flag = '0') AS test1 ON test1.index_code = bpd.index_code
+                                     LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                                                FROM xccj_device.bus_door
+                                                WHERE del_flag = '0') AS test2 ON test2.index_code = bpd.index_code
+                                     LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                                                FROM xccj_device.bus_visual
+                                                WHERE del_flag = '0') AS test3 ON test3.index_code = bpd.index_code
+                                     LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                                                FROM xccj_device.bus_camera
+                                                WHERE del_flag = '0') AS test4
+                                               ON test4.index_code = bpd.index_code) AS test
+                           ON test.inspect_id = bi.inspect_id
+        WHERE bi.inspect_id = #{inspectId,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectCrerateData" resultType="int">
+        SELECT count(*)
+        FROM xccj_work.bus_inspect
+        WHERE del_flag = '0'
+          AND plan_id = #{planId}
+          AND DATE_FORMAT(create_time, '%y%m%d') <![CDATA[=]]> DATE_FORMAT(now(), '%y%m%d')
+    </select>
+
+    <select id="selectDeviceList" resultType="java.lang.String">
+        SELECT (CASE
+                    WHEN bpd.index_code = test1.index_code THEN CONCAT(test1.address, ' ')
+                    WHEN bpd.index_code = test2.index_code THEN CONCAT(test2.address, ' ')
+                    WHEN bpd.index_code = test3.index_code THEN CONCAT(test3.address, ' ')
+                    WHEN bpd.index_code = test4.index_code THEN CONCAT(test4.address, ' ') END) AS addressname
+        FROM xccj_work.bus_inspect_device AS bpd
+                 LEFT JOIN (SELECT index_code, access_name, address, dev_type_code, dev_type_desc
+                            FROM xccj_device.bus_access
+                            WHERE del_flag = '0') AS test1 ON test1.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, door_name, door_no, channel_type
+                            FROM xccj_device.bus_door
+                            WHERE del_flag = '0') AS test2 ON test2.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, visual_name, device_model, device_type
+                            FROM xccj_device.bus_visual
+                            WHERE del_flag = '0') AS test3 ON test3.index_code = bpd.index_code
+                 LEFT JOIN (SELECT index_code, address, camera_name, channel_type, chan_num
+                            FROM xccj_device.bus_camera
+                            WHERE del_flag = '0') AS test4 ON test4.index_code = bpd.index_code
+        WHERE bpd.inspect_id = #{inspectId}
+    </select>
+</mapper>

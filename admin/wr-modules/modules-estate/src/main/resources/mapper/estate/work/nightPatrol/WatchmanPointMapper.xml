@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.nightPatrol.WatchmanPointMapper">
+    <resultMap type="com.wr.remote.work.nightPatrol.WatchmanPoint" id="WatchmanPointResult">
+        <result property="watchmanId" column="watchman_id"/>
+        <result property="pointId" column="point_id"/>
+        <result property="watchmanResult" column="watchman_result"/>
+        <result property="resultInfo" column="result_info"/>
+    </resultMap>
+
+    <sql id="selectWatchmanPointVo">
+        select watchman_id, point_id, watchman_result, result_info
+        from xccj_work.bus_watchman_point
+    </sql>
+
+    <select id="selectWatchmanPointList" parameterType="com.wr.remote.work.nightPatrol.WatchmanPoint"
+            resultMap="WatchmanPointResult">
+        <include refid="selectWatchmanPointVo"/>
+        <where>
+            <if test="watchmanId != null ">
+                and watchman_id = #{watchmanId}
+            </if>
+            <if test="pointId != null ">
+                and point_id = #{pointId}
+            </if>
+            <if test="watchmanResult != null  and watchmanResult != ''">
+                and watchman_result = #{watchmanResult}
+            </if>
+            <if test="resultInfo != null  and resultInfo != ''">
+                and result_info = #{resultInfo}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectWatchmanPointByWatchmanId" parameterType="Long" resultMap="WatchmanPointResult">
+        <include refid="selectWatchmanPointVo"/>
+        where watchman_id = #{watchmanId}
+    </select>
+
+    <insert id="insertWatchmanPoint" parameterType="com.wr.remote.work.nightPatrol.WatchmanPoint">
+        insert into xccj_work.bus_watchman_point
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="watchmanId != null">
+                watchman_id,
+            </if>
+            <if test="pointId != null">
+                point_id,
+            </if>
+            <if test="watchmanResult != null and watchmanResult != ''">
+                watchman_result,
+            </if>
+            <if test="resultInfo != null and resultInfo != ''">
+                result_info,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="watchmanId != null">
+                #{watchmanId},
+            </if>
+            <if test="pointId != null">
+                #{pointId},
+            </if>
+            <if test="watchmanResult != null and watchmanResult != ''">
+                #{watchmanResult},
+            </if>
+            <if test="resultInfo != null and resultInfo != ''">
+                #{resultInfo},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateWatchmanPoint" parameterType="com.wr.remote.work.nightPatrol.WatchmanPoint">
+        update xccj_work.bus_watchman_point
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="pointId != null">
+                point_id = #{pointId},
+            </if>
+            <if test="watchmanResult != null and watchmanResult != ''">
+                watchman_result = #{watchmanResult},
+            </if>
+            <if test="resultInfo != null and resultInfo != ''">
+                result_info = #{resultInfo},
+            </if>
+        </trim>
+        where watchman_id = #{watchmanId}
+    </update>
+
+    <!-- 批量新增巡更点 -->
+    <insert id="insertWatchmanPointBatch">
+        INSERT INTO xccj_work.bus_watchman_point(watchman_id,
+                                                 point_id,
+                                                 watchman_result,
+                                                 result_info)
+        SELECT #{watchmanId}, routePoint.point_id, '0', ''
+        FROM xccj_work.bus_route_point routePoint
+        WHERE routePoint.route_id = #{routeId}
+    </insert>
+
+    <!-- 批量新增 -->
+    <insert id="insertBatchByIds">
+        INSERT INTO xccj_work.bus_watchman_point(watchman_id,
+        point_id,
+        watchman_result,
+        result_info)
+        SELECT watchman.watchman_id, routePoint.point_id, '0', ''
+        FROM xccj_work.bus_watchman watchman
+        LEFT JOIN xccj_work.bus_route_point routePoint ON
+        watchman.route_id = routePoint.route_id
+        WHERE watchman.watchman_id IN
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND routePoint.point_id IS NOT NULL
+    </insert>
+
+    <delete id="deleteWatchmanPointByWatchmanId" parameterType="Long">
+        delete
+        from xccj_work.bus_watchman_point
+        where watchman_id = #{watchmanId}
+    </delete>
+
+    <delete id="deleteWatchmanPointByWatchmanIds" parameterType="String">
+        delete from xccj_work.bus_watchman_point where watchman_id in
+        <foreach item="watchmanId" collection="array" open="(" separator="," close=")">
+            #{watchmanId}
+        </foreach>
+    </delete>
+</mapper>

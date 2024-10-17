@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.EventAcsMapper">
+    <insert id="batchInsertUserLog">
+        INSERT INTO ${tableName} (
+            user_name, user_phone, id_card, user_type, community_id, community_name, room_name,
+            device_name, index_code, io_type, health_level, discern_time, pic_url,del_flag
+        ) VALUES
+        <foreach item="item" index="index" collection="userLogs" separator=",">
+            (
+            #{item.userName,jdbcType = VARCHAR}, #{item.userPhone,jdbcType = VARCHAR},
+            #{item.idCard,jdbcType = VARCHAR}, #{item.userType,jdbcType = VARCHAR},
+            #{item.communityId,jdbcType = BIGINT},#{item.communityName,jdbcType = VARCHAR},
+            #{item.roomName,jdbcType = VARCHAR}, #{item.deviceName,jdbcType = VARCHAR},
+            #{item.indexCode,jdbcType = VARCHAR}, #{item.ioType,jdbcType = VARCHAR},
+            #{item.healthLevel,jdbcType = VARCHAR}, sysdate(),
+            #{item.picUrl,jdbcType = VARCHAR}, '0'
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertUserLog">
+        INSERT INTO ${tableName} (
+            <if test="idCard != null and idCard != ''">id_card,</if>
+            <if test="userPhone != null and userPhone != ''">user_phone,</if>
+            <if test="communityName != null and communityName != ''">community_name,</if>
+            <if test="roomName != null and roomName != ''">room_name,</if>
+            <if test="deviceName != null and deviceName != ''">device_name,</if>
+            <if test="indexCode != null and indexCode != ''">index_code,</if>
+            <if test="picUrl != null and picUrl != ''">pic_url,</if>
+            community_id, user_name, user_type,io_type,device_type,
+            health_level, discern_time, del_flag
+        ) VALUES (
+            <if test="idCard != null and idCard != ''">#{idCard},</if>
+            <if test="userPhone != null and userPhone != ''">#{userPhone},</if>
+            <if test="communityName != null and communityName != ''">#{communityName},</if>
+            <if test="roomName != null and roomName != ''">#{roomName},</if>
+            <if test="deviceName != null and deviceName != ''">#{deviceName},</if>
+            <if test="indexCode != null and indexCode != ''">#{indexCode},</if>
+            <if test="picUrl != null and picUrl != ''">#{picUrl},</if>
+            #{communityId}, #{userName}, #{userType}, #{ioType}, #{deviceType},
+            #{healthLevel}, sysdate(), '0'
+        )
+    </insert>
+
+    <select id="selectCommunityIdByIndexCode" resultType="java.lang.Long">
+        SELECT community_id FROM xccj_device.bus_access WHERE index_code = #{indexCode}
+    </select>
+
+    <insert id="batchInsertAcsData">
+        INSERT INTO xccj_device.bus_acs_data(
+            warn_id, user_type, id_num, user_name, user_sex, ext_access_channel, entry_times,
+            exit_times, total_times, ext_event_card_no, ext_event_case_id,
+            ext_event_code, ext_event_door_id, ext_event_id_card_picture_url,
+            ext_event_in_out, ext_event_person_no, ext_event_picture_url,
+            ext_event_swip_num, ext_receive_time, seq, svr_index_code, del_flag
+        ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.warnId}, #{item.userType,jdbcType = VARCHAR}, #{item.idNum,jdbcType = VARCHAR},
+            #{item.userName,jdbcType = VARCHAR}, #{item.userSex,jdbcType = VARCHAR},
+            #{item.extAccessChannel,jdbcType = VARCHAR}, #{item.entryTimes,jdbcType = VARCHAR},
+            #{item.exitTimes,jdbcType = VARCHAR}, #{item.totalTimes,jdbcType = VARCHAR},
+            #{item.extEventCardNo,jdbcType = VARCHAR}, #{item.extEventCaseId,jdbcType = VARCHAR},
+            #{item.extEventCode,jdbcType = VARCHAR}, #{item.extEventDoorId,jdbcType = VARCHAR},
+            #{item.extEventIdCardPictureUrl,jdbcType = VARCHAR}, #{item.extEventInOut,jdbcType = VARCHAR},
+            #{item.extEventPersonNo,jdbcType = VARCHAR}, #{item.extEventPictureUrl,jdbcType = VARCHAR},
+            #{item.extEventSwipNum,jdbcType = VARCHAR}, #{item.extReceiveTime,jdbcType = VARCHAR},
+            #{item.seq,jdbcType = VARCHAR}, #{item.svrIndexCode,jdbcType = VARCHAR}, '0'
+            )
+        </foreach>
+    </insert>
+
+</mapper>

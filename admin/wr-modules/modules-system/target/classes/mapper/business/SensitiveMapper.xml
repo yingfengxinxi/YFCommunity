@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.system.business.mapper.SensitiveMapper">
+    <resultMap type="com.wr.remote.domain.Sensitive" id="SensitiveResult">
+        <id property="sensitiveId" column="sensitive_id"/>
+        <result property="phrases" column="phrases"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectSensitiveVO">
+        SELECT bs.sensitive_id,
+               bs.phrases,
+               bs.order_num,
+               bs.create_by,
+               bs.create_time,
+               bs.update_by,
+               bs.update_time,
+               bs.del_flag
+        FROM xccj_community.bus_sensitive as bs
+    </sql>
+    <select id="getListBusSensitive" parameterType="com.wr.remote.domain.Sensitive" resultMap="SensitiveResult">
+        <include refid="selectSensitiveVO"/>
+        WHERE bs.del_flag = '0'
+        <if test="phrases != null and phrases != ''">
+            AND bs.phrases like concat('%', #{phrases}, '%')
+        </if>
+        ORDER BY bs.order_num
+    </select>
+    <insert id="insertBusSensitive">
+        INSERT INTO xccj_community.bus_sensitive(phrases, order_num, create_by, create_time, update_by, update_time,
+                                                 del_flag)
+        VALUES (#{phrases}, #{orderNum}, #{createBy}, sysdate(), #{createBy}, sysdate(), '0')
+    </insert>
+
+    <select id="selectSensitiveById" resultMap="SensitiveResult">
+        <include refid="selectSensitiveVO"/>
+        WHERE bs.del_flag = '0' AND bs.sensitive_id = #{sensitiveId}
+    </select>
+
+    <select id="checkPhrasesUnique" resultType="com.wr.remote.domain.Sensitive">
+        <include refid="selectSensitiveVO"/>
+        WHERE bs.del_flag = '0' AND bs.phrases = #{phrases}
+    </select>
+
+    <update id="updateBusSensitive">
+        UPDATE xccj_community.bus_sensitive
+        SET phrases= #{phrases},
+            order_num = #{orderNum},
+            update_by = #{updateBy},
+            update_time = sysdate()
+        WHERE sensitive_id = #{sensitiveId}
+    </update>
+
+    <update id="deleteSensitiveByIds">
+        UPDATE xccj_community.bus_sensitive SET del_flag = '1'
+        WHERE sensitive_id IN
+        <foreach collection="array" item="sensitiveId" open="(" separator="," close=")">
+            #{sensitiveId}
+        </foreach>
+    </update>
+</mapper> 

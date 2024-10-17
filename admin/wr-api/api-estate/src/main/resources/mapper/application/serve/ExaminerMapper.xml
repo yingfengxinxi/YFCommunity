@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.serve.ExaminerMapper">
+
+    <select id="getExaminerAll" resultType="com.wr.api.estate.entity.vo.application.serve.ExaminerVO">
+        SELECT be.examiner_id,
+        bm.activity_name,
+        bm.medical_org,
+        be.examiner_time,
+        be.examiner_report_path,
+        be.examiner_import_status
+        FROM xccj_community.bus_examiner be
+        LEFT JOIN xccj_community.bus_medical bm ON bm.medical_id = be.examiner_medical
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bm.community_id
+        WHERE be.del_flag = '0'
+        AND bm.community_id = #{communityId}
+        <if test="idCard != null and idCard != ''">
+            AND be.card_no = #{idCard}
+        </if>
+        ORDER BY be.create_time DESC
+    </select>
+
+    <!-- 医疗检测通告列表 -->
+    <select id="listMedical" resultType="com.wr.api.estate.entity.vo.application.serve.MedicalVO">
+        SELECT bm.medical_id,
+               bm.activity_name,
+               bm.medical_org,
+               bm.start_time,
+               bm.end_time
+        FROM xccj_community.bus_medical bm
+        WHERE bm.del_flag = '0'
+          AND bm.community_id = #{communityId}
+        ORDER BY bm.create_time DESC
+    </select>
+
+    <select id="listExaminerByMedicalId" resultType="com.wr.api.estate.entity.vo.application.serve.ExaminerVO">
+        SELECT
+        be.examiner_name,
+        be.examiner_time,
+        be.examiner_import_status
+        FROM xccj_community.bus_examiner be
+        WHERE be.del_flag = '0'
+        AND be.examiner_medical = #{medicalId}
+        ORDER BY be.create_time DESC
+    </select>
+
+
+    <select id="getIdNoByPhone" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT bs.staff_phone,bs.card_no FROM xccj_community.bus_staff bs WHERE bs.staff_phone = #{staffPhone}
+    </select>
+</mapper>

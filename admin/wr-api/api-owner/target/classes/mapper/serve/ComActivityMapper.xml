@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.ComActivityMapper">
+    <!--签到-->
+    <update id="newSign">
+			update xccj_community.bus_activity_owner set sign_up_time=#{signUpTime}
+			where owner_id =#{ownerId} and activity_id=#{activityId}
+	</update>
+
+    <!--查询我所参与的活动-->
+    <select id="getMyActivity" resultType="com.wr.api.owner.entity.dto.ComAcDTO">
+        	SELECT
+        	ba.activity_id,
+        	ba.type_id,
+	bao.owner_id,
+	ba.activity_name,
+	ba.start_time,
+        IF(bao.sign_in_time &lt; bao.sign_up_time,'0','1') AS ApplySign,
+        ba.act_url,
+		bac.type_name
+FROM
+	xccj_community.bus_activity_owner bao
+	LEFT JOIN xccj_community.bus_activity ba ON bao.activity_id = ba.activity_id
+		LEFT JOIN xccj_community.bus_act_type bac on ba.type_id = bac.type_id
+		where bao.owner_id = #{ownerId}
+		<if test="communityId != null and communityId != ''">AND ba.community_id = #{communityId}</if>
+-- 		GROUP BY ba.activity_id
+    </select>
+    <!--查询我所参与活动的详情-->
+    <select id="getActivityInfo" resultType="com.wr.api.owner.entity.vo.serve.ComAcVo">
+		SELECT
+	ba.activity_name,
+	ba.start_time,
+	ba.end_time,
+	ba.close_time,
+	ba.act_intro,
+	ba.address,
+	ba.leader,
+	ba.act_url,
+	ba.leader_phone,
+	ba.act_amount,
+	ba.act_intro,
+	bat.type_name
+FROM
+	xccj_community.bus_activity ba
+	LEFT JOIN xccj_community.bus_act_type bat ON ba.type_id = bat.type_id
+WHERE
+	ba.activity_id =#{activityId}
+	</select>
+    <!--查询所需要的物资-->
+	<select id="getSupplyName" resultType="java.util.Map">
+		SELECT supply_name, supply_num from xccj_community.bus_act_supply where activity_id =#{activityId}
+	</select>
+	<!--查询我是否参与了活动-->
+	<select id="getActivityOwn" resultType="com.wr.api.owner.entity.vo.serve.ComAcVo">
+		 SELECT activity_id,owner_id,type_id,activity_name from xccj_community.bus_activity_owner where owner_id = #{ownerId}
+	</select>
+	<select id="getStartTime" resultType="int">
+		SELECT
+        	IF(DATE_FORMAT(#{signUpTime},'%Y-%m-%d %H:%i:%s') BETWEEN DATE_FORMAT(ba.start_time,'%Y-%m-%d %H:%i:%s') and DATE_FORMAT(ba.end_time,'%Y-%m-%d %H:%i:%s'), '0','1') AS enableTime
+FROM
+	xccj_community.bus_activity_owner bao
+	LEFT JOIN xccj_community.bus_activity ba ON bao.activity_id = ba.activity_id
+	where ba.activity_id =#{activityId}
+	</select>
+
+</mapper>

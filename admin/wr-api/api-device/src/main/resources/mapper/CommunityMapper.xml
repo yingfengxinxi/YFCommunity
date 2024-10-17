@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.CommunityMapper">
+    <select id="selectHikByCommunityId" resultType="com.wr.common.customize.util.CommunityHik">
+        SELECT
+            community_id,hik_ip,hik_port,hik_ak,hik_sk,del_flag
+        FROM xccj_community.bus_community_hik
+        WHERE del_flag = '0' AND community_id = #{communityId}
+        LIMIT 1
+    </select>
+</mapper>

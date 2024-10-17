@@ -1,0 +1,2125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.AppMyinfoMapper">
+    <resultMap type="com.wr.api.owner.entity.myinfo.Myinfo" id="myinfoResult">
+        <id property="ownerId" column="owner_id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="nation" column="nation"/>
+        <result property="nativePlace" column="native_place"/>
+        <result property="population" column="population"/>
+        <result property="marriageStatus" column="marriage_status"/>
+        <result property="politicsStatus" column="politics_status"/>
+        <result property="nationality" column="nationality"/>
+        <result property="career" column="career"/>
+        <result property="religion" column="religion"/>
+        <result property="military" column="military"/>
+        <result property="eduLevel" column="edu_level"/>
+        <result property="qqNumber" column="qq_number"/>
+        <result property="email" column="email"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <!--通过主键修改数据-->
+    <update id="editMyinfo" parameterType="com.wr.api.owner.entity.vo.MyinfoDTO">
+        UPDATE xccj_community.bus_owner bus,xccj_community.bus_account acc
+        <set>
+            <if test="ownerName != null and ownerName!=''">
+                bus.owner_name = #{ownerName},
+                acc.account_name = #{ownerName},
+                acc.account_nick = #{ownerName},
+            </if>
+            <if test="avatar != null and avatar!=''">
+                acc.avatar = #{avatar},
+            </if>
+            <if test="ownerPhone != null and ownerPhone!=''">
+                bus.owner_phone = #{ownerPhone},
+            </if>
+            <if test="gender != null and gender!=''">
+                bus.gender = #{gender},
+            </if>
+            <if test="cardType != null and cardType!=''">
+                bus.card_type = #{cardType},
+            </if>
+            <if test="cardNo != null and cardNo!=''">
+                bus.card_no = #{cardNo},
+            </if>
+            <if test="cardFont != null and cardFont!=''">
+                bus.card_font = #{cardFont},
+            </if>
+            <if test="cardBack != null and cardBack!=''">
+                bus.card_back = #{cardBack},
+            </if>
+            <if test="faceUrl != null and faceUrl!=''">
+                bus.face_url = #{faceUrl},
+            </if>
+            <if test="domicileAddress != null and domicileAddress!=''">
+                bus.domicile_address = #{domicileAddress},
+            </if>
+            <if test="politicsStatus != null and politicsStatus!=''">
+                bus.politics_status = #{politicsStatus},
+            </if>
+            <if test="emergencyContact != null and emergencyContact!=''">
+                bus.emergency_contact = #{emergencyContact},
+            </if>
+            <if test="nation != null and nation!=''">
+                bus.nation = #{nation},
+            </if>
+            <if test="nativePlace != null and nativePlace!=''">
+                bus.native_place = #{nativePlace},
+            </if>
+            <if test="religion != null and religion!=''">
+                bus.religion = #{religion},
+            </if>
+            <if test="eduLevel != null and eduLevel!=''">
+                bus.edu_level = #{eduLevel},
+            </if>
+            <if test="military != null and military!=''">
+                bus.military = #{military},
+            </if>
+            <if test="marriageStatus != null and marriageStatus!=''">
+                bus.marriage_status=#{marriageStatus},
+            </if>
+            <if test="nationality != null and nationality!=''">
+                bus.nationality = #{nationality},
+            </if>
+            <if test="population != null and population!=''">
+                bus.population = #{population},
+            </if>
+            <if test="career != null and career!=''">
+                bus.career = #{career},
+            </if>
+            <if test="qqNumber != null and qqNumber!=''">
+                bus.qq_number = #{qqNumber},
+            </if>
+            <if test="email != null and email!=''">
+                bus.email = #{email},
+            </if>
+            <if test="selfIntro != null and selfIntro!=''">
+                bus.self_intro = #{selfIntro},
+            </if>
+            bus.update_time = sysdate(),
+            acc.update_time = sysdate()
+        </set>
+        WHERE
+        bus.account_id=acc.account_id
+        AND bus.owner_id = #{ownerId}
+        AND bus.del_flag='0'
+    </update>
+    <!--通过主键修改照片-->
+    <update id="editPic" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        UPDATE xccj_community.bus_owner
+        <set>
+            <if test="licenseUrl != null and licenseUrl!=''">
+                face_url = #{faceUrl},
+            </if>
+            update_time = sysdate()
+        </set>
+        WHERE owner_id = #{ownerId} AND del_flag='0'
+    </update>
+
+    <!--修改状态成为志愿者-->
+    <update id="beVolunteer" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        UPDATE xccj_community.bus_account
+        <set>
+            <if test="volunteer != null and volunteer!=''">
+                volunteer = #{volunteer},
+            </if>
+            update_time = sysdate()
+        </set>
+        WHERE account_id = #{accountId}
+    </update>
+    <!--根据户主Id 查询家人-->
+    <select id="selectRelation" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT owner_id,
+               owner_name,
+               CASE
+                   WHEN owner_relation = '0' THEN '本人'
+                   WHEN owner_relation = '1' THEN '配偶'
+                   WHEN owner_relation = '2' THEN '父母'
+                   WHEN owner_relation = '3' THEN '子女'
+                   WHEN owner_relation = '4' THEN '其他'
+                   ELSE '租客' END AS 'owner_relation', face_url
+        FROM xccj_community.bus_owner
+        WHERE del_flag = '0'
+          AND parent_id = #{ownerId}
+    </select>
+    <!--资产数量-->
+    <select id="roomCount" resultType="Integer">
+        SELECT
+            SUM(total_count) AS roomCount
+        FROM
+            (
+                SELECT
+                    COUNT(*) AS total_count
+                FROM
+                    xccj_community.bus_house bh
+                LEFT JOIN xccj_community.bus_owner bo ON bh.owner_id = bo.owner_id
+                WHERE
+                    bo.account_id = #{accountId}
+                  AND bh.del_flag = '0'
+                  AND bh.audit_status = '1'
+                  AND bo.del_flag = '0'
+                UNION ALL
+                SELECT
+                    COUNT(*) AS total_count
+                FROM
+                    xccj_community.bus_house bh
+                LEFT JOIN xccj_community.bus_owner bo ON bh.owner_id = bo.owner_id
+                LEFT JOIN xccj_community.bus_owner bos ON bos.parent_id = bo.owner_id
+                WHERE
+                    bos.account_id = #{accountId}
+                  AND bh.del_flag = '0'
+                  AND bh.audit_status = '1'
+                  AND bos.audit_status = '1'
+                  AND bo.del_flag = '0'
+            ) AS subquery
+
+    </select>
+
+    <select id="carCount" resultType="Integer">
+      SELECT
+          COUNT(*) AS carCount
+      FROM
+          xccj_community.bus_vehicle bv
+      WHERE
+          bv.account_id = #{accountId}
+        AND bv.audit_status = '1'
+        AND bv.del_flag = '0'
+
+    </select>
+
+    <select id="parkCount" resultType="Integer">
+
+      SELECT
+          COUNT(*) AS parkCount
+      FROM
+          xccj_community.bus_carport bc
+      WHERE
+          bc.account_id = #{accountId}
+        AND bc.community_id = #{communityId}
+        AND bc.del_flag = '0'
+    </select>
+
+    <!--房屋资产-->
+    <select id="roomDetile" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT
+        bo.owner_id,
+        bo.owner_name,
+        bo.owner_phone,
+        '0' ownerRelation,
+        bo.gender,
+        bo.account_id,
+        bo.license_url,
+        bo.emergency_contact_phone,
+        bo.card_type,
+        bo.card_no,
+        bo.card_font,
+        bo.card_back,
+        bo.face_url,
+        bo.domicile_address,
+        bo.politics_status,
+        bo.emergency_contact,
+        bo.nation,
+        bo.native_place,
+        bo.religion,
+        bo.edu_level,
+        bo.military,
+        bo.marriage_status,
+        bo.nationality,
+        bo.population,
+        bo.own_remarks,
+        bo.parent_id,
+        IF(bh.room_id=bo.room_id,-1,bh.room_id) AS 'defaultRoom',
+        bc.community_id,
+        bc.community_name,
+        bc.estate_id,
+        bb.building_id,
+        bb.building_name,
+        bb.community_id,
+        bu.unit_name,
+        bu.unit_id,
+        br.room_name,
+        br.room_id,
+        br.room_status,
+        br.house_address,
+        SUBSTRING_INDEX(br.room_name, RIGHT(br.room_name, 2), 1) AS floor,
+        br.room_attribute as "room_type",
+        br.room_attribute,
+        br.total_area,
+        br.delivery_time,
+        bh.license_url,
+        bh.audit_status,
+        bh.house_id,
+        bh.reject_reason,
+        bh.create_time
+        FROM
+        xccj_community.bus_owner bo
+        LEFT JOIN xccj_community.bus_house bh ON bo.owner_id = bh.owner_id
+        LEFT JOIN xccj_community.bus_community bc ON bh.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bh.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bh.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bh.room_id = br.room_id
+        WHERE
+        bo.account_id = #{accountId}
+        AND bo.del_flag='0'
+        AND bc.del_flag='0'
+        AND bb.del_flag='0'
+        AND bu.del_flag='0'
+        AND bh.del_flag='0'
+        AND br.del_flag='0'
+        <if test="roomId != null">
+            and bo.room_id = #{roomId}
+        </if>
+        UNION ALL
+        SELECT
+        bo.owner_id,
+        bo.owner_name,
+        bo.owner_phone,
+        bo.owner_relation ownerRelation,
+        bo.gender,
+        bo.account_id,
+        bo.license_url,
+        bo.emergency_contact_phone,
+        bo.card_type,
+        bo.card_no,
+        bo.card_font,
+        bo.card_back,
+        bo.face_url,
+        bo.domicile_address,
+        bo.politics_status,
+        bo.emergency_contact,
+        bo.nation,
+        bo.native_place,
+        bo.religion,
+        bo.edu_level,
+        bo.military,
+        bo.marriage_status,
+        bo.nationality,
+        bo.population,
+        bo.own_remarks,
+        bo.parent_id,
+        IF(bh.room_id=bo.room_id,-1,bh.room_id) AS 'defaultRoom',
+        bc.community_id,
+        bc.community_name,
+        bc.estate_id,
+        bb.building_id,
+        bb.building_name,
+        bb.community_id,
+        bu.unit_name,
+        bu.unit_id,
+        br.room_name,
+        br.room_id,
+        br.room_status,
+        br.house_address,
+        SUBSTRING_INDEX(br.room_name, RIGHT(br.room_name, 2), 1) AS floor,
+        br.room_attribute as "room_type",
+        br.room_attribute,
+        br.total_area,
+        br.delivery_time,
+        bh.license_url,
+        bh.audit_status,
+        bh.house_id,
+        bh.reject_reason,
+        bh.create_time
+        FROM
+        xccj_community.bus_owner bo
+        LEFT JOIN xccj_community.bus_owner bos ON bo.parent_id = bos.owner_id
+        LEFT JOIN xccj_community.bus_house bh ON bos.owner_id = bh.owner_id
+        LEFT JOIN xccj_community.bus_community bc ON bh.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bh.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bh.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bh.room_id = br.room_id
+        WHERE
+        bo.account_id = #{accountId} AND bh.audit_status = '1' AND bo.audit_status = '1'
+        AND bo.del_flag='0'
+        AND bc.del_flag='0'
+        AND bb.del_flag='0'
+        AND bu.del_flag='0'
+        AND bh.del_flag='0'
+        AND br.del_flag='0'
+        <if test="roomId != null">
+            and bos.room_id = #{roomId}
+        </if>
+        UNION ALL
+        SELECT
+        bo.owner_id,
+        bo.owner_name,
+        bo.owner_phone,
+        bo.owner_relation ownerRelation,
+        bo.gender,
+        bo.account_id,
+        bo.license_url,
+        bo.emergency_contact_phone,
+        bo.card_type,
+        bo.card_no,
+        bo.card_font,
+        bo.card_back,
+        bo.face_url,
+        bo.domicile_address,
+        bo.politics_status,
+        bo.emergency_contact,
+        bo.nation,
+        bo.native_place,
+        bo.religion,
+        bo.edu_level,
+        bo.military,
+        bo.marriage_status,
+        bo.nationality,
+        bo.population,
+        bo.own_remarks,
+        bo.parent_id,
+        IF(bh.room_id=bo.room_id,-1,bh.room_id) AS 'defaultRoom',
+        bc.community_id,
+        bc.community_name,
+        bc.estate_id,
+        bb.building_id,
+        bb.building_name,
+        bb.community_id,
+        bu.unit_name,
+        bu.unit_id,
+        br.room_name,
+        br.room_id,
+        br.room_status,
+        br.house_address,
+        SUBSTRING_INDEX(br.room_name, RIGHT(br.room_name, 2), 1) AS floor,
+        br.room_attribute as "room_type",
+        br.room_attribute,
+        br.total_area,
+        br.delivery_time,
+        bh.license_url,
+        bo.audit_status,
+        bh.house_id,
+        bh.reject_reason,
+        bh.create_time
+        FROM
+        xccj_community.bus_owner bo
+        LEFT JOIN xccj_community.bus_owner bos ON bo.parent_id = bos.owner_id
+        LEFT JOIN xccj_community.bus_house bh ON bos.owner_id = bh.owner_id
+        LEFT JOIN xccj_community.bus_community bc ON bh.community_id = bc.community_id
+        LEFT JOIN xccj_community.bus_building bb ON bh.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bh.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bh.room_id = br.room_id
+        WHERE
+        bo.account_id = #{accountId} AND bh.audit_status = '1' AND bo.audit_status != '1'
+        AND bo.del_flag='0'
+        AND bc.del_flag='0'
+        AND bb.del_flag='0'
+        AND bu.del_flag='0'
+        AND bh.del_flag='0'
+        AND br.del_flag='0'
+        <if test="roomId != null">
+            and bos.room_id = #{roomId}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="defaultRoom" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT bc.community_name,
+               bb.building_id,
+               bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_id,
+               bo.owner_relation,
+               bo.license_url,
+               br.room_status,
+               bc.community_name,
+               bb.building_name,
+               bu.unit_name,
+               bu.unit_id,
+               br.room_name,
+               br.room_status,
+               bh.audit_status,
+               bh.house_id
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_house bh ON bo.owner_id = bh.owner_id
+                 LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON bh.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bh.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON bh.room_id = br.room_id
+        WHERE bo.account_id = #{accountId}
+          AND bo.del_flag = '0'
+          AND bc.del_flag = '0'
+          AND bb.del_flag = '0'
+          AND bu.del_flag = '0'
+          AND bh.del_flag = '0'
+          AND br.del_flag = '0'
+          AND bh.room_id = bo.room_id
+    </select>
+
+
+    <select id="defaultTenantRoom" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT bc.community_name,
+               bb.building_id,
+               bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_id,
+               br.room_status,
+               bc.community_name,
+               bb.building_name,
+               bu.unit_name,
+               bu.unit_id,
+               br.room_name,
+               br.room_status
+        FROM xccj_community.bus_tenant bo
+                 LEFT JOIN xccj_community.bus_room br ON bo.room_id = br.room_id
+                 LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_building bb ON bu.building_id = bb.building_id
+        WHERE bo.account_id = #{accountId}
+          AND bo.del_flag = '0'
+          AND bc.del_flag = '0'
+          AND bb.del_flag = '0'
+          AND bu.del_flag = '0'
+          AND br.del_flag = '0'
+    </select>
+
+    <!--获取小区树-->
+    <select id="getCommunityTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT community_id AS id, community_name AS label
+        FROM xccj_community.bus_community
+        WHERE del_flag = '0'
+        <if test="communityId != null">
+            AND community_id = #{communityId}
+        </if>
+    </select>
+
+    <!--获取楼栋树-->
+    <select id="getBuildingTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT DISTINCT br.building_id AS id, bb.building_name AS label
+        FROM xccj_community.bus_room br
+                 LEFT JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+        WHERE br.del_flag = '0'
+          AND br.community_id = #{communityId}
+          and br.owner_id = #{ownerId}
+    </select>
+
+    <!--获取单元树-->
+    <select id="getUnitTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT DISTINCT br.unit_id AS id, bu.unit_name AS label
+        FROM xccj_community.bus_room br
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+        WHERE br.building_id = #{buildingId}
+          and br.owner_id = #{ownerId}
+          AND br.del_flag = '0'
+    </select>
+
+    <!--获取房间树-->
+    <select id="getRoomTree" resultType="com.wr.api.owner.entity.vo.TreeSelectVo">
+        SELECT DISTINCT room_id AS id, room_name AS label
+        FROM xccj_community.bus_room
+        WHERE unit_id = #{unitId}
+          and owner_id = #{ownerId}
+          AND del_flag = '0'
+    </select>
+
+    <!--新增房产信息-->
+    <insert id="insertJudge" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        INSERT INTO xccj_community.bus_house
+        SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            room_id=#{roomId},
+        </if>
+        <if test="licenseUrl != null and licenseUrl!=''">
+            license_url = #{licenseUrl},
+        </if>
+        audit_status=#{auditStatus},
+        owner_id=#{ownerId},
+        create_by=#{createBy},
+        create_time= sysdate(),
+        del_flag='0'
+    </insert>
+
+    <!--  修改房产信息  -->
+    <update id="updateHouse">
+        UPDATE xccj_community.bus_house
+        SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            room_id=#{roomId},
+        </if>
+        <if test="licenseUrl != null and licenseUrl!=''">
+            license_url = #{licenseUrl},
+        </if>
+        <if test="ownerId != null and ownerId!=''">
+            owner_id=#{ownerId},
+        </if>
+        audit_status=#{auditStatus},
+        update_by=#{updateBy},
+        update_time=now()
+        WHERE house_id=#{houseId}
+        AND del_flag='0'
+    </update>
+
+    <!--业主认证-->
+    <insert id="insertOwner" parameterType="com.wr.api.owner.entity.myinfo.Myinfo" useGeneratedKeys="true"
+            keyProperty="ownerId">
+        INSERT INTO xccj_community.bus_owner
+        SET
+        <if test="ownerName != null and ownerName!=''">
+            owner_name = #{ownerName},
+        </if>
+        <if test="gender != null">
+            gender = #{gender},
+        </if>
+        <if test="ownerPhone != null and ownerPhone!=''">
+            owner_phone = #{ownerPhone},
+        </if>
+        <if test="cardType != null and cardType!=''">
+            card_type=#{cardType},
+        </if>
+        <if test="cardNo != null and cardNo!=''">
+            card_no=#{cardNo},
+        </if>
+        <if test="cardFont != null and cardFont!=''">
+            card_font = #{cardFont},
+        </if>
+        <if test="cardBack != null and cardBack!=''">
+            card_back = #{cardBack},
+        </if>
+        <if test="domicileAddress != null and domicileAddress!=''">
+            domicile_address = #{domicileAddress},
+        </if>
+        <if test="faceUrl != null and faceUrl!=''">
+            face_url = #{faceUrl},
+        </if>
+        <if test="communityId != null and communityId!=''">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null and buildingId!=''">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null and unitId!=''">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null and roomId!=''">
+            room_id = #{roomId},
+        </if>
+        <if test="parentId != null and parentId!=''">
+            parent_id = #{parentId},
+        </if>
+        <if test="accountId != null">
+            account_id = #{accountId},
+        </if>
+        <if test="licenseUrl != null and licenseUrl!=''">
+            license_url = #{licenseUrl},
+        </if>
+        <if test="ownerRelation != null and ownerRelation!=''">
+            owner_relation = #{ownerRelation},
+        </if>
+        <if test="ownRemarks != null and ownRemarks!=''">
+            own_remarks = #{ownRemarks},
+        </if>
+        <if test="religion != null and religion!=''">
+            religion = #{religion},
+        </if>
+        <if test="politicsStatus != null and politicsStatus!=''">
+            politics_status = #{politicsStatus},
+        </if>
+        create_by=#{createBy},
+        audit_status='0',
+        data_source = '1',
+        del_flag='0'
+    </insert>
+
+    <select id="selectRent" resultType="com.wr.api.owner.entity.myinfo.Rent">
+        SELECT
+        rent_id,
+        room_img,
+        br.community_id,
+        bc.community_name,
+        rent_type,
+        door_model,
+        rent_price,
+        read_num,
+        br.address,
+        room_toward,
+        contact_phone,
+        room_info
+        FROM
+        xccj_community.bus_rent br
+        LEFT JOIN xccj_community.bus_community bc ON br.community_id = bc.community_id
+        WHERE rent_status = 0
+        and br.community_id = #{communityId}
+        <if test="rentType != null  and rentType != ''">
+            and rent_type = #{rentType}
+        </if>
+        <if test="doorModel != null  and doorModel != '' and doorModel != '五室'">
+            and door_model like concat('%',
+            #{doorModel},'%')
+        </if>
+        <if test="doorModel != null  and doorModel != '' and doorModel == '五室'">
+            AND rent_id NOT IN (
+            SELECT
+            rent_id
+            FROM
+            xccj_community.bus_rent r
+            WHERE
+            rent_status = 0
+            AND br.community_id = 2
+            AND door_model REGEXP '[一,两,三,四]室')
+        </if>
+        <if test="communityName != null  and communityName != ''">
+            and community_name like concat('%',
+            #{communityName},'%')
+        </if>
+        <if test="min != null">
+            and rent_price >= #{min} and #{max} >= rent_price
+        </if>
+    </select>
+
+    <select id="selectRentFile" resultType="com.wr.api.owner.entity.myinfo.RentFile">
+        SELECT bo.owner_name,
+               brc.contract_start,
+               brc.owner_id,
+               brc.tenant_id,
+               brc.contract_end,
+               bc.community_name,
+               bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_id
+        FROM xccj_community.bus_rent_contract brc
+                 LEFT JOIN xccj_community.bus_community bc ON brc.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON brc.building_id = bb.building_id
+            AND brc.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON brc.unit_id = bu.unit_id
+            AND brc.building_id = bu.building_id
+            AND brc.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON brc.room_id = br.room_id
+            AND brc.community_id = br.community_id
+            AND brc.building_id = br.building_id
+            AND brc.unit_id = br.unit_id
+            AND brc.room_id = br.room_id
+                 LEFT JOIN xccj_community.bus_owner bo ON brc.owner_id = bo.owner_id
+        WHERE brc.owner_id = #{ownerId}
+          AND brc.community_id = #{communityId}
+          AND brc.del_flag = 0
+    </select>
+
+    <select id="selectRentFile2" resultType="com.wr.api.owner.entity.myinfo.RentFile">
+        SELECT bo.owner_name,
+               brc.tenant_id,
+               brc.owner_id,
+               brc.contract_start,
+               brc.contract_end,
+               bc.community_name,
+               bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_id
+        FROM xccj_community.bus_rent_contract brc
+                 LEFT JOIN xccj_community.bus_community bc ON brc.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON brc.building_id = bb.building_id
+            AND brc.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON brc.unit_id = bu.unit_id
+            AND brc.building_id = bu.building_id
+            AND brc.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON brc.room_id = br.room_id
+            AND brc.community_id = br.community_id
+            AND brc.building_id = br.building_id
+            AND brc.unit_id = br.unit_id
+            AND brc.room_id = br.room_id
+                 LEFT JOIN xccj_community.bus_owner bo ON brc.owner_id = bo.owner_id
+        WHERE brc.tenant_id = #{ownerId}
+          AND brc.community_id = #{communityId}
+          AND brc.del_flag = 0
+    </select>
+
+    <select id="selectRenterInfo" resultType="com.wr.api.owner.entity.myinfo.Tenant">
+        SELECT tenant_name,
+               tenant_phone,
+               gender,
+               card_type,
+               card_no,
+               domicile_address,
+               card_font,
+               card_back,
+               face_url
+        FROM xccj_community.bus_tenant
+        WHERE tenant_id = #{tenantId}
+          AND del_flag = 0
+    </select>
+
+    <!--新增租户信息-->
+    <insert id="insertRentFile" useGeneratedKeys="true" keyProperty="tenantId">
+        INSERT INTO xccj_community.bus_tenant
+        SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            room_id=#{roomId},
+        </if>
+        <if test="accountId != null">
+            account_id=#{accountId},
+        </if>
+        <if test="tenantName != null">
+            tenant_name=#{tenantName},
+        </if>
+        <if test="tenantPhone != null">
+            tenant_phone=#{tenantPhone},
+        </if>
+        <if test="gender != null">
+            gender=#{gender},
+        </if>
+        <if test="cardNo != null">
+            card_no=#{cardNo},
+        </if>
+        <if test="cardFont != null">
+            card_font=#{cardFont},
+        </if>
+        <if test="cardBack != null">
+            card_back=#{cardBack},
+        </if>
+        <if test="faceUrl != null">
+            face_url=#{faceUrl},
+        </if>
+        <if test="domicileAddress != null">
+            domicile_address=#{domicileAddress},
+        </if>
+        <if test="cardType != null">
+            card_type=#{cardType},
+            create_by=#{createBy},
+        </if>
+        <if test="createBy != null">
+            update_by=#{createBy},
+        </if>
+        audit_status = '0',
+        data_source = '1',
+        owner_id=#{ownerId},
+        create_time= sysdate(),
+        update_time= sysdate(),
+        del_flag='0'
+    </insert>
+
+    <!--新增合同信息-->
+    <insert id="insertRentFileDetile">
+        INSERT INTO xccj_community.bus_rent_contract
+        SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            room_id=#{roomId},
+        </if>
+        <if test="ownerId != null">
+            owner_id=#{ownerId},
+        </if>
+        <if test="tenantId != null">
+            tenant_id=#{tenantId},
+        </if>
+        <if test="contractNo != null">
+            contract_no=#{contractNo},
+        </if>
+        <if test="monthRent != null">
+            month_rent=#{monthRent},
+        </if>
+        <if test="contractStart != null">
+            contract_start=#{contractStart},
+        </if>
+        <if test="contractEnd != null">
+            contract_end=#{contractEnd},
+        </if>
+        <if test="contractUrl != null">
+            contract_url=#{contractUrl},
+        </if>
+        <if test="createBy != null">
+            create_by=#{createBy},
+            update_by=#{createBy},
+        </if>
+        create_time= sysdate(),
+        update_time = SYSDATE(),
+        del_flag='0'
+    </insert>
+    <!--查询证件类型-->
+    <select id="selectCardType" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT dict_label,
+               dict_value
+        FROM xccj_estate_sys.sys_dict_data
+        WHERE dict_type = "sys_certificate"
+          AND status = 0
+    </select>
+
+    <select id="selectOwnerInfo" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT bo.owner_name,
+               bo.card_no,
+               bo.owner_phone,
+               bc.community_name,
+               bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               br.room_id
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_community bc on bo.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb on bo.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu on bo.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_room br on bo.room_id = br.room_id
+        WHERE bo.owner_id = #{ownerId}
+          AND bo.del_flag = 0
+    </select>
+
+    <!--根据房号跟名字查询业主是否存在-->
+    <select id="selectInfoByRoomId" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT owner_name,
+               owner_id
+        FROM xccj_community.bus_owner
+        WHERE owner_name = #{ownerName}
+          AND room_id = #{roomId}
+          AND del_flag = 0
+    </select>
+
+    <select id="selectFileDetile" resultType="com.wr.api.owner.entity.myinfo.RentFile">
+        SELECT month_rent,
+               contract_start,
+               contract_end,
+               contract_url
+        FROM xccj_community.bus_rent_contract
+        WHERE tenant_id = #{tenantId}
+          AND room_id = #{roomId}
+          AND del_flag = 0
+    </select>
+
+    <select id="selectPassCard" resultType="com.wr.api.owner.entity.myinfo.Liaison">
+        SELECT bl.*,
+               bc.community_name,
+               bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               bo.owner_name
+        FROM xccj_community.bus_liaison bl
+                 LEFT JOIN xccj_community.bus_room br ON bl.room_id = br.room_id
+                 LEFT JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_community bc ON br.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_owner bo ON bl.owner_id = bo.owner_id
+        WHERE bl.del_flag = '0'
+          AND bl.account_id = #{accountId}
+    </select>
+
+    <!--新增通行证-->
+    <insert id="insertPassCard" parameterType="com.wr.api.owner.entity.myinfo.Liaison">
+        INSERT INTO xccj_community.bus_liaison
+        SET
+        <if test="userName != null">
+            user_name = #{userName},
+        </if>
+        <if test="userPhone != null">
+            user_phone = #{userPhone},
+        </if>
+        <if test="cardNo != null">
+            card_no = #{cardNo},
+        </if>
+        <if test="withNum != null">
+            with_num = #{withNum},
+        </if>
+        <if test="plantNo != null">
+            plant_no = #{plantNo},
+        </if>
+        <if test="beginTime != null">
+            begin_time = #{beginTime},
+        </if>
+        <if test="endTime != null">
+            end_time = #{endTime},
+        </if>
+        <if test="roomId != null">
+            room_id=#{roomId},
+        </if>
+        <if test="licenseUrl != null and licenseUrl !=''">
+            license_url = #{licenseUrl},
+        </if>
+        <if test="ownerId != null">
+            owner_id = #{ownerId},
+        </if>
+        account_id = #{accountId},
+        liaison_status = '1',
+        del_flag='0'
+    </insert>
+
+    <!--新增党员申请信息-->
+    <insert id="insertPolitical" parameterType="com.wr.api.owner.entity.myinfo.Member">
+        INSERT INTO xccj_govern.bus_member
+        SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            room_id = #{roomId},
+        </if>
+        <if test="joinTime != null">
+            join_time = #{joinTime},
+        </if>
+        <if test="memberDuty != null">
+            member_duty = #{memberDuty},
+        </if>
+        <if test="partyId != null">
+            party_id = #{partyId},
+        </if>
+        <if test="proveUrl != null">
+            prove_url=#{proveUrl},
+        </if>
+        <if test="auditStatus != null">
+            audit_status=#{auditStatus},
+        </if>
+        <if test="memberAdress != null and memberAdress != ''">
+            member_adress=#{memberAdress},
+        </if>
+        account_id = #{accountId},
+        create_time = sysdate(),
+        create_by=#{createBy},
+        del_flag='0'
+    </insert>
+
+    <!--查询党员信息-->
+    <select id="selectPolitical" resultType="com.wr.api.owner.entity.myinfo.Member">
+        SELECT bm.join_time,
+               bm.member_duty,
+               bm.prove_url,
+               bm.party_id,
+               bp.party_name,
+               bm.join_time,
+               bm.audit_status,
+               bm.member_id,
+               bm.member_adress,
+               bm.reject_reason,
+               bm.community_id,
+               bm.building_id,
+               bm.unit_id,
+               bm.room_id,
+               bm.account_id
+        FROM xccj_govern.bus_member bm
+                 LEFT JOIN xccj_govern.bus_party bp ON bm.party_id = bp.party_id
+        WHERE bm.account_id = #{accountId} AND bm.community_id = #{communityId}
+          AND bm.del_flag = '0'
+    </select>
+
+    <!--查询车辆信息-->
+    <select id="selectCar" resultType="com.wr.api.owner.entity.myinfo.Vehicle" parameterType="com.wr.api.owner.entity.myinfo.Vehicle">
+        SELECT vehicle_brand,
+               bv.account_id,
+               bv.audit_status,
+               vehicle_type,
+               plate_no,
+               plate_type,
+               sdd.dict_value,
+               sdd.dict_label,
+               bv.vehicle_id,
+               bv.reject_reason,
+               vehicle_status,
+               bv.real_estate,
+               bv.front_id_card,
+               bv.back_id_card,
+               bv.other_photo
+        FROM xccj_community.bus_vehicle bv
+                 LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_value = bv.vehicle_color
+        WHERE sdd.dict_type LIKE "sys_vehicle_color"
+          AND bv.account_id = #{accountId}
+            <if test="auditStatus != null and auditStatus != ''">
+                AND bv.audit_status = #{auditStatus}
+            </if>
+          AND bv.del_flag = 0
+        ORDER BY bv.create_time DESC
+    </select>
+
+    <!--查询车位信息-->
+    <select id="selectCarport" resultType="com.wr.api.owner.entity.myinfo.Carport">
+        SELECT bv.plate_no,
+               bc.carport_no,
+               bc.rental_end,
+               bc.community_id,
+               bcc.community_name,
+               bc.carport_nature,
+               ba.account_name,
+               ba.login_name AS 'accountPhone', bo.owner_phone,
+               bc.rental_type,
+               bc.rental_start,
+               bc.carport_id,
+               bc.carport_fee
+        FROM xccj_community.bus_carport bc
+                 LEFT JOIN xccj_community.bus_vehicle bv ON bc.vehicle_id = bv.vehicle_id
+                 LEFT JOIN xccj_community.bus_community bcc ON bcc.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_account ba ON bc.account_id = ba.account_id
+                 LEFT JOIN xccj_community.bus_owner bo ON bc.account_id = bo.account_id
+        WHERE bc.community_id = #{communityId}
+          AND bc.account_id = #{accountId}
+          AND bc.del_flag = 0
+    </select>
+
+    <!--新增车辆信息-->
+    <insert id="insertvehicle" parameterType="com.wr.api.owner.entity.myinfo.Vehicle">
+        INSERT INTO xccj_community.bus_vehicle
+        <trim prefix="(" suffix=")">
+            <if test="plateNo != null">
+                plate_no,
+            </if>
+            <if test="vehicleBrand != null">
+                vehicle_brand,
+            </if>
+            <if test="vehicleType != null">
+                vehicle_type,
+            </if>
+            <if test="vehicleStatus != null">
+                vehicle_status,
+            </if>
+            <if test="vehicleColor != null">
+                vehicle_color,
+            </if>
+            <if test="plateType != null">
+                plate_type,
+            </if>
+<!--            <if test="plateColor != null">-->
+<!--                plate_color,-->
+<!--            </if>-->
+            <if test="realEstate != null and realEstate != ''">real_estate,</if>
+            <if test="frontIdCard != null and frontIdCard != ''">front_id_card,</if>
+            <if test="backIdCard != null and backIdCard != ''">back_id_card,</if>
+            <if test="otherPhoto != null and otherPhoto != ''">other_photo,</if>
+            audit_status,
+            account_id,
+            community_id,
+            create_by,
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="plateNo != null">
+                #{plateNo},
+            </if>
+            <if test="vehicleBrand != null">
+                #{vehicleBrand},
+            </if>
+            <if test="vehicleType != null">
+                #{vehicleType},
+            </if>
+            <if test="vehicleStatus != null">
+                #{vehicleStatus},
+            </if>
+            <if test="vehicleColor != null">
+                #{vehicleColor},
+            </if>
+            <if test="plateType != null">
+                #{plateType},
+            </if>
+<!--            <if test="plateColor != null">-->
+<!--                #{plateColor},-->
+<!--            </if>-->
+            <if test="realEstate != null and realEstate != ''">#{realEstate},</if>
+            <if test="frontIdCard != null and frontIdCard != ''">#{frontIdCard},</if>
+            <if test="backIdCard != null and backIdCard != ''">#{backIdCard},</if>
+            <if test="otherPhoto != null and otherPhoto != ''">#{otherPhoto},</if>
+            0, #{accountId},#{communityId},#{createBy},sysdate()
+        </trim>
+    </insert>
+
+    <!--根据条件获取车位列表信息-->
+    <select id="selectCarportByS" resultType="com.wr.api.owner.entity.myinfo.Carport">
+        SELECT
+        carport_id,
+        carport_no,
+        carport_fee
+        FROM
+        xccj_community.bus_carport
+        WHERE
+        carport_status = 0
+        AND del_flag = 0
+        AND account_id = 0
+        AND community_id = #{communityId}
+        AND rental_start IS NULL
+        <if test="rentalType != null">
+            and rental_type = #{rentType}
+        </if>
+    </select>
+
+    <!--根据条件获取业主车辆列表信息-->
+    <select id="selectCarByAccount" resultType="com.wr.api.owner.entity.myinfo.Vehicle">
+        SELECT plate_no,
+               account_id
+        FROM xccj_community.bus_vehicle
+        WHERE account_id = #{accountId}
+          AND community_id = #{communityId}
+          AND audit_status = 1
+          AND del_flag = 0
+    </select>
+
+    <!--新增车位信息-->
+    <insert id="insertCartrentLog" parameterType="com.wr.remote.domain.Carportlog">
+        INSERT INTO xccj_community.bus_carport_log
+        SET
+        <if test="carportId != null">
+            carport_id = #{carportId},
+        </if>
+        <if test="ownerName != null">
+            user_name = #{ownerName},
+        </if>
+        <if test="ownerPhone != null">
+            owner_phone = #{ownerPhone},
+        </if>
+        <if test="vehicleStatus != null">
+            vehicle_status=#{vehicleStatus},
+        </if>
+        <if test="cardNo != null">
+            card_no=#{cardNo},
+        </if>
+        <if test="plantNo != null">
+            plant_no=#{plantNo},
+        </if>
+        <if test="rentalStart != null">
+            rentalStart=#{rental_start},
+        </if>
+        <if test="rentalEnd != null">
+            rental_end=#{rentalEnd},
+        </if>
+        del_flag='0';
+    </insert>
+    <insert id="inAccount" useGeneratedKeys="true" keyProperty="accountId">
+        INSERT INTO xccj_community.bus_account(community_id, login_name, password, avatar, account_type, account_name,
+                                               account_nick, data_source, volunteer, create_by, create_time, update_by,
+                                               update_time, del_flag)
+        VALUES (#{communityId}, #{loginName}, #{password}, #{avatar}, #{accountType}, #{accountName}, #{accountNick},
+                #{dataSource}, #{volunteer}, #{createBy}, SYSDATE(), #{updateBy}, SYSDATE(), '0')
+    </insert>
+
+    <!-- 添加浏览量 -->
+    <update id="addRentNum">
+        UPDATE xccj_community.bus_rent
+        SET read_num=read_num + 1
+        WHERE rent_id = #{rentId}
+    </update>
+
+    <select id="selectWechatById" resultType="com.wr.remote.domain.CommunityWechat">
+        SELECT wechat_id,
+               community_id,
+               app_id,
+               app_secret,
+               mch_id,
+               serial_no,
+               private_url,
+               api_key,
+               refund_url,
+               wechat_status,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        FROM xccj_community.bus_wechat
+        WHERE del_flag = '0'
+          AND wechat_id = #{wechatId}
+    </select>
+
+    <select id="getOwnerDetail" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT license_url,
+               owner_relation,
+               owner_id,
+               owner_name,
+               owner_phone,
+               community_id,
+               building_id,
+               unit_id,
+               room_id,
+               account_id,
+               parent_id,
+               gender,
+               card_type,
+               card_no,
+               card_font,
+               card_back,
+               face_url,
+               domicile_address,
+               politics_status,
+               nation,
+               native_place,
+               religion,
+               edu_level,
+               military,
+               marriage_status,
+               nationality,
+               population,
+               career,
+               qq_number,
+               self_intro,
+               audit_status,
+               email,
+               own_remarks
+        FROM xccj_community.bus_owner
+        WHERE owner_id = #{ownerId}
+          AND del_flag = '0'
+    </select>
+
+    <!--根据ownerId获取业主详情-->
+    <select id="getOwnerDetailByOwnerId" resultType="com.wr.api.owner.entity.myinfo.Myinfo">
+        SELECT house.license_url,
+               bo.community_id,
+               bo.building_id,
+               bo.unit_id,
+               bo.room_id,
+               bo.owner_relation,
+               bo.owner_name,
+               bo.owner_phone,
+               bo.gender,
+               bo.card_type,
+               bo.card_no,
+               bo.card_font,
+               bo.card_back,
+               bo.face_url,
+               bo.domicile_address,
+               bo.politics_status,
+               bo.nation,
+               bo.native_place,
+               bo.religion,
+               bo.edu_level,
+               bo.military,
+               bo.marriage_status,
+               bo.nationality,
+               bo.population,
+               bo.career,
+               bo.qq_number,
+               bo.self_intro,
+               bo.reject_reason,
+               bo.email,
+               community.community_name,
+               building.building_name,
+               unit.unit_name,
+               room.room_name,
+               room.room_status,
+               bo.audit_status
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_community community ON bo.community_id = community.community_id
+                 LEFT JOIN xccj_community.bus_building building ON bo.building_id = building.building_id
+                 LEFT JOIN xccj_community.bus_unit unit ON bo.unit_id = unit.unit_id
+                 LEFT JOIN xccj_community.bus_room room ON bo.room_id = room.room_id
+                 LEFT JOIN xccj_community.bus_house house ON house.room_id = room.room_id
+        WHERE bo.owner_id = #{ownerId}
+          AND house.audit_status = '1'
+          AND bo.del_flag = '0'
+    </select>
+
+    <!-- 查询党组织信息   -->
+    <select id="getPartyInfo" resultType="com.wr.remote.govern.party.Party">
+        SELECT party_id,
+               party_name
+        FROM xccj_govern.bus_party
+        WHERE party_status = '0'
+          AND del_flag = '0'
+    </select>
+
+    <!--获取业主地址-->
+    <select id="getOwnerAddress" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT bc.community_id,
+               bb.building_id,
+               bu.unit_id,
+               br.room_id,
+               CONCAT(bc.community_name, '-', bb.building_name, '-', bu.unit_name, '-', br.room_name) AS 'detailAddress'
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_community bc ON bo.community_id = bc.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON bo.building_id = bb.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bo.unit_id = bu.unit_id
+                 LEFT JOIN xccj_community.bus_room br ON bo.room_id = br.room_id
+        WHERE bo.account_id = #{accountId}
+          AND bo.del_flag = '0'
+          AND bb.del_flag = '0'
+          AND bc.del_flag = '0'
+          AND bu.del_flag = '0'
+          AND br.del_flag = '0'
+    </select>
+
+    <select id="getRescueCount" resultType="java.lang.String">
+        SELECT COUNT(*)
+        FROM xccj_govern.bus_rescue
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+          AND release_type = '0'
+          AND NOW() > end_time
+        UNION ALL
+        SELECT COUNT(*)
+        FROM xccj_govern.bus_rescue
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+          AND release_type = '0'
+          AND NOW() BETWEEN start_time AND end_time
+    </select>
+
+
+    <!--通过主键修改照片-->
+    <update id="editCarport" parameterType="com.wr.api.owner.entity.myinfo.Carport">
+        UPDATE xccj_community.Carport
+        <set>
+            <if test="rentalStart != null">
+                rental_start = #{rentalStart},
+            </if>
+            <if test="rentalEnd != null">
+                rental_end = #{rentalEnd},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId},
+            </if>
+            <if test="vehicleId != null">
+                vehicle_id = #{vehicleId},
+            </if>
+            update_time = sysdate()
+        </set>
+        WHERE carport_id = #{carportId}
+    </update>
+
+    <update id="updateOwnerRoom">
+        UPDATE xccj_community.bus_owner
+        SET room_id=#{roomId}
+        WHERE account_id = #{accountId}
+          AND del_flag = '0'
+    </update>
+
+    <!--通过主键修改车辆申请-->
+    <update id="editCarApply" parameterType="com.wr.api.owner.entity.myinfo.Vehicle">
+        UPDATE xccj_community.bus_vehicle
+        <set>
+            <if test="plateNo != null">
+                plate_no = #{plateNo},
+            </if>
+            <if test="vehicleBrand != null">
+                vehicle_brand = #{vehicleBrand},
+            </if>
+            <if test="vehicleType != null">
+                vehicle_type = #{vehicleType},
+            </if>
+            <if test="vehicleStatus != null">
+                vehicle_status=#{vehicleStatus},
+            </if>
+            <if test="vehicleColor != null">
+                vehicle_color=#{vehicleColor},
+            </if>
+            <if test="realEstate != null and realEstate != ''">real_estate = #{realEstate},</if>
+            <if test="frontIdCard != null and frontIdCard != ''">front_id_card = #{frontIdCard},</if>
+            <if test="backIdCard != null and backIdCard != ''">back_id_card = #{backIdCard},</if>
+            <if test="otherPhoto != null and otherPhoto != ''">other_photo = #{otherPhoto},</if>
+            audit_status = 0,
+            update_by= #{updateBy},
+            update_time = sysdate()
+        </set>
+        WHERE vehicle_id = #{vehicleId} AND del_flag = 0
+    </update>
+
+    <update id="updatePolitical">
+        UPDATE xccj_govern.bus_member
+        <set>
+            <if test="joinTime!=null">
+                join_time = #{joinTime},
+            </if>
+            <if test="memberDuty != null">
+                member_duty = #{memberDuty},
+            </if>
+            <if test="partyId != null">
+                party_id = #{partyId},
+            </if>
+            <if test="proveUrl != null and proveUrl != ''">
+                prove_url=#{proveUrl},
+            </if>
+            <if test="memberAdress != null and memberAdress != ''">
+                member_adress=#{memberAdress},
+            </if>
+            audit_status=#{auditStatus},
+            update_by= #{updateBy},
+            update_time = sysdate()
+        </set>
+        WHERE member_id = #{memberId} AND del_flag='0'
+    </update>
+
+    <!--人脸登记照片修改-->
+    <update id="updateFaceUrl">
+        update xccj_community.bus_owner
+        set face_url = #{faceUrl}
+        where owner_id = #{ownerId}
+    </update>
+    <update id="upAccountType">
+        UPDATE xccj_community.bus_account
+        SET account_type = #{accountType},
+            update_by    = #{updateBy}
+        WHERE account_id = #{accountId}
+    </update>
+    <update id="upOwner">
+        UPDATE xccj_community.bus_owner
+        SET audit_status = '3',
+            update_time  = SYSDATE()
+        WHERE owner_id = #{ownerId}
+    </update>
+
+    <!--获取车牌颜色列表-->
+    <select id="getPassColor" resultType="com.wr.api.owner.entity.myinfo.Vehicle">
+        SELECT dict_label,
+               dict_value
+        FROM sys_dict_data
+        WHERE dict_type = 'sys_plate_color'
+    </select>
+
+    <!--获取车辆颜色-->
+    <select id="getCarColor" resultType="com.wr.api.owner.entity.myinfo.Vehicle">
+        SELECT dict_label,
+               dict_value
+        FROM sys_dict_data
+        WHERE dict_type = 'sys_vehicle_color'
+    </select>
+
+    <select id="selectBuildingList" resultType="java.util.Map">
+        SELECT bb.building_name, bb.building_id
+        FROM xccj_community.bus_building bb
+        WHERE bb.community_id = #{communityId}
+          AND bb.del_flag = '0'
+    </select>
+
+    <select id="selectUnitList" resultType="java.util.Map">
+        SELECT bu.unit_id, bu.unit_name
+        FROM xccj_community.bus_unit bu
+        WHERE bu.community_id = #{communityId}
+          AND bu.building_id = #{buildingId}
+          AND bu.del_flag = '0'
+    </select>
+
+    <select id="selectRoomList" resultType="java.util.Map">
+        SELECT br.room_name, br.room_id, br.room_status,
+               SUBSTRING_INDEX(br.room_name, RIGHT(br.room_name, 2), 1) AS "floor"
+        FROM xccj_community.bus_room br
+        WHERE br.community_id = #{communityId}
+          AND br.unit_id = #{unitId}
+          AND br.del_flag = '0'
+    </select>
+
+    <select id="getCardType" resultType="java.util.Map">
+        SELECT dict_label,
+               dict_value
+        FROM xccj_estate_sys.sys_dict_data
+        WHERE dict_type = 'sys_certificate'
+          AND status = '0'
+    </select>
+
+    <select id="checkOwner" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_owner
+        WHERE account_id = #{accountId}
+          AND del_flag = '0'
+          AND audit_status NOT IN (2, 3)
+    </select>
+
+
+    <select id="getOwnerAuditStatus" resultType="java.util.Map">
+        SELECT audit_status AS 'auditStatus'
+        FROM xccj_community.bus_owner
+        WHERE account_id = #{accountId}
+          AND del_flag = '0'
+    </select>
+
+    <select id="getCommunityName" resultType="java.util.Map">
+        SELECT community_name AS 'communityName'
+        FROM xccj_community.bus_community
+        WHERE community_id = #{communityId}
+          AND del_flag = '0'
+    </select>
+
+
+    <select id="checkRoomAuditStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_house
+        WHERE owner_id = (SELECT owner_id
+                          FROM xccj_community.bus_owner
+                          WHERE account_id = #{accountId}
+                            AND del_flag = '0')
+          AND room_id = #{roomId}
+          AND audit_status = '1'
+          AND del_flag = '0'
+    </select>
+
+
+    <select id="checkRoomExist" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_house
+        WHERE room_id = #{roomId}
+          AND del_flag = '0'
+    </select>
+
+    <select id="getCarType" resultType="java.util.Map">
+        SELECT dict_label, dict_value
+        FROM xccj_estate_sys.sys_dict_data
+        WHERE dict_type = 'sys_plate_type'
+    </select>
+    <select id="getOwnerId" resultType="java.lang.Long">
+        SELECT owner_id
+        FROM xccj_community.`bus_room`
+        WHERE del_flag = '0'
+          AND room_id = #{roomId}
+    </select>
+
+    <!--查询业主装修工-->
+    <select id="getWorkList" resultType="com.wr.api.owner.entity.myinfo.WorkVo">
+        select xcbw.worker_name                                        workerName,
+               xcbw.worker_phone                                       workerPhone,
+               xcbw.card_no                                            cardNo,
+               IF(xcbd.audit_status IN (2, 4), xcbl.code_url, NULL) AS codeUrl
+        from xccj_community.bus_worker xcbw
+                 left join xccj_community.bus_decorate xcbd on xcbw.decorate_id = xcbd.decorate_id
+                 left join xccj_community.bus_liaison xcbl on xcbw.account_id = xcbl.account_id
+        where xcbw.del_flag = '0'
+          and xcbd.owner_id = #{ownerId}
+          and xcbw.audit_status = '2'
+        ORDER BY xcbl.liaison_id DESC
+    </select>
+    <select id="checkPhoneUnique" resultType="com.wr.remote.estate.manage.contract.Account">
+        SELECT account_id, community_id, login_name, avatar, account_type
+        FROM xccj_community.`bus_account`
+        WHERE login_name = #{phone}
+          AND del_flag = '0'
+    </select>
+    <select id="selectOwnerByAccountId" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT owner_id,
+               community_id,
+               building_id,
+               unit_id,
+               room_id,
+               parent_id,
+               account_id,
+               license_url,
+               owner_relation,
+               owner_name,
+               owner_phone,
+               gender,
+               card_type,
+               card_no,
+               card_font,
+               card_back,
+               face_url,
+               domicile_address,
+               politics_status,
+               nation,
+               native_place,
+               religion,
+               edu_level,
+               military,
+               marriage_status,
+               nationality,
+               population,
+               career,
+               qq_number,
+               email,
+               data_source,
+               self_intro,
+               audit_status,
+               audit_time,
+               reject_reason,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        FROM xccj_community.bus_owner
+        WHERE del_flag = '0'
+          AND account_id = #{accountId}
+    </select>
+
+    <select id="getHouseByRoomId" resultType="java.lang.Integer">
+        SELECT 1
+        FROM xccj_community.bus_house
+        WHERE del_flag = '0'
+          AND audit_status = '1'
+          AND room_id = #{roomId}
+    </select>
+
+    <update id="updateRoomById" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        update xccj_community.bus_room
+        <set>
+            <if test="houseAddress !=null and houseAddress != ''">
+                house_address = #{houseAddress},
+            </if>
+            <if test="roomType != null and roomType != ''">
+                room_attribute = #{roomType},
+            </if>
+            <if test="roomAttribute != null and roomAttribute != ''">
+                room_attribute = #{roomAttribute},
+            </if>
+            <if test="totalArea != null and totalArea != ''">
+                total_area = #{totalArea},
+            </if>
+            <if test="deliveryTime != null">
+                delivery_time=#{deliveryTime},
+            </if>
+<!--            <if test="ownerId != null">-->
+<!--                owner_id = #{ownerId},-->
+<!--            </if>-->
+            update_by= #{updateBy},
+            update_time = sysdate()
+        </set>
+        WHERE room_id = #{roomId} AND del_flag='0'
+    </update>
+
+    <!--通过主键修改数据-->
+    <update id="updateOwnerById" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        UPDATE xccj_community.bus_owner bus
+        <set>
+            <if test="communityId != null">
+                bus.community_id = #{communityId},
+            </if>
+            <if test="buildingId != null">
+                bus.building_id = #{buildingId},
+            </if>
+            <if test="unitId != null">
+                bus.unit_id = #{unitId},
+            </if>
+            <if test="roomId != null">
+                bus.room_id=#{roomId},
+            </if>
+            <if test="parentId != null">
+                bus.parent_id=#{parentId},
+            </if>
+            <if test="licenseUrl != null and licenseUrl!=''">
+                bus.license_url = #{licenseUrl},
+            </if>
+            <if test="ownerRelation != null and ownerRelation!=''">
+                bus.owner_relation = #{ownerRelation},
+            </if>
+            <if test="ownerName != null and ownerName!=''">
+                bus.owner_name = #{ownerName},
+            </if>
+            <if test="ownerPhone != null and ownerPhone!=''">
+                bus.owner_phone = #{ownerPhone},
+            </if>
+            <if test="gender != null and gender!=''">
+                bus.gender = #{gender},
+            </if>
+            <if test="cardType != null and cardType!=''">
+                bus.card_type = #{cardType},
+            </if>
+            <if test="cardNo != null and cardNo!=''">
+                bus.card_no = #{cardNo},
+            </if>
+            <if test="cardFont != null and cardFont!=''">
+                bus.card_font = #{cardFont},
+            </if>
+            <if test="cardBack != null and cardBack!=''">
+                bus.card_back = #{cardBack},
+            </if>
+            <if test="faceUrl != null and faceUrl!=''">
+                bus.face_url = #{faceUrl},
+            </if>
+            <if test="domicileAddress != null and domicileAddress!=''">
+                bus.domicile_address = #{domicileAddress},
+            </if>
+            <if test="politicsStatus != null and politicsStatus!=''">
+                bus.politics_status = #{politicsStatus},
+            </if>
+            <if test="nation != null and nation!=''">
+                bus.nation = #{nation},
+            </if>
+            <if test="nativePlace != null and nativePlace!=''">
+                bus.native_place = #{nativePlace},
+            </if>
+            <if test="religion != null and religion!=''">
+                bus.religion = #{religion},
+            </if>
+            <if test="eduLevel != null and eduLevel!=''">
+                bus.edu_level = #{eduLevel},
+            </if>
+            <if test="military != null and military!=''">
+                bus.military = #{military},
+            </if>
+            <if test="marriageStatus != null and marriageStatus!=''">
+                bus.marriage_status=#{marriageStatus},
+            </if>
+            <if test="nationality != null and nationality!=''">
+                bus.nationality = #{nationality},
+            </if>
+            <if test="population != null and population!=''">
+                bus.population = #{population},
+            </if>
+            <if test="career != null and career!=''">
+                bus.career = #{career},
+            </if>
+            <if test="qqNumber != null and qqNumber!=''">
+                bus.qq_number = #{qqNumber},
+            </if>
+            <if test="email != null and email!=''">
+                bus.email = #{email},
+            </if>
+            <if test="selfIntro != null and selfIntro!=''">
+                bus.self_intro = #{selfIntro},
+            </if>
+            <if test="auditStatus != null and auditStatus!=''">
+                bus.audit_status=#{auditStatus},
+            </if>
+            <if test="ownRemarks != null and ownRemarks!=''">
+                bus.own_remarks = #{ownRemarks},
+            </if>
+            bus.update_time = sysdate()
+        </set>
+        WHERE
+        bus.account_id = #{accountId}
+        AND bus.del_flag = '0'
+    </update>
+
+    <!--    已驳回状态修改-->
+    <update id="updateOwnerOverruledById" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        UPDATE xccj_community.bus_owner bus
+        <set>
+            <if test="communityId != null">
+                bus.community_id = #{communityId},
+            </if>
+            <if test="buildingId != null">
+                bus.building_id = #{buildingId},
+            </if>
+            <if test="unitId != null">
+                bus.unit_id = #{unitId},
+            </if>
+            <if test="roomId != null">
+                bus.room_id=#{roomId},
+            </if>
+            <if test="parentId != null">
+                bus.parent_id=#{parentId},
+            </if>
+            <if test="licenseUrl != null and licenseUrl!=''">
+                bus.license_url = #{licenseUrl},
+            </if>
+            <if test="ownerRelation != null and ownerRelation!=''">
+                bus.owner_relation = #{ownerRelation},
+            </if>
+            <if test="ownerName != null and ownerName!=''">
+                bus.owner_name = #{ownerName},
+            </if>
+            <if test="ownerPhone != null and ownerPhone!=''">
+                bus.owner_phone = #{ownerPhone},
+            </if>
+            <if test="gender != null and gender!=''">
+                bus.gender = #{gender},
+            </if>
+            <if test="cardType != null and cardType!=''">
+                bus.card_type = #{cardType},
+            </if>
+            <if test="cardNo != null and cardNo!=''">
+                bus.card_no = #{cardNo},
+            </if>
+            <if test="cardFont != null and cardFont!=''">
+                bus.card_font = #{cardFont},
+            </if>
+            <if test="cardBack != null and cardBack!=''">
+                bus.card_back = #{cardBack},
+            </if>
+            <if test="faceUrl != null and faceUrl!=''">
+                bus.face_url = #{faceUrl},
+            </if>
+            <if test="domicileAddress != null and domicileAddress!=''">
+                bus.domicile_address = #{domicileAddress},
+            </if>
+            <if test="politicsStatus != null and politicsStatus!=''">
+                bus.politics_status = #{politicsStatus},
+            </if>
+            <if test="nation != null and nation!=''">
+                bus.nation = #{nation},
+            </if>
+            <if test="nativePlace != null and nativePlace!=''">
+                bus.native_place = #{nativePlace},
+            </if>
+            <if test="religion != null and religion!=''">
+                bus.religion = #{religion},
+            </if>
+            <if test="eduLevel != null and eduLevel!=''">
+                bus.edu_level = #{eduLevel},
+            </if>
+            <if test="military != null and military!=''">
+                bus.military = #{military},
+            </if>
+            <if test="marriageStatus != null and marriageStatus!=''">
+                bus.marriage_status=#{marriageStatus},
+            </if>
+            <if test="nationality != null and nationality!=''">
+                bus.nationality = #{nationality},
+            </if>
+            <if test="population != null and population!=''">
+                bus.population = #{population},
+            </if>
+            <if test="career != null and career!=''">
+                bus.career = #{career},
+            </if>
+            <if test="qqNumber != null and qqNumber!=''">
+                bus.qq_number = #{qqNumber},
+            </if>
+            <if test="email != null and email!=''">
+                bus.email = #{email},
+            </if>
+            <if test="selfIntro != null and selfIntro!=''">
+                bus.self_intro = #{selfIntro},
+            </if>
+            <if test="auditStatus != null and auditStatus!=''">
+                bus.audit_status=#{auditStatus},
+            </if>
+            <if test="ownRemarks != null and ownRemarks!=''">
+                bus.own_remarks = #{ownRemarks},
+            </if>
+            bus.audit_time = null,
+            bus.reject_reason = null,
+            bus.update_time = sysdate()
+        </set>
+        WHERE
+        bus.account_id = #{accountId}
+        AND bus.del_flag = '0'
+    </update>
+
+    <!--  修改房产信息  -->
+    <update id="updateHouseByOwnerId" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        UPDATE xccj_community.bus_house
+        SET
+        <if test="communityId != null">
+            community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            room_id = #{roomId},
+        </if>
+        <if test="licenseUrl != null and licenseUrl!=''">
+            license_url = #{licenseUrl},
+        </if>
+        audit_status = #{auditStatus},
+        audit_time = null,
+        reject_reason = '',
+        update_time = now()
+        WHERE owner_id = #{ownerId} AND audit_status = '2'
+        AND del_flag='0'
+    </update>
+
+    <!--通过主键修改数据-->
+    <update id="updateOwnerByAccountId" parameterType="com.wr.remote.estate.manage.contract.Owner">
+        UPDATE xccj_community.bus_owner own
+        SET
+        <if test="communityId != null">
+            own.community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            own.building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            own.unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            own.room_id = #{roomId},
+        </if>
+        <if test="parentId != null">
+            own.parent_id = #{parentId},
+        </if>
+        <if test="licenseUrl != null and licenseUrl != ''">
+            own.license_url = #{licenseUrl},
+        </if>
+        <if test="ownerRelation != null and ownerRelation != ''">
+            own.owner_relation = #{ownerRelation},
+        </if>
+<!--        <if test="accountName != null and accountName != ''">-->
+<!--            own.owner_name = #{accountName},-->
+<!--        </if>-->
+        <if test="loginName != null and loginName != ''">
+            own.owner_phone = #{loginName},
+        </if>
+        <if test="gender != null and gender != ''">
+            own.gender = #{gender},
+        </if>
+        <if test="cardType != null and cardType != ''">
+            own.card_type = #{cardType},
+        </if>
+        <if test="cardNo != null and cardNo != ''">
+            own.card_no = #{cardNo},
+        </if>
+        <if test="cardFont != null and cardFont != ''">
+            own.card_font = #{cardFont},
+        </if>
+        <if test="cardBack != null and cardBack != ''">
+            own.card_back = #{cardBack},
+        </if>
+        <if test="faceUrl != null and faceUrl != ''">
+            own.face_url = #{faceUrl},
+        </if>
+        <if test="domicileAddress != null and domicileAddress != ''">
+            own.domicile_address = #{domicileAddress},
+        </if>
+        <if test="politicsStatus != null and politicsStatus != ''">
+            own.politics_status = #{politicsStatus},
+        </if>
+        <if test="nation != null and nation != ''">
+            own.nation = #{nation},
+        </if>
+        <if test="nativePlace != null and nativePlace != ''">
+            own.native_place = #{nativePlace},
+        </if>
+        <if test="religion != null and religion != ''">
+            own.religion = #{religion},
+        </if>
+        <if test="eduLevel != null and eduLevel != ''">
+            own.edu_level = #{eduLevel},
+        </if>
+        <if test="military != null and military != ''">
+            own.military = #{military},
+        </if>
+        <if test="marriageStatus != null and marriageStatus != ''">
+            own.marriage_status = #{marriageStatus},
+        </if>
+        <if test="nationality != null and nationality != ''">
+            own.nationality = #{nationality},
+        </if>
+        <if test="population != null and population != ''">
+            own.population = #{population},
+        </if>
+        <if test="career != null and career != ''">
+            own.career = #{career},
+        </if>
+        <if test="qqNumber != null and qqNumber != ''">
+            own.qq_number = #{qqNumber},
+        </if>
+        <if test="email != null and email != ''">
+            own.email = #{email},
+        </if>
+        <if test="selfIntro != null and selfIntro != ''">
+            own.self_intro = #{selfIntro},
+        </if>
+        <if test="ownRemarks != null and ownRemarks != ''">
+            own.own_remarks = #{ownRemarks},
+        </if>
+        own.update_time = now()
+        WHERE
+        own.del_flag = '0'
+        AND own.account_id = #{accountId}
+    </update>
+    <update id="updateAccountByAccountId" parameterType="com.wr.remote.estate.manage.contract.Owner">
+        UPDATE
+        xccj_community.bus_account acc
+        SET
+        <if test="communityId != null">
+            acc.community_id = #{communityId},
+        </if>
+        <if test="accountName != null and accountName != ''">
+            acc.account_name = #{accountName},
+        </if>
+        <if test="loginName != null and loginName != ''">
+            acc.login_name = #{loginName},
+        </if>
+        <if test="accountNick != null and accountNick != ''">
+            acc.account_nick = #{accountNick},
+        </if>
+        <if test="avatar != null and avatar != ''">
+            acc.avatar = #{avatar},
+        </if>
+        <if test="accountType != null and accountType != ''">
+            acc.account_type = #{accountType},
+        </if>
+        acc.update_time = now()
+        WHERE
+        acc.del_flag = '0'
+        AND acc.account_id = #{accountId}
+    </update>
+    <update id="updateVisitorByAccountId" parameterType="com.wr.remote.estate.manage.contract.Owner">
+        UPDATE
+        xccj_community.bus_visitor vis
+        SET
+        <if test="communityId != null">
+            vis.community_id = #{communityId},
+        </if>
+        <if test="accountName != null and accountName != ''">
+            vis.visitor_name = #{accountName},
+        </if>
+        <if test="loginName != null and loginName != ''">
+            vis.visitor_phone = #{loginName},
+        </if>
+        <if test="cardType != null and cardType != ''">
+            vis.card_type = #{cardType},
+        </if>
+        <if test="cardNo != null and cardNo != ''">
+            vis.card_no = #{cardNo},
+        </if>
+        <if test="gender != null and gender != ''">
+            vis.gender = #{gender},
+        </if>
+        vis.update_time = now()
+        WHERE
+        vis.del_flag = '0'
+        AND vis.account_id = #{accountId}
+    </update>
+
+    <!--通过主键修改数据-->
+    <update id="updateOwnTable" parameterType="com.wr.remote.estate.manage.contract.Owner">
+        UPDATE xccj_community.bus_owner own
+        SET
+        <if test="communityId != null">
+            own.community_id = #{communityId},
+        </if>
+        <if test="buildingId != null">
+            own.building_id = #{buildingId},
+        </if>
+        <if test="unitId != null">
+            own.unit_id = #{unitId},
+        </if>
+        <if test="roomId != null">
+            own.room_id = #{roomId},
+        </if>
+        own.update_time = now()
+        WHERE
+        own.del_flag = '0'
+        AND own.owner_id = #{ownerId}
+    </update>
+
+    <update id="updateAccountByMyInfo" parameterType="com.wr.api.owner.entity.myinfo.Myinfo">
+        UPDATE xccj_community.bus_account SET community_id = #{communityId} WHERE account_id = #{accountId}
+    </update>
+
+    <update id="updateAccountByOwner" parameterType="com.wr.remote.estate.manage.contract.Owner">
+        UPDATE xccj_community.bus_account SET community_id = #{communityId} WHERE account_id = #{accountId}
+    </update>
+
+    <!--根据条件获取业主车辆列表信息-->
+    <select id="selectCarByPlateNo" parameterType="com.wr.api.owner.entity.myinfo.Vehicle" resultType="Integer">
+        SELECT COUNT(1)
+        FROM xccj_community.bus_vehicle
+        WHERE plate_no = #{plateNo}
+          AND community_id = #{communityId}
+          AND del_flag = '0'
+    </select>
+
+    <select id="houseExistSubmit" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_community.`bus_house`
+        WHERE del_flag = '0'
+          AND room_id = #{roomId}
+          AND audit_status = '0'
+    </select>
+</mapper>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.ReportingWarranty.mapper.SystemReportingWarrantyMapper">
+    <sql id="sql">
+        SELECT brw.id             as "id",
+               brw.community_id   AS "communityId",
+               brw.`no`           AS "no",
+               brw.account_id     AS "accountId",
+               brw.`name`         AS "name",
+               brw.phone          AS "phone",
+               brw.report_name    AS "reportName",
+               brw.report_type    AS "reportType",
+               brw.report_status  AS "reportStatus",
+               brw.report_address AS "reportAddress",
+               brw.report_remark  AS "reportRemark",
+               brw.report_image   AS "reportImage",
+               brw.order_feedback AS "orderFeedback",
+               brw.order_image    AS "orderImage",
+               su.nick_name       AS "executorBy",
+               su.phonenumber     as "executorPhone",
+               brw.evaluate       AS "evaluate",
+               brw.order_end_time AS "orderEndTime",
+               brw.create_by      AS "createBy",
+               brw.create_time    AS createTime,
+               brw.update_by      AS "updateBy",
+               brw.update_time    AS "updateTime",
+               brw.del_flag       AS "delFlag"
+        FROM xccj_community.bus_reporting_warranty brw
+                 LEFt JOIN xccj_estate_sys.sys_user su on su.user_name = brw.executor_by
+    </sql>
+
+    <!-- 报事报修 -->
+    <select id="getList" resultType="com.wr.system.ReportingWarranty.domain.ReportingWarranty">
+        <include refid="sql">
+        </include>
+        where brw.del_flag='0' and brw.community_id=#{communityId} and brw.account_id=#{accountId}
+        <if test="no !=null and no !=''">
+            and brw.`no` like CONCAT('%',#{no},'%')
+        </if>
+        <if test="reportType !=null and reportType !=''">
+            and brw.report_type=#{reportType}
+        </if>
+        <if test="reportStatus !=null and reportStatus !=''">
+            and brw.report_status=#{reportStatus}
+        </if>
+        <if test="searchValue !=null and searchValue !=''">
+            and (brw.`name` like CONCAT('%',#{searchValue},'%') or brw.`phone` like CONCAT('%',#{searchValue},'%') or
+            su.nick_name like CONCAT('%',#{searchValue},'%'))
+        </if>
+        order by brw.create_time desc,brw.report_status asc
+    </select>
+
+    <select id="get" resultType="com.wr.system.ReportingWarranty.domain.ReportingWarranty">
+        <include refid="sql">
+        </include>
+        where brw.del_flag='0' and brw.id=#{id}
+    </select>
+
+    <select id="getAllCommunity" resultType="java.util.Map">
+        select bc.community_id as communityId, bc.community_name as communityName
+        from xccj_community.bus_community bc
+        where bc.del_flag = '0'
+    </select>
+    <select id="getCount" resultType="com.wr.system.business.domain.HomeScoreVO">
+        SELECT IFNULL(SUM(CASE brw.evaluate WHEN 1 THEN 1 ELSE 0 END), 0) AS oneStar,
+               IFNULL(SUM(CASE brw.evaluate WHEN 2 THEN 1 ELSE 0 END), 0) AS twoStar,
+               IFNULL(SUM(CASE brw.evaluate WHEN 3 THEN 1 ELSE 0 END), 0) AS threeStar,
+               IFNULL(SUM(CASE brw.evaluate WHEN 4 THEN 1 ELSE 0 END), 0) AS fourStar,
+               IFNULL(SUM(CASE brw.evaluate WHEN 5 THEN 1 ELSE 0 END), 0) AS fiveStar
+        FROM xccj_community.bus_reporting_warranty brw
+        WHERE brw.del_flag = '0'
+          AND brw.community_id = #{communityId}
+    </select>
+
+    <select id="getUserNumListDay" resultType="Map">
+        SELECT DATE(bde.event_time) AS event_date,
+        DAY(bde.event_time) AS event_day,
+        COUNT(*) AS daily_traffic
+        FROM xccj_device.bus_door_event bde
+        LEFT JOIN xccj_device.bus_door bd on bd.index_code = bde.door_index_code
+        WHERE bd.community_id = #{communityId}
+        and bde.event_type in
+        <foreach collection="eventTypeList" item="eventType" open="(" separator="," close=")">
+            #{eventType}
+        </foreach>
+        AND YEAR(bde.event_time) = #{startTime}
+        AND MONTH(bde.event_time) = #{endTime}
+        GROUP BY event_date, event_day
+        ORDER BY event_date, event_day;
+    </select>
+
+    <select id="getUserNumListMonth" resultType="Map">
+        SELECT YEAR(bde.event_time) AS event_year,
+        MONTH(bde.event_time) AS event_month,
+        COUNT(*) AS monthly_traffic
+        FROM xccj_device.bus_door_event bde
+        LEFT JOIN xccj_device.bus_door bd on bd.index_code = bde.door_index_code
+        WHERE bd.community_id = #{communityId}
+        and bde.event_type in
+        <foreach collection="eventTypeList" item="eventType" open="(" separator="," close=")">
+            #{eventType}
+        </foreach>
+        AND YEAR(bde.event_time) = #{startTime}
+        GROUP BY event_year, event_month
+        ORDER BY event_year, event_month
+    </select>
+    <select id="getVehicleNumListDay" resultType="Map">
+        SELECT DATE(cross_time) AS event_date,
+            DAY(cross_time) AS event_day,
+            COUNT(*) AS daily_traffic
+        FROM xccj_device.bus_cross_record
+        WHERE community_id = #{communityId}
+          AND YEAR (cross_time) = #{startTime}
+          AND MONTH (cross_time) = #{endTime}
+        GROUP BY event_date, event_day
+        ORDER BY event_date, event_day
+    </select>
+    <select id="getVehicleNumListMonth" resultType="Map">
+        SELECT YEAR(cross_time) AS event_date,
+            MONTH(cross_time) AS event_day,
+            COUNT(*) AS daily_traffic
+        FROM xccj_device.bus_cross_record
+        WHERE community_id = #{communityId}
+          AND YEAR (cross_time) = #{startTime}
+        GROUP BY event_date, event_day
+        ORDER BY event_date, event_day
+    </select>
+
+    <select id="findListBusDoor" parameterType="Long" resultType="Map">
+        SELECT door_name    AS doorName,
+               index_code      AS doorNo,
+               case online
+                   when 1 then '开门状态'
+                   when 2 then '关门状态'
+                   when 3 then '离线状态'
+                   when 4 then '常闭'
+                   when 5 then '反锁'
+                   when 6 then '常开'
+                   when 7 then '常开'
+                   when 8 then '常闭'
+                   else '未检测'
+                   end      AS online,
+               manufacturer AS manufacturer,
+               CASE inout_type
+                   when 0 then '进'
+                   when 1 then '出'
+                   else '未知'
+                   end   AS inoutType,
+               channel_type AS channelType,
+               address      AS address,
+            '门禁点信息' type
+        FROM xccj_device.bus_door
+        WHERE community_id = #{communityId}
+          AND   del_flag  =  '0'
+        UNION ALL
+        SELECT access_name    AS doorName,
+               access_id      AS doorNo,
+               case online
+                   when 0 then '离线'
+                   when 1 then '在线'
+                   else '未检测'
+                   end      AS online,
+               manufacturer AS manufacturer,
+            CASE inout_type
+                   when 0 then '进'
+                   when 1 then '出'
+                   else '未知'
+                   end   AS inoutType,
+               treaty_type AS channelType,
+               address      AS address,
+               '设备门禁信息' type
+        FROM xccj_device.bus_access
+        WHERE community_id = #{communityId}
+          AND   del_flag  =  '0'
+        UNION ALL
+        SELECT barrier_name    AS doorName,
+               index_code      AS doorNo,
+               '未检测' online,
+               manufacturer AS manufacturer,
+               '未知'   AS inoutType,
+               treaty_type AS channelType,
+               address      AS address,
+               '道闸' type
+        FROM xccj_device.bus_barrier
+        WHERE community_id = #{communityId}
+          AND   del_flag  =  '0'
+        UNION ALL
+        SELECT camera_name    AS doorName,
+               index_code      AS doorNo,
+               case online
+                   when 0 then '离线'
+                   when 1 then '在线'
+                   else '未检测'
+                   end      AS online,
+            IFNULL(manufacturer,'hikvision') manufacturer,
+               CASE camera_type
+                   when 0 then '枪机'
+                   when 1 then '半球'
+                   when 2 then '快球'
+                   when 3 then '带云台枪机'
+                   else '未知'
+                   end   AS inoutType,
+               treaty_type AS channelType,
+               address      AS address,
+               '监控点信息' type
+        FROM xccj_device.bus_camera
+        WHERE community_id = #{communityId}
+          AND   del_flag  =  '0'
+        UNION ALL
+        SELECT visual_name    AS doorName,
+               index_code      AS doorNo,
+               case online
+                   when 0 then '离线'
+                   when 1 then '在线'
+                   else '未检测'
+                   end      AS online,
+               manufacturer AS manufacturer,
+               '可视对讲设备'   AS inoutType,
+               treaty_type AS channelType,
+               address      AS address,
+               '可视对讲设备' type
+        FROM xccj_device.bus_visual
+        WHERE community_id = #{communityId}
+          AND   del_flag  =  '0'
+    </select>
+</mapper>

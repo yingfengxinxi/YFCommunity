@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.estate.EstateRoleMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.EstateRole">
+        select
+        estate_role_id as "estateRoleId",
+        estate_role_name as "estateRoleName",
+        estate_id as "estateId"
+        from xccj_community.bus_estate_role
+        <where>
+            estate_id=#{estateId}
+            <if test="estateRoleName!=null and estateRoleName !=''">
+                AND estate_role_name like CONCAT('%',#{estateRoleName},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getById" resultType="com.wr.remote.domain.EstateRole">
+        select estate_role_id   as "estateRoleId",
+               estate_role_name as "estateRoleName"
+        from xccj_community.bus_estate_role
+        where estate_role_id = #{estateRoleId}
+    </select>
+
+    <select id="getByNameCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_estate_role
+        where
+        estate_role_name=#{estateRoleName}
+        AND estate_id=#{estateId}
+        <if test="estateRoleId!=null and estateRoleId">
+            AND estate_role_id != #{estateRoleId}
+        </if>
+
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="estateRoleId">
+        insert into xccj_community.bus_estate_role(estate_id, estate_role_name)
+        values (#{estateId}, #{estateRoleName})
+    </insert>
+    <update id="update">
+        update xccj_community.bus_estate_role
+        set estate_role_name=#{estateRoleName}
+        where estate_role_id = #{estateRoleId}
+    </update>
+
+    <delete id="delete">
+        delete
+        from xccj_community.bus_estate_role
+        where estate_role_id = #{estateRoleId}
+    </delete>
+</mapper>

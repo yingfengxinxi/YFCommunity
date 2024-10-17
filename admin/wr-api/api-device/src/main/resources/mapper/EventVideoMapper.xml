@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.device.mapper.EventVideoMapper">
+
+    <select id="selectCommunityIdByIndexCode" resultType="java.lang.Long">
+        SELECT community_id FROM xccj_device.bus_camera WHERE index_code = #{indexCode}
+    </select>
+
+    <insert id="insertVideoData" useGeneratedKeys="true" keyProperty="dataId">
+        INSERT INTO xccj_device.bus_video_data(
+            warn_id, data_type, recv_time, send_time, date_time,
+            ip_address, port_no, channel_id, event_type, event_description, del_flag
+        ) VALUES (
+            #{warnId}, #{dataType,jdbcType = VARCHAR}, #{recvTime,jdbcType = VARCHAR},
+            #{sendTime,jdbcType = VARCHAR}, #{dateTime,jdbcType = VARCHAR},
+            #{ipAddress,jdbcType = VARCHAR}, #{portNo,jdbcType = VARCHAR},
+            #{channelId,jdbcType = VARCHAR}, #{eventType,jdbcType = VARCHAR},
+            #{eventDescription,jdbcType = VARCHAR}, '0'
+        )
+    </insert>
+
+    <insert id="batchInsertVideoResult">
+        INSERT INTO xccj_device.bus_video_result(
+            data_id, device_index_code, camera_index_code,
+            channel_name, camera_address, longitude, latitude,
+            image_server_code, image_url, del_flag
+        ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{item.dataId},#{item.deviceIndexCode,jdbcType = VARCHAR},
+            #{item.cameraIndexCode,jdbcType = VARCHAR}, #{item.channelName,jdbcType = VARCHAR},
+            #{item.cameraAddress,jdbcType = VARCHAR}, #{item.longitude,jdbcType = VARCHAR},
+            #{item.latitude,jdbcType = VARCHAR}, #{item.imageServerCode,jdbcType = VARCHAR},
+            #{item.imageUrl,jdbcType = VARCHAR}, '0'
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertSmokeFire">
+        INSERT INTO xccj_device.bus_smoke_fire(
+        data_id, image_url, visible_pic_url, image_server_code, device_index_code,
+        camera_index_code, camera_address, fire_region_width, fire_region_height,
+        fire_highest_x, fire_highest_y, fire_elevation, fire_azimuth, fire_zoom,
+        temperature_unit, fire_max_temperature, target_distance,
+        fire_scan_wait_mode, smoke_region_width, smoke_region_height,
+        smoke_elevation, smoke_azimuth, smoke_zoom, del_flag
+        ) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (
+            #{dataId}, #{item.imageUrl}, #{item.visiblePicUrl}, #{item.imageServerCode,jdbcType = VARCHAR},
+            #{item.deviceIndexCode}, #{item.cameraIndexCode}, #{item.cameraAddress,jdbcType = VARCHAR},
+            #{item.fireRegionWidth,jdbcType = VARCHAR}, #{item.fireRegionHeight,jdbcType = VARCHAR},
+            #{item.fireHighestX,jdbcType = VARCHAR}, #{item.fireHighestY,jdbcType = VARCHAR},
+            #{item.fireElevation,jdbcType = VARCHAR}, #{item.fireAzimuth,jdbcType = VARCHAR},
+            #{item.fireZoom,jdbcType = VARCHAR}, #{item.temperatureUnit,jdbcType = VARCHAR},
+            #{item.fireMaxTemperature,jdbcType = VARCHAR}, #{item.targetDistance,jdbcType = VARCHAR},
+            #{item.fireScanWaitMode,jdbcType = VARCHAR}, #{item.smokeRegionWidth,jdbcType = VARCHAR},
+            #{item.smokeRegionHeight,jdbcType = VARCHAR}, #{item.smokeElevation,jdbcType = VARCHAR},
+            #{item.smokeAzimuth,jdbcType = VARCHAR}, #{item.smokeZoom,jdbcType = VARCHAR}, '0'
+            )
+        </foreach>
+    </insert>
+
+</mapper>

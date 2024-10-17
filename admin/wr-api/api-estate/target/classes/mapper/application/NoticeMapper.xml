@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.NoticeMapper">
+
+    <resultMap type="com.wr.api.estate.entity.vo.application.NoticeVO" id="noticeVOMap">
+        <result property="id" column="notice_id" jdbcType="INTEGER"/>
+    </resultMap>
+    <update id="increaseReadNumByNoticeId">
+        update xccj_community.bus_notice
+        set read_num=read_num + 1
+        where notice_id = #{id}
+    </update>
+    <select id="festivalDetail" resultType="com.wr.remote.domain.NoticeFestival">
+        SELECT bnf.notice_title AS "noticeTitle",
+               bnf.content      AS "content",
+               bnf.update_time AS 'createTime'
+        FROM xccj_community.bus_notice_festival bnf
+        WHERE bnf.`del_flag` = '0'
+          and bnf.id = #{id}
+    </select>
+
+    <select id="searchByCommunityId" resultType="com.wr.api.estate.entity.vo.application.NoticeVO">
+        SELECT notice_id             AS "noticeId",
+               notice_title          AS "noticeTitle",
+               update_time           AS "createTime",
+               bn.brief_introduction AS "briefIntroduction"
+        FROM xccj_community.bus_notice bn
+        WHERE estate_id = #{estateId}
+          AND `community_id` = #{communityId}
+          AND del_flag = '0'
+          AND notice_status = '0'
+        ORDER BY create_time DESC
+    </select>
+    <select id="detailByNoticeId" resultType="com.wr.api.estate.entity.vo.application.NoticeVO">
+        SELECT bn.notice_title AS "noticeTitle",
+               bn.content      AS "content",
+               bn.read_num     AS "readNum",
+               su.nick_name    AS "createBy",
+               bn.update_time AS 'createTime'
+        FROM xccj_community.bus_notice bn
+                 LEFT JOIN xccj_estate_sys.sys_user su ON bn.create_by = su.user_name
+        WHERE bn.notice_id =#{noticeId}
+    </select>
+
+
+    <select id="getNoticeList" resultType="com.wr.api.estate.entity.vo.NoticeListVo">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        bn.`notice_id` AS `id`,
+        bn.`notice_title` AS `title`,
+        bn.`brief_introduction` AS `briefIntroduction`,
+        bn.`create_time` AS `createTime`,
+        bn.`estate_id` AS `estateId`,
+        bn.`community_id` AS `communityId`,
+        '0' AS `flag`,
+        '' AS `userId`
+        FROM
+        xccj_community.`bus_notice` bn
+        WHERE
+        bn.`del_flag` = '0'
+        AND bn.`notice_status` = '0'
+        AND bn.`range`!='2'
+        AND bn.community_id = #{communityId}
+        ORDER BY
+        bn.`create_time` DESC
+        LIMIT 1
+        ) a UNION ALL
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        `bi`.`invest_id` AS `id`,
+        `bi`.`invest_title` AS `title`,
+        `bi`.`brief_introduction` AS `briefIntroduction`,
+        `bi`.`create_time` AS `createTime`,
+        `bi`.`estate_id` AS `estateId`,
+        `bi`.`community_id` AS `communityId`,
+        '1' AS `flag`,
+        '' AS `userId`
+        FROM
+        xccj_community.`bus_invest` `bi`
+        WHERE
+        `bi`.`del_flag` = '0'
+        AND `bi`.`invest_status` = '0'
+        AND bi.community_id = #{communityId}
+        ORDER BY
+        `bi`.`create_time` DESC
+        LIMIT 1
+        ) b UNION ALL
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        `bp`.`prevent_id` AS `id`,
+        `bp`.`prevent_title` AS `title`,
+        `bp`.`brief_introduction` AS `briefIntroduction`,
+        `bp`.`create_time` AS `createTime`,
+        `bp`.`estate_id` AS `estateId`,
+        `bp`.`community_id` AS `communityId`,
+        '2' AS `flag`,
+        '' AS `userId`
+        FROM
+        xccj_govern.`bus_prevent` `bp`
+        WHERE
+        `bp`.`del_flag` = '0'
+        AND bp.community_id = #{communityId}
+        ORDER BY
+        `bp`.`create_time` DESC
+        LIMIT 1
+        ) c UNION ALL
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        bnf.`id` AS `id`,
+        bnf.`notice_title` AS `title`,
+        '' AS `briefIntroduction`,
+        bnf.`create_time` AS `createTime`,
+        NULL AS `estateId`,
+        bnf.`community_id` AS `communityId`,
+        '3' AS `flag`,
+        bnf.`user_id` AS `userId`
+        FROM
+            xccj_community.`bus_notice_festival` bnf
+        WHERE
+        bnf.`del_flag` = '0'
+        AND bnf.`user_type` = '0'
+        AND bnf.community_id = #{communityId}
+        AND bnf.user_id = #{userId}
+        ORDER BY
+        bnf.`create_time` DESC
+        LIMIT 1
+        )d
+    </select>
+
+    <select id="getUserReadCount" resultType="Integer">
+        SELECT IFNULL(count(1),0) as "count"
+        from xccj_community.bus_notice_read bnd
+        where user_id = #{userId}
+          and type = #{type} and community_id=#{communityId}
+    </select>
+
+    <!--    信息发布-->
+    <select id="getInvestCount" resultType="Integer">
+        SELECT IFNULL(count(1),0) AS "count"
+        FROM xccj_community.bus_invest `bi`
+        WHERE `bi`.`del_flag` = '0'
+          AND `bi`.`invest_status` = '0'
+          AND bi.estate_id = #{estateId} and bi.community_id=#{communityId}
+    </select>
+
+    <!--    通知公告数量-->
+    <select id="getNoticeCount" resultType="Integer">
+        SELECT IFNULL(count(1),0)
+        FROM xccj_community.bus_notice bn
+        WHERE bn.`del_flag` = '0'
+          AND bn.`notice_status` = '0'
+          AND bn.`range` != '2'
+          AND bn.estate_id = #{estateId}  and bn.community_id=#{communityId}
+    </select>
+
+
+    <!--    节日通知公告数量-->
+    <select id="getNoticeFestivalCount" resultType="Integer">
+        SELECT IFNULL(count(1), 0)
+        FROM xccj_community.bus_notice_festival bnf
+        WHERE bnf.`del_flag` = '0'
+          AND bnf.user_id = #{userId}
+          AND bnf.community_id = #{communityId}
+    </select>
+
+    <!--    防控信息数量-->
+    <select id="getPreventCount" resultType="Integer">
+        select IFNULL(count(1),0)
+        from xccj_govern.bus_prevent `bp`
+        where `bp`.`del_flag` = '0'
+          and estate_id = #{estateId} and `bp`.community_id=#{communityId}
+    </select>
+
+    <select id="getByUserIdTypeNoticeRead" resultType="Integer">
+        SELECT count(1)
+        from xccj_community.bus_notice_read
+        where user_id = #{userId}
+          and type = #{type}
+          and notice_id = #{id}
+          and community_id=#{communityId}
+    </select>
+
+    <insert id="insertNoticeRead">
+        insert into xccj_community.bus_notice_read (community_id,notice_id, user_id, type, flag, create_time, del_flag)
+        values (#{communityId},#{noticeId}, #{userId}, #{type}, #{flag}, NOW(), '0')
+    </insert>
+</mapper>
+

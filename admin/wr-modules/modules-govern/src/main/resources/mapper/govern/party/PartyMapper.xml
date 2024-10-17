@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.party.PartyMapper">
+
+    <sql id="partyColumns">
+        bp
+        .
+        party_id
+        , bp.party_name,bc.community_id, bc.community_name, bp.top_party, bp.top_id, bp.parent_id, bp.logo_url, bp.party_status, bp.party_type,
+        bp.unit_name, bp.unit_type, bp.unit_case, bp.content, bp.admin_id, bp.create_time, bp.create_by, bp.update_time, bp.update_by, bp.del_flag,
+        ba.account_name AS `adminName`, bp.admin_id
+    </sql>
+    <select id="getPartyList" resultType="com.wr.remote.govern.party.vo.PartyVO">
+        SELECT
+        <include refid="partyColumns"/>
+        FROM
+        xccj_govern.`bus_party` bp
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bp.community_id
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bp.admin_id
+        WHERE bp.del_flag = '0'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != communityId and '' != communityId">
+            AND bp.community_id = #{communityId}
+        </if>
+        <if test="null != partyName and '' != partyName">
+            AND bp.party_name like concat ('%',#{partyName},'%')
+        </if>
+        <if test="null != partyStatus and '' != partyStatus">
+            AND bp.party_status = #{partyStatus}
+        </if>
+        ORDER BY bp.create_time DESC
+    </select>
+    <select id="getPartyById" resultType="com.wr.remote.govern.party.vo.PartyVO">
+        SELECT
+        <include refid="partyColumns"/>
+        FROM
+        xccj_govern.`bus_party` bp
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bp.community_id
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bp.admin_id
+        WHERE bp.del_flag = '0' AND bp.party_id = #{partyId}
+    </select>
+    <select id="checkNameUnique" resultType="com.wr.remote.govern.party.Party">
+        select
+        <include refid="partyColumns"/>
+        FROM
+        xccj_govern.`bus_party` bp
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bp.community_id
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bp.admin_id
+        WHERE bp.del_flag = '0' AND bp.top_id = '0'
+        <if test="null != partyId and '' != partyId">
+            AND bp.party_id != #{partyId}
+        </if>
+        <if test="null != estateId">
+            AND bp.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+        AND bp.party_name = #{partyName}
+    </select>
+    <select id="getTopPartyAll" resultType="com.wr.remote.govern.party.vo.PartyVO">
+        select
+        <include refid="partyColumns"/>
+        FROM
+        xccj_govern.`bus_party` bp
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bp.community_id
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bp.admin_id
+        WHERE bp.del_flag = '0' AND bp.top_id = '0'
+        <if test="null != estateId">
+            AND bp.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+    </select>
+    <select id="getMemberAll" resultType="com.wr.remote.govern.party.vo.PartyVO">
+        SELECT ba.account_id   AS `adminId`,
+               ba.account_name AS `adminName`
+        FROM xccj_govern.`bus_member` bm
+                 LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bm.account_id
+        WHERE bm.del_flag = '0'
+          AND audit_status = '1'
+          AND ba.account_id IS NOT NULL
+        <if test="null != estateId">
+            AND bm.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+    </select>
+    <select id="getCommunityName" resultType="java.lang.String">
+        SELECT community_name
+        FROM xccj_community.`bus_community`
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+    <select id="getChilds" resultType="java.lang.Integer">
+        SELECT COUNt(1)
+        FROM xccj_govern.bus_party
+        WHERE del_flag = '0'
+          AND parent_id = #{partyId}
+    </select>
+    <select id="getParentPartyAll" resultType="com.wr.remote.govern.party.vo.PartyVO">
+        select
+        <include refid="partyColumns"/>
+        FROM
+        xccj_govern.`bus_party` bp
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bp.community_id
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bp.admin_id
+        WHERE bp.del_flag = '0'
+        <if test="null != estateId">
+            AND bp.community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+    </select>
+    <insert id="addParty">
+        INSERT INTO xccj_govern.bus_party (top_party,
+        <if test="null != topId and '' != topId">
+            top_id,
+        </if>
+        parent_id,party_name,party_status,
+        <if test="null != adminId and '' != adminId">
+            admin_id,
+        </if>
+        party_type,community_id,unit_name,
+        unit_type,unit_case,content,logo_url,create_time,create_by,update_time,update_by)
+        VALUES(#{topParty},
+        <if test="null != topId and '' != topId">
+            #{topId},
+        </if>
+        IFNULL(#{parentId}, 0),#{partyName},#{partyStatus},
+        <if test="null != adminId and '' != adminId">
+            #{adminId},
+        </if>
+        #{partyType},#{communityId},
+        #{unitName},#{unitType},#{unitCase},#{content},#{logoUrl},sysdate(),#{createBy}, sysdate(), #{updateBy})
+    </insert>
+    <update id="upParty">
+        UPDATE xccj_govern.bus_party
+        SET top_party = #{topParty},
+        <if test="null != topId and '' != topId">
+            top_id = #{topId},
+        </if>
+        parent_id = #{parentId},
+        party_name = #{partyName},
+        party_status = #{partyStatus},
+        <if test="null != adminId and '' != adminId">
+            admin_id = #{adminId},
+        </if>
+        party_type = #{partyType},
+        community_id = #{communityId},
+        unit_name = #{unitName},
+        unit_type = #{unitType},
+        unit_case = #{unitCase},
+        content = #{content},
+        logo_url = #{logoUrl},
+        update_time = sysdate(),
+        update_by = #{updateBy}
+        WHERE party_id = #{partyId}
+    </update>
+    <delete id="delParty">
+        UPDATE xccj_govern.bus_party
+        SET del_flag = '1'
+        WHERE party_id = #{partyId}
+    </delete>
+</mapper>

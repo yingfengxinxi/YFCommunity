@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.CloudAccessMapper">
+    <sql id="cloudColumns">
+        dbc.access_id, dbc.access_name, dbc.access_serial, dbc.access_ip, dbc.access_mac, dbc.access_ver,
+        dbc.reader_in, dbc.reader_out, dbc.community_id, dbc.install_location, dbc.device_qr, dbc.manufacturer,
+        dbc.create_by, dbc.create_time, dbc.update_by, dbc.update_time, dbc.del_flag
+    </sql>
+
+    <select id="selectCloudAccessList" resultType="com.wr.remote.aiot.CloudAccess">
+        SELECT
+        ddi.door_name AS "doorInName", ddo.door_name AS "doorOutName",
+        <include refid="cloudColumns"/>
+        FROM xccj_device.bus_cloud_access dbc
+        LEFT JOIN xccj_device.bus_door ddi ON ddi.door_id = dbc.reader_in
+        LEFT JOIN xccj_device.bus_door ddo ON ddo.door_id = dbc.reader_out
+        WHERE dbc.del_flag = '0' AND dbc.community_id = #{communityId}
+        <if test="accessName != null and accessName != ''">
+            AND dbc.access_name LIKE concat('%', #{accessName}, '%')
+        </if>
+        <if test="accessSerial != null and accessSerial != ''">
+            AND dbc.access_serial LIKE concat('%', #{accessSerial}, '%')
+        </if>
+        ORDER BY dbc.update_time DESC
+    </select>
+
+    <insert id="insertCloudAccess" keyProperty="accessId" useGeneratedKeys="true">
+        INSERT INTO xccj_device.bus_cloud_access (access_name, access_serial, access_ip, access_mac, access_ver,
+                                                  reader_in, reader_out, community_id,
+                                                  install_location, device_qr, manufacturer, create_by, create_time,
+                                                  update_by, update_time, del_flag)
+        VALUES (#{accessName}, #{accessSerial}, #{accessIp}, #{accessMac}, #{accessVer}, #{readerIn}, #{readerOut},
+                #{communityId},
+                #{installLocation}, #{deviceQr}, #{manufacturer}, #{createBy}, sysdate(), #{createBy}, sysdate(), '0')
+    </insert>
+
+    <select id="selectCloudAccessById" resultType="com.wr.remote.aiot.CloudAccess">
+        SELECT
+        cbc.community_name AS "communityName",
+        ddi.door_name AS "doorInName",
+        ddo.door_name AS "doorOutName",
+        <include refid="cloudColumns"/>
+        FROM xccj_device.bus_cloud_access dbc
+        LEFT JOIN xccj_device.bus_door ddi ON ddi.door_id = dbc.reader_in
+        LEFT JOIN xccj_device.bus_door ddo ON ddo.door_id = dbc.reader_out
+        LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dbc.community_id
+        WHERE dbc.del_flag = '0' AND dbc.access_id = #{accessId}
+    </select>
+
+    <update id="updateCloudAccess">
+        UPDATE xccj_device.bus_cloud_access SET
+        access_name = #{accessName}, access_ip = #{accessIp}, update_by = #{updateBy}, update_time = sysdate()
+        <if test="accessSerial != null and accessSerial != ''">
+            ,access_serial = #{accessSerial}
+        </if>
+        <if test="accessMac != null and accessMac != ''">
+            ,access_mac = #{accessMac}
+        </if>
+        <if test="accessVer != null and accessVer != ''">
+            ,access_ver = #{accessVer}
+        </if>
+        <if test="readerIn != null">
+            ,reader_in = #{readerIn}
+        </if>
+        <if test="readerOut != null">
+            ,reader_out = #{readerOut}
+        </if>
+        <if test="installLocation != null and installLocation != ''">
+            ,install_location = #{installLocation}
+        </if>
+        WHERE access_id = #{accessId}
+    </update>
+
+    <select id="selectIdsOfNotQrCode" resultType="com.wr.remote.aiot.CloudAccess">
+        SELECT access_id, access_serial, access_name
+        FROM xccj_device.bus_cloud_access
+        WHERE del_flag = '0'
+          AND (device_qr IS NULL OR device_qr = '')
+    </select>
+
+    <update id="batchUpdateDeviceQr">
+        INSERT INTO xccj_device.bus_cloud_access ( access_id, device_qr ) VALUES
+        <foreach item="item" index="index" collection="accessList" separator=",">
+            ( #{item.accessId}, #{item.deviceQr} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        access_id = values(access_id), device_qr = values(device_qr)
+    </update>
+
+    <update id="removeCloudAccess">
+        UPDATE xccj_device.bus_cloud_access SET del_flag = '1' where access_id in
+        <foreach collection="array" item="accessId" open="(" separator="," close=")">
+            #{accessId}
+        </foreach>
+    </update>
+
+    <select id="selectUnbindDoors" resultType="com.wr.remote.aiot.Door">
+        SELECT
+        dbd.door_id, dbd.index_code, dbd.door_name, dbd.door_no, dbd.door_serial, dbd.channel_type, dbd.channel_no,
+        dbd.treaty_type, dbd.control_one_id, dbd.control_two_id, dbd.reader_in_id, dbd.reader_out_id,
+        dbd.create_time, dbd.update_time, dbd.online, dbd.manufacturer, dbd.renewal_by, dbd.renewal_time,
+        dbd.update_by, dbd.operate_time, dbd.community_id, dbd.address, dbd.del_flag
+        FROM xccj_device.bus_door dbd
+        WHERE dbd.del_flag = '0' AND dbd.community_id = #{communityId}
+        AND dbd.door_id NOT IN (
+        SELECT reader_in FROM xccj_device.bus_cloud_access
+        WHERE del_flag = '0'
+        AND reader_in IS NOT NULL AND reader_in != 0
+        <if test="accessId != null">
+            AND access_id != #{accessId}
+        </if>
+        )
+        AND dbd.door_id NOT IN (
+        SELECT reader_out FROM xccj_device.bus_cloud_access
+        WHERE del_flag = '0'
+        AND reader_out IS NOT NULL AND reader_out != 0
+        <if test="accessId != null">
+            AND access_id != #{accessId}
+        </if>
+        )
+    </select>
+
+    <!-- 根据ids批量查询 -->
+    <select id="selectCloudAccessByIds" resultType="com.wr.remote.aiot.CloudAccess">
+        SELECT access_id,access_serial,access_name FROM xccj_device.bus_cloud_access
+        <where>
+            <foreach collection="list" item="id" open="AND access_id IN (" close=")" separator=",">
+                #{id}
+            </foreach>
+        </where>
+    </select>
+</mapper>

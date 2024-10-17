@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.send.SendSmsRecordMapper">
+
+    <!--    业主端-->
+    <select id="getSendSmsOwnerList" resultType="com.wr.estate.entity.vo.SendSmsRecordVo">
+        SELECT
+        bssr.id,
+        bc1.community_name AS "communityName",
+        bb.building_name AS "buildingName",
+        bu.unit_name AS "unitName",
+        br.room_name AS "roomName",
+        bo.owner_name AS "name",
+        bss.template_type AS "templateType",
+        bssr.`status` AS "status",
+        bssr.error_msg AS "errorMsg",
+        bssr.update_time AS "updateTime",
+        bssr.festival_name as "festivalName"
+        FROM xccj_community.bus_send_sms_record bssr
+        LEFT JOIN xccj_community.bus_owner bo ON bo.account_id = bssr.user_id
+        LEFT JOIN xccj_community.bus_house bh on bh.owner_id=bo.owner_id
+        LEFT JOIN xccj_community.bus_community bc1 ON bc1.community_id = bh.community_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bh.room_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = br.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+        LEFT JOIN xccj_community.bus_send_sms bss ON bss.id = bssr.send_sms_id
+        WHERE
+        bssr.user_type = '1'
+        AND bc1.estate_id = #{estateId}
+        <if test="communityId!=null and communityId!=''">
+            and bc1.community_id=#{communityId}
+        </if>
+        <if test="name!=null and name!=''">
+            and bo.owner_name like CONCAT('%',#{name},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            and bssr.status=#{status}
+        </if>
+        <if test="startTime!=null and startTime!='' and endTime!=null and endTime!=''">
+            and DATE_FORMAT(bssr.update_time, '%y-%m-%d') between #{startTime} and #{endTime}
+        </if>
+        order by bssr.create_time desc
+    </select>
+
+    <!--    物业端-->
+    <select id="getSendSmsEstateList" resultType="com.wr.estate.entity.vo.SendSmsRecordVo">
+        SELECT
+        bssr.id,
+        bssr.`status` AS "status",
+        bssr.error_msg AS "errorMsg",
+        bssr.update_time AS "updateTime",
+        bssr.festival_name as "festivalName",
+        su.nick_name AS "name",
+        IFNULL(
+        bc.community_name,
+        GROUP_CONCAT( bc1.community_name )) AS "communityName"
+        FROM
+        xccj_community.bus_send_sms_record bssr
+        LEFT JOIN xccj_estate_sys.sys_user su ON su.user_id = bssr.user_id
+        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = su.dept_id
+        LEFT JOIN xccj_community.bus_staff bs ON bs.user_id = su.user_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bs.community_id
+        LEFT JOIN xccj_community.bus_community bc1 ON bc1.estate_id = be.estate_id
+        WHERE
+        bssr.user_type = '0'
+        AND be.estate_id = #{estateId}
+        <if test="communityId!=null and communityId!=''">
+            AND ( bc.community_id = #{communityId} OR bc1.community_id = #{communityId} );
+        </if>
+        <if test="name!=null and name!=''">
+            and su.nick_name like CONCAT('%',#{name},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            and bssr.status=#{status}
+        </if>
+        <if test="startTime!=null and startTime!='' and endTime!=null and endTime!=''">
+            and DATE_FORMAT(bssr.update_time, '%y-%m-%d') between #{startTime} and #{endTime}
+        </if>
+        GROUP BY bssr.id
+        order by bssr.create_time desc
+    </select>
+
+    <select id="getByYearFestivalNameCount" resultType="Integer">
+        SELECT
+            count( 1 )
+        FROM
+            xccj_community.bus_send_sms_record
+        WHERE
+            DATE_FORMAT( create_time, '%Y' )= DATE_FORMAT( NOW(), '%Y' )
+          AND festival_name = #{festivalName}
+    </select>
+</mapper>

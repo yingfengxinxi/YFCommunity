@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.serve.OlderMapper">
+
+    <resultMap id="BaseResultMap" type="com.wr.api.estate.entity.vo.application.serve.OlderDetailVO">
+        <id column="older_id" jdbcType="BIGINT" property="olderId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="building_id" jdbcType="BIGINT" property="buildingId"/>
+        <result column="unit_id" jdbcType="BIGINT" property="unitId"/>
+        <result column="room_id" jdbcType="BIGINT" property="roomId"/>
+        <result column="owner_id" jdbcType="BIGINT" property="ownerId"/>
+        <result column="contact_name" jdbcType="VARCHAR" property="contactName"/>
+        <result column="contact_phone" jdbcType="VARCHAR" property="contactPhone"/>
+        <result column="contact_gender" jdbcType="VARCHAR" property="contactGender"/>
+        <result column="contact_id" jdbcType="VARCHAR" property="contactIds"/>
+        <result column="relation" jdbcType="CHAR" property="relation"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="building_name" jdbcType="VARCHAR" property="buildingName"/>
+        <result column="unit_name" jdbcType="VARCHAR" property="unitName"/>
+        <result column="room_name" jdbcType="VARCHAR" property="roomName"/>
+
+        <association property="owner" javaType="com.wr.remote.estate.manage.contract.Owner">
+            <id column="owner_id" jdbcType="BIGINT" property="ownerId"/>
+            <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+            <result column="community_name" jdbcType="VARCHAR" property="communityName"/>
+            <result column="building_id" jdbcType="BIGINT" property="buildingId"/>
+            <result column="unit_id" jdbcType="BIGINT" property="unitId"/>
+            <result column="room_id" jdbcType="BIGINT" property="roomId"/>
+            <result column="parent_id" jdbcType="BIGINT" property="parentId"/>
+            <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+            <result column="license_url" jdbcType="VARCHAR" property="licenseUrl"/>
+            <result column="owner_relation" jdbcType="CHAR" property="ownerRelation"/>
+            <result column="owner_name" jdbcType="VARCHAR" property="ownerName"/>
+            <result column="owner_phone" jdbcType="VARCHAR" property="ownerPhone"/>
+            <result column="gender" jdbcType="CHAR" property="gender"/>
+            <result column="card_type" jdbcType="CHAR" property="cardType"/>
+            <result column="card_no" jdbcType="VARCHAR" property="cardNo"/>
+            <result column="card_font" jdbcType="VARCHAR" property="cardFont"/>
+            <result column="card_back" jdbcType="VARCHAR" property="cardBack"/>
+            <result column="face_url" jdbcType="VARCHAR" property="faceUrl"/>
+            <result column="domicile_address" jdbcType="VARCHAR" property="domicileAddress"/>
+            <result column="politics_status" jdbcType="CHAR" property="politicsStatus"/>
+            <result column="nation" jdbcType="VARCHAR" property="nation"/>
+            <result column="native_place" jdbcType="VARCHAR" property="nativePlace"/>
+            <result column="religion" jdbcType="VARCHAR" property="religion"/>
+            <result column="edu_level" jdbcType="VARCHAR" property="eduLevel"/>
+            <result column="military" jdbcType="VARCHAR" property="military"/>
+            <result column="marriage_status" jdbcType="CHAR" property="marriageStatus"/>
+            <result column="nationality" jdbcType="VARCHAR" property="nationality"/>
+            <result column="population" jdbcType="CHAR" property="population"/>
+            <result column="career" jdbcType="VARCHAR" property="career"/>
+            <result column="qq_number" jdbcType="VARCHAR" property="qqNumber"/>
+            <result column="email" jdbcType="VARCHAR" property="email"/>
+            <result column="data_source" jdbcType="CHAR" property="dataSource"/>
+            <result column="self_intro" jdbcType="VARCHAR" property="selfIntro"/>
+            <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+            <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+            <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+            <result column="age" jdbcType="VARCHAR" property="age"/>
+            <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+            <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        </association>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        bo.older_id, bo.community_id, bo.building_id, bo.unit_id, bo.room_id, bo.owner_id, bo.contact_name, bo.contact_phone,
+    bo.contact_gender, bo.contact_id, bo.relation, bo.audit_status, bo.reject_reason, bo.create_by, bo.create_time, bo.update_by,
+    bo.update_time,
+    </sql>
+
+    <sql id="Base_Owner_List">
+        bw.owner_id, bw.community_id, bw.building_id, bw.unit_id, bw.room_id, bw.parent_id, bw.account_id, bw.license_url,
+    bw.owner_relation, bw.owner_name, bw.owner_phone, bw.gender, bw.card_no, bw.card_font, bw.card_back,
+    bw.face_url, bw.domicile_address, bw.politics_status, bw.nation, bw.native_place, bw.religion, bw.edu_level,
+    bw.military, bw.marriage_status, bw.nationality, bw.population, bw.career, bw.qq_number, bw.email, bw.data_source,
+    bw.self_intro, bw.audit_status,bw.parent_id,bw.license_url,bw.audit_time, bw.reject_reason, bw.create_by, bw.create_time, bw.update_by,
+    bw.update_time, bw.del_flag,
+    </sql>
+
+    <update id="olderAudit">
+        UPDATE xccj_community.bus_older
+        <set>
+            audit_status = #{auditStatus},
+            <if test="rejectReason!=null">
+                reject_reason=#{rejectReason},
+            </if>
+            <if test="updateBy!=null and updateBy!=''">
+                update_by=#{updateBy},
+            </if>
+            update_time=sysDate()
+        </set>
+        WHERE older_id = #{olderId,jdbcType=BIGINT}
+        AND del_flag='0'
+    </update>
+
+    <select id="selectOlderList" resultType="com.wr.api.estate.entity.vo.application.serve.OlderVO">
+        SELECT
+        bo.older_id,
+        bw.owner_name,
+        bw.gender,
+        bo.audit_status,
+        bw.update_time,
+        YEAR(NOW()) - YEAR(DATE(SUBSTR(bw.card_no, 7, 8))) AS "age",
+        bb.building_name,
+        bu.unit_name,
+        br.room_name
+        FROM xccj_community.bus_older bo
+        LEFT JOIN xccj_community.bus_owner bw ON bo.owner_id = bw.owner_id
+        LEFT JOIN xccj_community.bus_building bb ON bo.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bo.unit_id = bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bo.room_id = br.room_id
+        WHERE bo.community_id = #{communityId}
+        <if test="auditStatus!=0 and auditStatus!=null and auditStatus!=''">
+            AND bo.audit_status!='0'
+        </if>
+        <if test="auditStatus==0 and auditStatus!=null and auditStatus!=''">
+            AND bo.audit_status='0'
+        </if>
+        <if test="ownerName!=null and ownerName!=''">
+            AND bw.owner_name like concat('%', #{ownerName},'%')
+        </if>
+        AND bo.del_flag = '0'
+        AND bw.del_flag = '0'
+        AND bb.del_flag = '0'
+        AND bu.del_flag = '0'
+        AND br.del_flag = '0'
+        ORDER BY bo.create_time,bo.update_time
+    </select>
+
+    <select id="getOlderDetail" resultMap="BaseResultMap">
+        SELECT
+        sdd.dict_label AS 'card_type',
+        YEAR(NOW()) - YEAR(DATE(SUBSTR(bw.card_no, 7, 8))) AS "age",
+        <include refid="Base_Owner_List"/>
+        <include refid="Base_Column_List"/>
+        bb.building_name,
+        bu.unit_name,
+        br.room_name,
+        br.room_status,
+        bc.community_name
+        FROM xccj_community.bus_older bo
+        LEFT JOIN xccj_community.bus_owner bw ON bo.owner_id=bw.owner_id
+        LEFT JOIN xccj_community.bus_building bb ON bo.building_id=bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bo.unit_id=bu.unit_id
+        LEFT JOIN xccj_community.bus_room br ON bo.room_id=br.room_id
+        LEFT JOIN xccj_community.bus_community bc ON bo.community_id=bc.community_id
+        LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON bw.card_type=sdd.dict_value
+        WHERE bo.older_id = #{olderId}
+        AND sdd.dict_type='sys_certificate'
+        AND bo.del_flag = '0'
+        AND bw.del_flag = '0'
+        AND bb.del_flag = '0'
+        AND bu.del_flag = '0'
+        AND br.del_flag = '0'
+        AND bc.del_flag = '0'
+    </select>
+</mapper>

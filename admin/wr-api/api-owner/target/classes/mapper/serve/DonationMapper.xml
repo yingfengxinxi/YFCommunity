@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.DonationMapper">
+
+    <select id="getDonationAll" resultType="com.wr.api.owner.entity.vo.serve.DonationVO">
+        SELECT bd.donation_id,
+               bd.donation_title,
+               bd.create_time
+        FROM xccj_govern.`bus_donation` bd
+                 LEFT JOIN xccj_govern.bus_donation_rang bdr ON bdr.donation_id = bd.donation_id
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bdr.community_id
+        WHERE bd.del_flag = '0'
+          AND bdr.community_id = #{communityId}
+        ORDER BY bd.create_time DESC
+    </select>
+    <select id="getDonationById" resultType="com.wr.api.owner.entity.vo.serve.DonationVO">
+        SELECT bd.donation_id,
+               bd.donation_title,
+               bd.create_time,
+               bd.content
+        FROM xccj_govern.`bus_donation` bd
+        WHERE bd.del_flag = '0'
+          AND bd.donation_id = #{donationId}
+    </select>
+</mapper>

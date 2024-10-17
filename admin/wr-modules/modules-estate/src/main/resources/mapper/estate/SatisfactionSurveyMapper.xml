@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.satisfaction.SatisfactionSurveyMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.SatisfactionSurvey">
+        SELECT *
+        FROM (SELECT
+        id,
+        community_id as "communityId",
+        satisfaction_no as "satisfactionNo",
+        title as "title",
+        start_time as "startTime",
+        end_time as "endTime",
+        description as "description",
+        create_time as "createTime",
+        IF(DATE_FORMAT(now(),'%Y-%m-%d %H:%i:%s') > DATE_FORMAT(bv.end_time,'%Y-%m-%d %H:%i:%s'),'已结束',IF(DATE_FORMAT(now(),'%Y-%m-%d %H:%i:%s') >= DATE_FORMAT(bv.start_time,'%Y-%m-%d %H:%i:%s'), '进行中', '未开始')) AS "state"
+        FROM xccj_community.bus_satisfaction_survey bv
+        WHERE bv.del_flag = "0" order by bv.create_time desc) a
+        <where>
+            communityId=#{communityId}
+            <if test="state !=null and state !=''">
+                and a.state = #{state}
+            </if>
+
+            <if test="satisfactionNo !=null and satisfactionNo !=''">
+                and a.satisfactionNo like CONCAT('%',#{satisfactionNo},'%')
+            </if>
+            <if test="title !=null and title !=''">
+                and a.title like CONCAT('%',#{title},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

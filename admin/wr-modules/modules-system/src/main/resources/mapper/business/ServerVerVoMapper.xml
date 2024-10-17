@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.business.mapper.ServerVerVoMapper">
+    <sql id="verColumns">
+        version_id,version_name,del_flag,
+        create_by,create_time,update_by,update_time
+    </sql>
+
+    <sql id="verMenuColumns">
+        version_id,menu_id
+    </sql>
+
+    <select id="selectServerVerVoList" resultType="com.wr.system.business.domain.ServerVerVo">
+        SELECT
+        <include refid="verColumns"/>
+        FROM xccj_community.bus_server_ver
+        WHERE del_flag='0'
+    </select>
+
+    <select id="checkRoleNameUnique" resultType="com.wr.system.business.domain.ServerVerVo">
+        SELECT
+        <include refid="verColumns"/>
+        FROM xccj_community.bus_server_ver
+        WHERE del_flag='0' AND version_name = #{versionName}
+    </select>
+
+    <insert id="insertServerVerVo" useGeneratedKeys="true" keyProperty="versionId">
+        INSERT INTO xccj_community.bus_server_ver (
+            version_name, del_flag, create_by, create_time, update_by, update_time
+        )VALUES (
+            #{versionName},'0',#{createBy},sysdate(),#{createBy},sysdate()
+        )
+    </insert>
+
+    <insert id="batchServiceVerMenu">
+        INSERT INTO xccj_community.bus_server_ver_menu(version_id, menu_id) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.versionId},#{item.menuId})
+        </foreach>
+    </insert>
+
+    <select id="getServerVerVoById" resultType="com.wr.system.business.domain.ServerVerVo">
+        SELECT
+        <include refid="verColumns"/>
+        FROM xccj_community.bus_server_ver
+        WHERE del_flag='0' AND version_id = #{versionId}
+    </select>
+
+    <select id="selectMenuListByVersionId" resultType="java.lang.Long">
+        SELECT m.menu_id
+        FROM sys_menu m
+        LEFT JOIN xccj_community.bus_server_ver_menu rvm ON m.menu_id = rvm.menu_id
+        WHERE rvm.version_id = #{versionId}
+        order by m.parent_id, m.order_num
+    </select>
+
+    <update id="updateServerVerVo">
+        UPDATE xccj_community.bus_server_ver SET
+            version_name = #{versionName},update_by = #{updateBy},update_time = sysdate()
+        WHERE version_id = #{versionId}
+    </update>
+
+    <select id="selectRoleVersByVersionId" resultType="com.wr.remote.domain.RoleVer">
+        SELECT version_id,role_id FROM xccj_community.bus_role_ver WHERE version_id = #{versionId}
+    </select>
+
+    <delete id="deleteRoleVerMenuByVersionId">
+        DELETE FROM xccj_community.bus_server_ver_menu WHERE version_id = #{versionId}
+    </delete>
+
+    <update id="deleteServerVerVoById">
+        UPDATE xccj_community.bus_server_ver SET del_flag = '1' WHERE version_id = #{versionId}
+    </update>
+
+    <select id="selectRoleIdsByVersionId" resultType="java.lang.Long">
+        SELECT role_id FROM xccj_community.bus_role_ver WHERE version_id = #{versionId}
+    </select>
+
+</mapper>

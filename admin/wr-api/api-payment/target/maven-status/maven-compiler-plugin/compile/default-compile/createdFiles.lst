@@ -1,0 +1,17 @@
+com\wr\api\payment\ApiPaymentApplication.class
+com\wr\api\payment\service\impl\CommunityServiceImpl.class
+com\wr\api\payment\service\impl\ParkServiceImpl.class
+com\wr\api\payment\service\ParkService.class
+com\wr\api\payment\web\AliPayController.class
+com\wr\api\payment\service\impl\PayLogServiceImpl.class
+com\wr\api\payment\mapper\TableMapper.class
+com\wr\api\payment\web\ParkingController.class
+com\wr\api\payment\web\WechatPayController.class
+com\wr\api\payment\mapper\PayLogMapper.class
+com\wr\api\payment\service\PayLogService.class
+com\wr\api\payment\entity\dto\PayDTO.class
+com\wr\api\payment\mapper\CommunityMapper.class
+com\wr\api\payment\service\CommunityService.class
+com\wr\api\payment\mapper\VehicleLogMapper.class
+com\wr\api\payment\mapper\ParkMapper.class
+com\wr\api\payment\entity\dto\QueryDTO.class

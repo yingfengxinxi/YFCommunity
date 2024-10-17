@@ -1,0 +1,1613 @@
+@font-face {
+  font-family: electronicFont;
+  src: url("../../assets/font/DS-DIGIT.TTF");
+}
+
+html {
+  font-size: 13.5929px !important;
+}
+
+body {
+  overflow-x: scroll;
+
+  .actived {
+    background-color: #145275 !important;
+  }
+}
+
+.largeScreen {
+  width: 420rem;
+  height: 78.75rem;
+  background-size: 100% 100%;
+
+  .playWnd {
+    margin: 0 0 0 5%;
+  }
+
+  .backgroundMap {
+    overflow: hidden;
+    width: 420rem;
+    height: 78.75rem;
+    background-image: url(../../assets/largeScreen/zhuangshiditu.png);
+    background-size: 100% 100%;
+
+    .largeScreen_top {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.8rem;
+
+      .region {
+        display: flex;
+        width: 26.7rem;
+        height: 3rem;
+        padding: 0 0 0 1rem;
+
+        .province {
+          width: 18rem;
+          height: 100%;
+
+          .vue-treeselect {
+            opacity: 0.6;
+
+            .vue-treeselect__control {
+              border: unset;
+              background-color: unset;
+
+              .vue-treeselect__single-value {
+                color: #fff;
+                font-size: 1.8rem;
+              }
+            }
+          }
+
+          .vue-treeselect__menu {
+            background-color: #1a9eff;
+          }
+
+          .select {
+            display: flex;
+            margin-top: 0.9rem;
+            margin-left: 2.8rem;
+
+            select {
+              width: 9rem;
+              outline: none;
+              border: 0;
+              background-color: unset;
+              color: #fff;
+              font-size: 2.1rem;
+              // background-image: url(../../assets/largeScreen/Union@2@2x.png);
+              // background-size: 100% 100%;
+              /*很关键：将默认的select选择框样式清除*/
+              appearance: none;
+              -moz-appearance: none;
+              -webkit-appearance: none;
+              z-index: 999;
+            }
+
+            /*清除ie的默认选择框样式清除，隐藏下拉箭头*/
+            select::-ms-expand {
+              display: none;
+            }
+          }
+        }
+
+        .region_left {
+          display: flex;
+
+          img {
+            width: 3rem;
+            height: 3rem;
+          }
+
+          .city {
+            font-size: 2rem;
+            color: #47ffff;
+            font-weight: 700;
+          }
+        }
+
+        .region_right {
+          line-height: 3.7rem;
+          margin-left: 2rem;
+        }
+      }
+
+      .platform {
+        width: 26.7rem;
+        height: 3rem;
+        line-height: 3rem;
+        font-size: 2.222951rem;
+        color: #fff;
+      }
+
+      .time {
+        display: flex;
+        justify-content: space-between;
+        width: 41.5rem;
+        height: 3rem;
+
+        .time_left {
+          width: 5rem;
+          background-color: yellowgreen;
+
+          .temperature {
+            height: 100%;
+            background-color: aqua;
+          }
+
+          .weather {
+            height: 100%;
+            background-color: blue;
+          }
+        }
+
+        .specific {
+          font-size: 1.3rem;
+          line-height: 3.6rem;
+          font-weight: 700;
+          color: #1890ff;
+        }
+
+        .week {
+          font-size: 1.3rem;
+          line-height: 3.6rem;
+          color: #1890ff;
+        }
+
+        .hour {
+          font-size: 3rem;
+          color: #47ffff;
+          font-family: electronicFont;
+        }
+      }
+    }
+
+    .largeScreen_left {
+      width: 140rem;
+      height: 100%;
+      overflow: hidden;
+      margin-top: 2.6rem;
+
+      .upperLeft {
+        width: 140rem;
+        height: 16.1rem;
+        display: flex;
+        justify-content: space-around;
+
+        .property {
+          width: 33.8rem;
+          height: 16.147541rem;
+          background-image: url(../../assets/screen_image1/Group1528.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+
+          .total {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 3.52459rem;
+
+            .number {
+              .number_text {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-evenly;
+              }
+            }
+          }
+        }
+
+        .room {
+          width: 33.8rem;
+          height: 16.147541rem;
+          background-image: url(../../assets/screen_image1/Group1529.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+        }
+
+        .age {
+          width: 33.8rem;
+          height: 16.147541rem;
+          background-image: url(../../assets/screen_image1/Group1530.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+
+          .age_top {
+            display: flex;
+            justify-content: space-between;
+            margin: 3.606557rem auto 0;
+
+            .age_nine {
+              display: flex;
+            }
+
+            .age_eighteen {
+              display: flex;
+            }
+
+            .age_forty {
+              display: flex;
+            }
+
+            .age_fortyone {
+              display: flex;
+            }
+          }
+        }
+
+        .community {
+          width: 33.8rem;
+          height: 16.147541rem;
+          background-image: url(../../assets/screen_image1/Group1531.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+
+          .community_right {
+            margin-top: 1.7rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+
+            .households {
+              background-image: url(../../assets/largeScreen/bg.png);
+            }
+
+            .tenants {
+              background-image: url(../../assets/largeScreen/bg.png);
+            }
+          }
+        }
+      }
+
+      .left_center {
+        display: flex;
+        justify-content: space-around;
+        width: 140rem;
+        height: 51.6rem;
+        margin-top: 1.967213rem;
+
+        .energy {
+          background-image: url(../../assets/screen_image1/left_bottom.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+
+          .company_situation {
+            // width: 100%;
+            // height: 50%;
+            overflow: hidden;
+            position: relative;
+            margin: 0 4rem 0 2rem;
+            box-sizing: border-box;
+            padding-bottom: 1.5rem;
+
+            .company_situation_top {
+              width: 14rem;
+              height: 2.3rem;
+              padding: 0 0 0 1.6rem;
+              line-height: 2.6rem;
+              margin-top: 4rem;
+              // margin-left: 2rem;
+              background-image: url(../../assets/largeScreen/gradient.png);
+              background-size: 100% 100%;
+              // background-color: orange;
+            }
+
+            .bg {
+              width: 236px;
+              height: 197px;
+              position: absolute;
+              right: 0;
+              bottom: -37px;
+              z-index: -1;
+
+              img {
+                width: 100%;
+                height: 100%;
+              }
+            }
+
+            .grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              grid-gap: 28px 35px;
+              margin-top: 22px;
+              color: #BCD0DA;
+              font-size: 1.3rem;
+              line-height: 25px;
+
+              .item {
+                background-image: url(../../assets/screen_image1/Group401852@2x.png);
+                background-size: 100% 100%;
+                width: 100%;
+                height: 102px;
+                display: flex;
+                // align-items: center;
+                justify-content: space-between;
+                padding: 13px 22px;
+
+                .image {
+                  width: 74px;
+                  height: 74px;
+
+                  img {
+                    width: 100%;
+                    height: 100%;
+                  }
+
+                }
+
+                .text {
+                  flex: 1;
+                  margin-left: 1.986331099323912rem;
+                  display: flex;
+                  justify-content: space-between;
+                  flex-direction: column;
+
+                  .number {
+                    span {
+                      font-size: 2rem;
+                      color: #00F6EC;
+                    }
+
+                  }
+                }
+              }
+            }
+          }
+
+          .quarter {
+            overflow: hidden;
+            // width: 100%;
+            height: 50%;
+            margin: 0 4rem 0 2rem;
+
+            .quarter_top {
+              width: 14rem;
+              height: 2.3rem;
+              padding: 0 0 0 1.6rem;
+              line-height: 2.6rem;
+              margin-top: 1rem;
+              background-image: url(../../assets/largeScreen/gradient.png);
+              background-size: 100% 100%;
+            }
+
+            .quarter_Num {
+              color: #fff;
+              display: flex;
+              justify-content: space-between;
+              margin-top: 2.8rem;
+
+              .item {
+                display: flex;
+                // align-items: center;
+                justify-content: space-between;
+                // align-items: center;
+
+                .image {
+                  width: 158px;
+                  height: 103px;
+
+                  img {
+                    width: 100%;
+                    height: 100%;
+                  }
+                }
+
+                .text {
+                  flex: 1;
+                  margin-left: 1.54rem;
+                  display: flex;
+                  justify-content: space-between;
+                  flex-direction: column;
+
+                  .title {
+                    font-size: 1.846153846153846rem;
+                  }
+
+                  .number {
+                    color: #00F6EC;
+                    font-size: 1.370041712953086rem;
+
+                    span {
+                      font-size: 2.739347747721237rem;
+                    }
+
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .center_right {
+          width: 68.8rem;
+          height: 100%;
+
+          .right_top {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            height: 33rem;
+
+            .visitor {
+              width: 33.8rem;
+              height: 100%;
+              background-image: url(../../assets/screen_image1/Group1533.png);
+              background-size: 100% 100%;
+              backdrop-filter: blur(3px);
+
+              .number {
+                display: flex;
+                position: absolute;
+                top: 2.2rem;
+                right: 4.4rem;
+                width: 15rem;
+                height: 1.5rem;
+                // background-color: yellow;
+              }
+            }
+
+            .center_left {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+
+              .trafficStatistics {
+                width: 100%;
+                height: 49%;
+                // background-color: #f40;
+                background-image: url(../../assets/screen_image1/Group1532.png);
+                background-size: 100% 100%;
+                backdrop-filter: blur(3px);
+              }
+
+              .trafficFlow {
+                width: 100%;
+                height: 49%;
+                // background-color: yellow;
+                background-image: url(../../assets/screen_image1/Group1536.png);
+                background-size: 100% 100%;
+                backdrop-filter: blur(3px);
+              }
+
+              width: 33.8rem;
+              // height: 36.5rem;
+              height: 33rem;
+            }
+          }
+
+          .right_bottom {
+            // margin-top: 1.967213rem;
+            margin-top: 0.967213rem;
+            width: 100%;
+            // height: 15.7rem;
+            height: 17.7rem;
+            background-image: url(../../assets/screen_image1/Group1535.png);
+            background-size: 100% 100%;
+            backdrop-filter: blur(3px);
+
+            .number {
+              display: flex;
+              position: absolute;
+              top: 3.2rem;
+              right: 4.4rem;
+              width: 15rem;
+              height: 1.8rem;
+              // background-color: yellow;
+            }
+          }
+        }
+      }
+    }
+
+    .largeScreen_center {
+      padding: 0 0.5rem;
+      display: flex;
+      width: 140rem;
+      height: 78.75rem;
+      margin-top: 2.6rem;
+
+      // background-color: red;
+      .center_left {
+        width: 33.8rem;
+        height: 36.5rem;
+        background-image: url(../../assets/screen_image1/HJJC.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+
+        .environment_top {
+          width: 100%;
+          height: 7rem;
+          margin-top: 3rem;
+          // background-color: orange;
+        }
+
+        .environment_center {
+          width: 100%;
+          height: 14rem;
+          // background-color: darkgray;
+        }
+
+        .environment_bottom {
+          display: flex;
+          flex-wrap: wrap;
+          width: 92%;
+          height: 10rem;
+          margin: 0 auto;
+          // background-color: darkmagenta;
+          background-image: url(../../assets/largeScreen/huanjingjiance.png);
+          background-size: 100% 100%;
+
+          .environment_box {
+            width: 20%;
+            margin-top: 1.4rem;
+            text-align: center;
+
+            .number {
+              font-size: 1.8rem;
+              color: #00f6ec;
+            }
+
+            .words {
+              color: #fff;
+              margin: 0rem 3rem 0 0;
+              background-color: #0ade35;
+              border-radius: 0.3rem;
+            }
+          }
+        }
+      }
+
+      .monitoring {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 34.1rem;
+        // height: 100%;
+        // height: 25.7rem;
+        height: 46rem;
+        background-size: 100% 100%;
+        // backdrop-filter: blur(3px);
+
+        .monitoring_top {
+          padding: 2.7rem 0 0.5rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-evenly;
+          width: 100%;
+          height: 67.5%;
+          background-image: url(../../assets/screen_image1/Group1551.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(10px);
+
+          // background-color: yellowgreen;
+          .splitScreen {
+            display: flex;
+            // justify-content: space-between;
+            width: 25%;
+            height: 7%;
+            margin-left: 1.35rem;
+            // background-color: aquamarine;
+          }
+
+          .monitor {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            width: 92%;
+            height: 75%;
+            margin: 0 auto;
+
+            // background-color: blueviolet;
+            div {
+              width: 31%;
+              height: 28%;
+              // background-color: red
+            }
+          }
+        }
+
+        .monitoring_ {
+          margin-top: 2rem;
+          width: 34rem;
+          height: 30rem;
+          overflow: auto;
+          overflow-y: hidden;
+          background-image: url(../../assets/largeScreen/sipinxuanze.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(10px);
+
+          .abnormal_01 {
+            margin-top: 0.967213rem;
+            width: 97.3%;
+            height: 16.7rem;
+            // background-image: url(../../assets/screen_image1/Group1570.png);
+            background-size: 100% 100%;
+            backdrop-filter: blur(3px);
+
+            margin-left: 1rem;
+          }
+        }
+
+        .monitoring_center {
+          margin: 0 auto;
+          width: 30%;
+          height: 4.5%;
+          // background-color: pink;
+          background-image: url(../../assets/screen_image1/Group258.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+        }
+
+        .monitoring_bottom {
+          width: 100%;
+          height: 27%;
+          padding: 1rem 0 0.5rem;
+          background-image: url(../../assets/screen_image1/Group1497.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+
+          // background-color: blue;
+          .text {
+            color: #00979d;
+            display: flex;
+            // justify-content: space-between;
+            width: 25%;
+            height: 18%;
+            margin-left: 1.35rem;
+            // background-color: aquamarine;
+          }
+
+          .position {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            width: 92%;
+            height: 75%;
+            margin: 0 auto;
+
+            // background-color: blueviolet;
+            div {
+              width: 31%;
+              height: 28%;
+              // background-color: red
+            }
+          }
+        }
+      }
+
+      .center_center {
+        display: flex;
+        justify-content: space-evenly;
+        margin-top: 2.5rem;
+        width: 67.5rem;
+        height: 5rem;
+        // background-color: yellowgreen;
+        // background-image: url(../../assets/largeScreen/shengshiqu.png);
+        background-size: 88% 65%;
+        background-repeat: no-repeat;
+        background-position-x: center;
+        background-position-y: bottom;
+
+        .province {
+          // width: 18rem;
+          // height: 100%;
+          width: 15rem;
+          height: 70%;
+          line-height: 3.1rem;
+          // background-color: red;
+          background-size: 100% 100%;
+          // background-color: pink;
+          background-image: url(../../assets/largeScreen/kuang.png);
+          backdrop-filter: blur(10px);
+
+          .vue-treeselect {
+            opacity: 0.6;
+
+            .vue-treeselect__control {
+              padding: 0 1rem 0 3rem;
+              border: unset;
+              background-color: unset;
+
+              .vue-treeselect__single-value {
+                color: #fff;
+                font-size: 1.322951rem
+              }
+            }
+          }
+
+          .vue-treeselect__menu {
+            background-color: #1a9eff;
+          }
+
+          .select {
+            display: flex;
+            margin-top: 0.9rem;
+            margin-left: 2.8rem;
+
+            select {
+              width: 9rem;
+              outline: none;
+              border: 0;
+              background-color: unset;
+              color: #fff;
+              font-size: 2.1rem;
+              // background-image: url(../../assets/largeScreen/Union@2@2x.png);
+              // background-size: 100% 100%;
+              /*很关键：将默认的select选择框样式清除*/
+              appearance: none;
+              -moz-appearance: none;
+              -webkit-appearance: none;
+              z-index: 999;
+            }
+
+            /*清除ie的默认选择框样式清除，隐藏下拉箭头*/
+            select::-ms-expand {
+              display: none;
+            }
+          }
+        }
+
+        .project {
+          width: 15rem;
+          height: 70%;
+          background-size: 100% 100%;
+          // background-color: pink;
+          background-image: url(../../assets/largeScreen/kuang.png);
+          backdrop-filter: blur(10px);
+
+          .vue-treeselect {
+            opacity: 0.8;
+            backdrop-filter: blur(10px);
+
+            .vue-treeselect__control {
+              border: unset;
+              background-color: #1a9eff;
+
+              .vue-treeselect__single-value {
+                color: #fff;
+              }
+            }
+          }
+
+          .vue-treeselect__menu {
+            background-color: #1a9eff;
+          }
+
+          .select {
+            display: flex;
+            margin-top: 1.6rem;
+            margin-left: 4rem;
+
+            select {
+              width: 11rem;
+              outline: none;
+              border: 0;
+              background-color: unset;
+              color: #fff;
+              font-size: 2.1rem;
+              // background-image: url(../../assets/largeScreen/Union@2@2x.png);
+              // background-size: 100% 100%;
+              /*很关键：将默认的select选择框样式清除*/
+              // appearance: none;
+              // -moz-appearance: none;
+              // -webkit-appearance: none;
+              // z-index: 999;
+            }
+
+            /*清除ie的默认选择框样式清除，隐藏下拉箭头*/
+            select::-ms-expand {
+              display: none;
+            }
+          }
+        }
+      }
+
+      .center_right {
+        width: 33.8rem;
+        height: 51rem;
+        display: flex;
+        flex-direction: column;
+
+        .statistics_apply {
+          // margin-top: 1.967213rem;
+          // width: 24.3%;
+          // height: 15.7rem;
+          width: 100%;
+          height: 16.147541rem;
+          background-image: url(../../assets/screen_image1/sq01.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(3px);
+
+          .apply_01 {
+            margin: 3rem 0 0 1rem;
+            color: #0ac2c0;
+          }
+
+          .apply_02 {
+            margin: 3rem 0 0 0rem;
+            color: #967138;
+          }
+
+          .apply_03 {
+            margin: 3rem 0 0 16rem;
+            color: #0ac2c0;
+          }
+        }
+
+        .tidings_left {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-evenly;
+          width: 100%;
+          height: 34.35rem;
+          padding: 3.8rem 0 1.4rem;
+          background-image: url(../../assets/largeScreen/churukourenyuanxinxi.png);
+          background-size: 100% 100%;
+          backdrop-filter: blur(10px);
+
+          .personnel {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 87%;
+            height: 5rem;
+            margin: 1rem auto 0;
+
+            // background-color: red;
+            .photo {
+              width: 12%;
+              height: 100%;
+              // background-color: pink;
+            }
+
+            .Information {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              width: 84%;
+              height: 100%;
+
+              // background-color: yellowgreen;
+              .Information_left {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-evenly;
+                width: 40%;
+                height: 100%;
+                // background-color: rebeccapurple;
+              }
+
+              .Information_right {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-evenly;
+                width: 38.5%;
+                height: 100%;
+
+                // background-color: blue;
+                .identity {
+                  display: flex;
+                  justify-content: end;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .largeScreen_right {
+      //       position: absolute;
+      // top: 7.69231rem;
+      width: 140rem;
+      height: 78.75rem;
+      margin-top: 1.6rem;
+      // background-color: green;
+    }
+
+    .box_head {
+      margin-left: 1rem;
+
+      .equipment_01 {
+        position: relative;
+        width: 24.3%;
+        margin-top: 0.967213rem;
+        height: 16.7rem;
+        background-image: url(../../assets/screen_image1/Group1538.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+
+        .equipment_name {
+          .equipment_name_01 {
+            position: absolute;
+            bottom: 1rem;
+            left: 1.8rem;
+          }
+        }
+
+        .modular {
+          position: absolute;
+          top: 2.3rem;
+          left: 14rem;
+        }
+      }
+
+      .warning_01 {
+        margin-top: 0.967213rem;
+        width: 24.3%;
+        height: 16.7rem;
+        background-image: url(../../assets/screen_image1/Group1539.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        margin-left: 1rem;
+      }
+
+      .abnormal_01 {
+        margin-top: 0.967213rem;
+        width: 24.3%;
+        height: 16.7rem;
+        background-image: url(../../assets/screen_image1/Group1570.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+
+        margin-left: 1rem;
+      }
+
+      .statistics_state {
+        position: relative;
+        margin-top: 0.967213rem;
+        width: 24.3%;
+        height: 16.7rem;
+        background-image: url(../../assets/screen_image1/Group1543.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        margin-left: 1rem;
+      }
+    }
+
+    .box_foot {
+      overflow: hidden;
+      margin-left: 1rem;
+
+      .air {
+        // margin-top: 2.967213rem;
+        // width: 100%;
+        // height: 31.89rem;
+        margin-top: 1.967213rem;
+        width: 24.3%;
+        height: 33.4rem;
+        // background-color: darksalmon;
+        background-image: url(../../assets/screen_image1/KQZL.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+
+        .air_information {
+          // width: 23rem;
+          height: 50%;
+
+          // margin: 0 auto;
+          // background-color: red;
+          .information_top {
+            display: flex;
+            justify-content: space-between;
+            width: 23rem;
+            height: 10rem;
+            margin: 0 auto;
+
+            // background-color: yellow;
+            // width: 100%;
+            .monthly {
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              width: 14rem;
+              height: 3rem;
+              background-image: url(../../assets/largeScreen/gradient.png);
+              background-size: 100% 100%;
+            }
+
+            .ranking {
+              display: flex;
+              justify-content: space-around;
+              align-items: center;
+              width: 14rem;
+              height: 3rem;
+              background-image: url(../../assets/largeScreen/gradient.png);
+              background-size: 100% 100%;
+            }
+          }
+
+          .information_bottom {
+            padding: 0 2rem;
+          }
+        }
+
+        .air_bottom {
+          width: 100%;
+          height: 50%;
+          // background-color: greenyellow;
+        }
+      }
+
+      .tidings_center {
+        .tidings_flow1 {
+          .flow_foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0 0 1rem;
+            margin-top: 0.967213rem;
+            width: 97%;
+            height: 16.7rem;
+            background-image: url(../../assets/screen_image1/Group1572.png);
+            background-size: 100% 100%;
+            backdrop-filter: blur(3px);
+            margin-left: 1rem;
+
+            .charges_left {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              width: 22.5%;
+              height: 22%;
+              // background-color: red
+            }
+
+            .charges_center {
+              display: flex;
+              flex-direction: column;
+              justify-content: end;
+              width: 20%;
+              height: 64%;
+              margin-left: -0.68rem;
+              // background-color: pink
+            }
+
+            .charges_right {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              width: 22.5%;
+              height: 22%;
+              // background-color: orange
+            }
+          }
+        }
+
+        .tidings_flow {
+          .flow_hand {
+            margin-top: 0.967213rem;
+            width: 97%;
+            height: 16.7rem;
+            background-image: url(../../assets/screen_image1/Group1574.png);
+            background-size: 100% 100%;
+            backdrop-filter: blur(3px);
+            margin-left: 1rem;
+          }
+        }
+      }
+
+
+
+      .smart {
+        width: 33.8rem;
+        // height: 100%;
+        height: 34.4rem;
+        margin-top: 0.967213rem;
+        // margin-left: 1rem;
+        background-image: url(../../assets/largeScreen/vvv.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+
+        .selectFlex {
+          margin: 4rem 1.2rem 0rem 1.2rem;
+          display: flex;
+          justify-content: flex-end;
+
+          .el-input__inner {
+            background: none;
+            border: none;
+            color: #5BE9FF;
+            text-align: right;
+          }
+
+          .el-select .el-input .el-select__caret {
+            color: #5BE9FF;
+
+          }
+
+          // 设置下拉框的背景颜色及边框属性；
+          .el-select-dropdown {
+            border: 1px solid #1F7B9C;
+            box-shadow: inset 2px 2px 5px #1F7B9C;
+            // 若不将下拉框的背景颜色设置为：transparent，那么做不出来半透明的效果；
+            // 因为其最终的显示为：下拉框有一个背景颜色且下拉框的字体有一个背景颜色，重叠后的效果展示；
+            background-color: transparent;
+            background: #0C2C42;
+            // border: 1px solid blue;
+          }
+
+          // 设置下拉框的字体属性及背景颜色；
+          .el-select-dropdown__item {
+            color: #fff;
+            background-color: none;
+          }
+
+          // 设置下拉框列表的 padding 值为：0；(即：样式调整)
+          .el-select-dropdown__list {
+            padding: 0 !important;
+          }
+
+          // 设置输入框与下拉框的距离为：0; (即：样式调整)
+          .el-select-dropdown.el-popper {
+            margin-top: 0px;
+            left: auto !important;
+            right: 0 !important;
+          }
+
+          // 将下拉框上的小箭头取消；(看着像一个箭头，其实是两个重叠在一起的箭头)
+          .el-popper .popper__arrow,
+          .el-popper .popper__arrow::after {
+            display: none;
+          }
+
+          // 设置鼠标悬停在下拉框列表的悬停色；
+          .el-select-dropdown__item.hover,
+          .el-select-dropdown__item:hover {
+            background-color: rgba($color: #348AA0, $alpha: 0.2);
+            color: #59E3F9;
+          }
+
+        }
+
+        // ::v-deep .el-table__header-wrapper {
+        //   background-image: url(../../assets/largeScreen/vvv.png);
+        // }
+
+        .selectNoticeClass {
+          margin: 0.1rem 1.2rem 2rem 1.2rem;
+          width: auto;
+          background: none;
+          font-size: 1.07692308rem;
+          color: #fff;
+
+          &::before {
+            display: none;
+          }
+
+
+
+          .has-gutter {
+            background: url(../../assets/largeScreen/Group401853@2x.png) center center no-repeat;
+            background-size: 100%;
+          }
+
+          .el-table__header-wrapper th,
+          .el-table__fixed-header-wrapper th {
+            color: #72CEFF;
+            font-size: 1.23076923rem;
+          }
+
+          tbody .el-table__row:not(:nth-child(-n + 8)) {
+            display: none;
+          }
+
+
+
+          tr,
+          th,
+          td {
+            background: none !important;
+          }
+
+          th.el-table__cell.is-leaf,
+          td.el-table__cell {
+            border-bottom: none;
+          }
+
+          .el-table__cell {
+            padding: 0.6rem 0rem !important;
+          }
+
+          .cell {
+            padding-left: 5px;
+            padding-right: 5px;
+          }
+        }
+
+        .smart_top {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          height: 8.8rem;
+          padding: 0 2rem 0 1rem;
+          margin-top: 4.1rem;
+
+          // background-color: #00979d;
+          .smart_one {
+            width: 18rem;
+            // width: 58%;
+            // height: 100%;
+            // background-color: red;
+          }
+
+          .smart_two {
+            width: 30%;
+            height: 100%;
+            // background-color: pink;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+        }
+
+        .smart_center {
+          margin-top: 2rem;
+          display: flex;
+          justify-content: space-evenly;
+          width: 100%;
+          height: 4.8rem;
+          margin-top: 1.76rem;
+          // background-color: darkorange;
+        }
+
+        .smart_bottom {
+          width: 100%;
+          height: 12.3rem;
+          margin-top: 1rem;
+
+          // background-color: aquamarine;
+        }
+
+      }
+
+      .tidings_right {
+        margin-top: 0.967213rem;
+        margin-left: 1rem;
+        width: 49.3%;
+        height: 34.4rem;
+        background-image: url(../../assets/screen_image1/xcxg.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        // margin-left: 1rem;
+      }
+    }
+
+    .box_center {
+      margin-left: 1rem;
+
+      .statistics_apply {
+        margin-top: 0.967213rem;
+        width: 24.3%;
+        height: 16.7rem;
+        background-image: url(../../assets/screen_image1/YJCLSQ1.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+
+        .apply_01 {
+          margin: 4rem 0 0 1rem;
+          color: #0ac2c0;
+        }
+
+        .apply_02 {
+          margin: 3rem 0 0 0rem;
+          color: #967138;
+        }
+
+        .apply_03 {
+          margin: 4rem 0 0 16rem;
+          color: #0ac2c0;
+        }
+      }
+
+      .work_order {
+        margin-top: 0.967213rem;
+        width: 24.3%;
+        height: 16.7rem;
+        background-image: url(../../assets/screen_image1/GDTJ1.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        margin-left: 1rem;
+      }
+
+      .statistics_repair {
+        width: 24.3%;
+        height: 16.7rem;
+        margin-top: 0.967213rem;
+        background-image: url(../../assets/screen_image1/Group1545.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        margin-left: 1rem;
+
+        .number {
+          display: flex;
+          position: absolute;
+          top: 3.2rem;
+          right: 4.4rem;
+          width: 15rem;
+          height: 1.8rem;
+
+          // background-color: yellow;
+          .el-input__inner {
+            background: none;
+            border: none;
+            color: #5BE9FF;
+            text-align: right;
+            width: 100px;
+          }
+
+          .el-select {
+            z-index: 11;
+            width: auto;
+          }
+
+          .el-select .el-input .el-select__caret {
+            color: #5BE9FF;
+
+          }
+
+          // 设置下拉框的背景颜色及边框属性；
+          .el-select-dropdown {
+            width: auto !important;
+            min-width: 50px !important;
+            border: 1px solid #1F7B9C;
+            box-shadow: inset 2px 2px 5px #1F7B9C;
+            // 若不将下拉框的背景颜色设置为：transparent，那么做不出来半透明的效果；
+            // 因为其最终的显示为：下拉框有一个背景颜色且下拉框的字体有一个背景颜色，重叠后的效果展示；
+            background-color: transparent;
+            background: #0C2C42;
+            // border: 1px solid blue;
+          }
+
+          // 设置下拉框的字体属性及背景颜色；
+          .el-select-dropdown__item {
+            color: #fff;
+            background-color: none;
+          }
+
+          // 设置下拉框列表的 padding 值为：0；(即：样式调整)
+          .el-select-dropdown__list {
+            padding: 0 !important;
+          }
+
+          // 设置输入框与下拉框的距离为：0; (即：样式调整)
+          .el-select-dropdown.el-popper {
+            margin-top: 0px;
+            left: auto !important;
+            right: 0 !important;
+          }
+
+          // 将下拉框上的小箭头取消；(看着像一个箭头，其实是两个重叠在一起的箭头)
+          .el-popper .popper__arrow,
+          .el-popper .popper__arrow::after {
+            display: none;
+          }
+
+          // 设置鼠标悬停在下拉框列表的悬停色；
+          .el-select-dropdown__item.hover,
+          .el-select-dropdown__item:hover {
+            background-color: rgba($color: #348AA0, $alpha: 0.2);
+            color: #59E3F9;
+          }
+        }
+      }
+
+      .statistics_forum {
+        width: 24.3%;
+        height: 15.7rem;
+        margin-top: 1.967213rem;
+        background-image: url(../../assets/screen_image1/SQLTGZCY.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        margin-left: 1rem;
+      }
+
+      .environment_bottom {
+        width: 24.3%;
+        height: 16.7rem;
+        margin-top: 0.967213rem;
+        background-image: url(../../assets/screen_image1/huanjinjiane.png);
+        background-size: 100% 100%;
+        backdrop-filter: blur(3px);
+        margin-left: 1rem;
+        position: relative;
+
+        .number {
+          display: flex;
+          position: absolute;
+          top: 3.2rem;
+          right: 4.4rem;
+          width: 15rem;
+          height: 1.8rem;
+          // background-color: yellow;
+        }
+
+        .typeItemBox {
+          // margin-top: 5rem;
+          margin-left: 8.8rem;
+          overflow: hidden;
+          margin-right: 1.8rem;
+          overflow-x: auto;
+          position: absolute;
+          top: 0;
+          margin-top: 5.1rem;
+          right: 0;
+          width: 70%;
+          height: 1.6rem;
+          line-height: 1.6rem;
+          z-index: 1;
+
+          .list {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            width: max-content;
+
+            color: rgba(255, 255, 255, 0.6);
+
+            .item {
+              // margin-left: 20px;
+              cursor: pointer;
+              font-size: 0.8rem;
+              padding: 0 10px;
+            }
+
+            .active {
+              background: url(../../assets/largeScreen/Group401806@2x.png);
+              background-size: 100% 100%;
+              color: rgba(255, 255, 255, 1);
+            }
+          }
+
+          /* 修改垂直滚动条 */
+          &::-webkit-scrollbar {
+            width: 6px;
+            height: 3px;
+            /* 修改宽度 */
+          }
+
+          /* 修改滚动条轨道背景色 */
+          &::-webkit-scrollbar-track {
+            background-color: #f1f1f1;
+          }
+
+          /* 修改滚动条滑块颜色 */
+          &::-webkit-scrollbar-thumb {
+            background-color: #174b6a;
+          }
+
+          /* 修改滚动条滑块悬停时的颜色 */
+          &::-webkit-scrollbar-thumb:hover {
+            background-color: #174b6a;
+          }
+        }
+
+        .el-input--medium .el-input__inner,
+        .el-input--medium .el-input__icon {
+          height: 24px;
+          line-height: 24px;
+        }
+
+        .el-input__inner {
+          background: none;
+          border: none;
+          color: #5BE9FF;
+          text-align: right;
+        }
+
+        .el-select {
+          z-index: 11;
+          width: auto;
+        }
+
+        .el-select .el-input .el-select__caret {
+          color: #5BE9FF;
+
+        }
+
+        // 设置下拉框的背景颜色及边框属性；
+        .el-select-dropdown {
+          width: auto !important;
+          min-width: 50px !important;
+          border: 1px solid #1F7B9C;
+          box-shadow: inset 2px 2px 5px #1F7B9C;
+          // 若不将下拉框的背景颜色设置为：transparent，那么做不出来半透明的效果；
+          // 因为其最终的显示为：下拉框有一个背景颜色且下拉框的字体有一个背景颜色，重叠后的效果展示；
+          background-color: transparent;
+          background: #0C2C42;
+          // border: 1px solid blue;
+        }
+
+        // 设置下拉框的字体属性及背景颜色；
+        .el-select-dropdown__item {
+          color: #fff;
+          background-color: none;
+        }
+
+        // 设置下拉框列表的 padding 值为：0；(即：样式调整)
+        .el-select-dropdown__list {
+          padding: 0 !important;
+        }
+
+        // 设置输入框与下拉框的距离为：0; (即：样式调整)
+        .el-select-dropdown.el-popper {
+          margin-top: 0px;
+          left: auto !important;
+          right: 0 !important;
+        }
+
+        // 将下拉框上的小箭头取消；(看着像一个箭头，其实是两个重叠在一起的箭头)
+        .el-popper .popper__arrow,
+        .el-popper .popper__arrow::after {
+          display: none;
+        }
+
+        // 设置鼠标悬停在下拉框列表的悬停色；
+        .el-select-dropdown__item.hover,
+        .el-select-dropdown__item:hover {
+          background-color: rgba($color: #348AA0, $alpha: 0.2);
+          color: #59E3F9;
+        }
+
+        // .environment_box {
+        //   width: 20%;
+        //   // margin-left: 0.4rem;
+        //   text-align: center;
+        // }
+
+        // // .number {
+        // //   width: 20%;
+        // //   // margin-left: 0.4rem;
+        // //   text-align: center;
+        // //   font-size: 1.8rem;
+        // //   color: #00f6ec;
+        // // }
+
+        // .words {
+        //   color: #fff;
+        //   margin: 0rem 3rem 0 0;
+        //   background-color: #0ade35;
+        //   border-radius: 0.3rem;
+        // }
+      }
+    }
+  }
+}
+
+.f {
+  display: flex;
+}
+
+.jc-c {
+  justify-content: center;
+}
+
+.jc-b {
+  justify-content: space-between;
+}
+
+.ai-c {
+  align-items: center;
+}
+
+.white {
+  color: #c5ccd5;
+}
+
+.typeface {
+  color: #47ffff;
+  font-family: electronicFont;
+}
+
+.orgner {
+  color: #FFA800;
+}
+
+.el-tooltip__popper.is-dark {
+  max-width: 200px !important;
+  width: 100% !important;
+}

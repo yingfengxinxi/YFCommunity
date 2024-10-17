@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.manage.GridMapper">
+
+    <sql id="Base_Column_List">
+        g.grid_id, g.del_flag,g.remark, g.update_time, g.update_by, g.create_time, g.create_by, g.staff_id, g.grid_name,
+    g.community_id, g.estate_id
+    </sql>
+
+
+    <insert id="addGrid">
+        insert into xccj_govern.bus_grid
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="staffId != null">
+                staff_id,
+            </if>
+            <if test="gridName != null">
+                grid_name,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="staffId != null">
+                #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="gridName != null">
+                #{gridName,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="estateId != null">
+                #{estateId,jdbcType=BIGINT},
+            </if>
+            sysDate()
+        </trim>
+    </insert>
+
+    <update id="updateGrid">
+        update xccj_govern.bus_grid
+        <set>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="staffId != null">
+                staff_id = #{staffId,jdbcType=BIGINT},
+            </if>
+            <if test="gridName != null">
+                grid_name = #{gridName,jdbcType=VARCHAR},
+            </if>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="estateId != null">
+                estate_id = #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            update_time = sysDate()
+        </set>
+        where grid_id = #{gridId,jdbcType=BIGINT}
+    </update>
+
+    <update id="delGrid">
+        update xccj_govern.bus_grid
+        <set>
+            update_by=#{updateBy},
+            update_time = sysDate(),
+            del_flag='1'
+        </set>
+        where grid_id = #{gridId,jdbcType=BIGINT}
+    </update>
+
+    <select id="getList" resultType="com.wr.remote.govern.manage.vo.GridVO">
+        select
+        c.community_name,
+        s.staff_name,
+        s.staff_phone,
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_grid g
+        LEFT JOIN xccj_community.bus_community c ON c.community_id = g.community_id
+        LEFT JOIN xccj_community.bus_staff s ON s.staff_id = g.staff_id
+        <where>
+            g.del_flag='0'
+            and g.estate_id in  (select GROUP_CONCAT(estate_id) estate_id from (SELECT estate_id
+            FROM (
+            SELECT t1.*,
+            IF(FIND_IN_SET(parent_id, @pids) > 0,
+            @pids := CONCAT(@pids, ',', estate_id), '0') AS ischild
+            FROM (
+            SELECT *
+            FROM xccj_community.bus_estate AS t
+            WHERE t.del_flag = '0'
+            ORDER BY t.estate_id ASC
+            ) t1,
+            (SELECT @pids := #{estateId}) t2
+            ) t3
+            WHERE ischild != '0'
+            UNION
+            SELECT estate_id
+            FROM xccj_community.bus_estate
+            WHERE estate_id = #{estateId}
+            AND del_flag = '0') a)
+            AND c.del_flag='0'
+            AND s.del_flag='0'
+            <if test="communityIds != null and communityIds != ''">
+                AND g.community_id in (
+                <foreach collection="communityIds" item="item" separator=",">
+                    #{item}
+                </foreach>
+                )
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(g.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(g.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectStaffList" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT staff_id, staff_name, staff_phone
+        FROM xccj_community.bus_staff
+        WHERE community_id = #{communityId}
+    </select>
+
+    <select id="getGridDetail" resultType="com.wr.remote.govern.manage.vo.GridVO">
+        SELECT
+        c.community_name,
+        s.staff_name,
+        s.staff_id,
+        <include refid="Base_Column_List"/>
+        from xccj_govern.bus_grid g
+        LEFT JOIN xccj_community.bus_community c ON c.community_id = g.community_id
+        LEFT JOIN xccj_community.bus_staff s ON s.staff_id = g.staff_id
+        WHERE g.grid_id = #{gridId}
+        AND g.del_flag='0'
+        AND c.del_flag='0'
+        AND s.del_flag='0'
+    </select>
+</mapper>

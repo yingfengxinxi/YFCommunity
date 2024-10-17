@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.serve.VenueMapper">
+    <insert id="save" useGeneratedKeys="true" keyProperty="appointId">
+        insert into xccj_community.bus_venue_appoint
+        values
+        (
+            null,#{communityId},#{userName},#{userPhone},#{cardNo},#{activityId},#{activityName},#{venueId},#{planStart},#{planEnd},
+            #{deposit},default,#{appointStatus},#{payWay},#{payAmount},default,default,default,#{createBy},
+            #{createTime},#{updateBy},#{updateTime},default
+        )
+    </insert>
+    <update id="updatePay">
+        UPDATE xccj_community.bus_venue_appoint set appoint_status='1' WHERE appoint_id=#{appointId}
+    </update>
+    <select id="searchByCommunityId" resultType="com.wr.api.estate.entity.vo.application.serve.VenueVO">
+        SELECT venue_id,venue_name,address,venue_status,hour_fee,deposit,create_time,
+               (SELECT COUNT(1) FROM xccj_community.bus_venue_appoint WHERE venue_id=bv.venue_id and del_flag='0' and  DATE_FORMAT(plan_start,'%Y-%m-%d')= DATE_FORMAT(NOW(),'%Y-%m-%d')) AS 'count'
+        FROM xccj_community.bus_venue bv
+        WHERE del_flag='0' AND community_id=#{communityId}
+        <if test="state != null and  state != '' ">
+            <choose>
+                <when test="state != 2 ">
+                    AND  venue_status=#{state}
+                </when>
+                <otherwise>
+                    HAVING `count` > 0
+                </otherwise>
+            </choose>
+        </if>
+        order by venue_status asc
+    </select>
+    <select id="searchAppoint" resultType="java.util.LinkedHashMap">
+        SELECT plan_start planStart,plan_end planEnd,user_name userName,v.activity_name  actName,
+               a.activity_name  activityName,
+               IF(now()>a.plan_end,'已结束',IF(now()>plan_start,'进行中','未开始')) state
+        from xccj_community.bus_venue_appoint a,xccj_community.bus_venue_act v
+        WHERE a.del_flag='0' and a.activity_id=v.activity_id and a.venue_id=#{venueId}
+            <if test="time != '' and time != null ">
+                and DATE_FORMAT(a.plan_start,'%Y-%m-%d')=#{time} and DATE_FORMAT(a.plan_end,'%Y-%m-%d')=#{time}
+            </if>
+            ORDER BY a.create_time desc
+    </select>
+    <select id="detailById" resultType="com.wr.api.estate.entity.vo.application.serve.VenueVO">
+        SELECT venue_image,venue_name,v.address,deposit,hour_fee,s.staff_name,s.staff_phone
+        from xccj_community.bus_venue v,xccj_community.bus_staff  s
+        WHERE v.staff_id=s.staff_id and venue_id=#{venueId}
+    </select>
+    <select id="searchActByCommunityId" resultType="java.util.LinkedHashMap">
+        SELECT activity_id activityId,activity_name activityName from xccj_community.bus_venue_act WHERE del_flag='0' and activity_status = '0' and community_id=#{communityId}
+    </select>
+    <select id="searchRuleByCommunityId" resultType="java.util.LinkedHashMap">
+        SELECT `statement`,use_rule useRule from xccj_community.bus_venue_rule
+            WHERE del_flag='0' and estate_id=(SELECT estate_id from xccj_community.bus_community WHERE community_id=#{communityId})
+    </select>
+    <select id="searchTodayAppoint" resultType="java.util.LinkedHashMap">
+        SELECT plan_start planStart,plan_end planEnd,user_name userName
+        from xccj_community.bus_venue_appoint a
+        WHERE a.del_flag='0' and  DATE_FORMAT(a.plan_start,'%Y-%m-%d')= DATE_FORMAT(NOW(),'%Y-%m-%d')
+        and a.venue_id=#{venueId} ORDER BY a.create_time desc LIMIT 2
+    </select>
+    <select id="detailByAppointId" resultType="com.wr.api.estate.entity.vo.application.serve.VenueAppointVO">
+        SELECT user_name,user_phone,card_no,act.activity_name act_name,bv.venue_name,plan_start,plan_end,bva.activity_name,
+               bv.hour_fee,bv.deposit
+        from xccj_community.bus_venue_appoint bva,xccj_community.bus_venue bv,
+             xccj_community.bus_venue_act act
+        WHERE bva.del_flag='0' and bva.venue_id=bv.venue_id
+          and bva.activity_id=act.activity_id
+          and bva.appoint_id=#{appointId}
+    </select>
+    <select id="countPlanStart" resultType="java.lang.Integer">
+        SELECT count(1) from xccj_community.bus_venue_appoint
+        WHERE del_flag='0' and community_id = #{communityId} and venue_id = #{venueId} and DATE_FORMAT(plan_end,'%Y-%m-%d') = #{date}
+          and DATE_FORMAT(plan_end,'%H:%i:%s')  > #{time}
+    </select>
+    <select id="dateValid" resultType="java.lang.Integer">
+        SELECT count(1) from xccj_community.bus_venue_appoint
+        WHERE del_flag='0' and community_id = #{communityId} and venue_id = #{venueId}
+          and DATE_FORMAT(plan_start,'%Y-%m-%d') &lt; #{date} and DATE_FORMAT(plan_end,'%Y-%m-%d') > #{date}
+    </select>
+    <select id="dateValidCount" resultType="java.lang.Integer">
+        SELECT count(1) from xccj_community.bus_venue_appoint
+        WHERE del_flag='0' and community_id = #{communityId} and venue_id = #{venueId}
+          and DATE_FORMAT(plan_start,'%Y-%m-%d') = #{start}  and DATE_FORMAT(plan_end,'%Y-%m-%d') = #{end}
+    </select>
+
+    <!--查询场馆工单-->
+    <select id="searchVenueAppoint" resultType="com.wr.api.estate.entity.vo.application.serve.VenueAppointApiVo">
+        select
+            xcbva.user_name username,xcbva.user_phone userphone,xcbva.create_time createtime,xcbva.appoint_id appointId,
+            xcbva.plan_start planStart,xcbva.plan_end planEnd,xcbva.appoint_status appointStatus,
+            xcbv.venue_name venuename,xcbv.address
+        from xccj_community.bus_venue_appoint xcbva
+        left join xccj_community.bus_venue xcbv on xcbva.venue_id = xcbv.venue_id
+        where xcbva.del_flag = '0' and xcbva.community_id = #{communityId}
+    </select>
+
+    <!--查看场馆工单详情-->
+    <select id="detailVenueAppoint" resultType="com.wr.api.estate.entity.vo.application.serve.VenueAppointApiVo">
+        select
+            xcbva.plan_start planStart,xcbva.plan_end planEnd,xcbva.appoint_status appointStatus,
+            xcbv.venue_image venueImage,xcbv.venue_name venueName,xcbv.address,xcbv.deposit,xcbv.hour_fee hourFee,
+            xcbs.staff_name staffName,xcbs.staff_phone staffPhone
+        from xccj_community.bus_venue_appoint xcbva
+        left join xccj_community.bus_venue xcbv on xcbva.venue_id = xcbv.venue_id
+        left join xccj_community.bus_venue_act xcbvac on xcbva.activity_id = xcbvac.activity_id
+        left join xccj_community.bus_staff xcbs on xcbv.staff_id = xcbs.staff_id
+        where xcbva.appoint_id = #{appointId}
+    </select>
+
+    <!--场馆工单终止-->
+    <update id="terVenueAppoint">
+        update xccj_community.bus_venue_appoint
+        <set>
+            appoint_status = '3',
+            <if test="username != null and username != ''">update_by = #{username},</if>
+            update_time = sysdate()
+        </set>
+        where appoint_id = #{appointId}
+    </update>
+</mapper>

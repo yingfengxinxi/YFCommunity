@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.work.parkmatter.ParkOrderMapper">
+    <insert id="save" keyProperty="orderId" useGeneratedKeys="true">
+        insert into xccj_work.bus_park_order(community_id, audit_id, order_no, order_name,
+                                             allot_way, plan_end, staff_id, allot_status, remark, create_by,
+                                             create_time,
+                                             update_by, update_time, del_flag)
+        values (#{communityId}, #{auditId}, #{orderNo}, #{orderName},
+                #{allotWay}, #{planEnds}, #{staffId}, #{allotStatus},
+                #{remark}, #{createBy}, now(), #{createBy}, now(), '0')
+    </insert>
+    <delete id="deleteByOrderNo">
+        delete
+        from xccj_community.bus_park_order
+        where status!='1' and order_no = #{orderNo}
+    </delete>
+    <update id="updateOrder">
+        update xccj_work.bus_park_order
+        set order_name=#{order_name},
+            remark=#{remark},
+            plan_start=#{plan_start},
+            plan_end=#{plan_end}
+        where order_id = #{order_id}
+    </update>
+    <update id="remove">
+        update xccj_work.bus_park_order
+        set del_flag='1'
+        where order_id = #{id}
+    </update>
+    <update id="update">
+        update xccj_work.bus_park_order
+        set staff_id=#{staff_id},
+            allot_status='1',
+            plan_start=#{plan_start},
+            plan_end=#{plan_end},
+            update_by=#{by},
+            update_time=now()
+        where order_id = #{orderId}
+    </update>
+    <select id="query" resultType="java.util.LinkedHashMap">
+        SELECT
+        bpo.order_no,bpo.order_id,bpo.order_name,bpr.repair_name,bpo.audit_id,bpa.audit_time,bpa.audit_by,bpo.image_url,bpo.remark
+        bpo_remark,bpo.staff_id,bpo.remark,
+        bpa.remark
+        bpa_remark,bpo.execute_time,bpa.address,bpo.plan_start,bpo.plan_end,bpo.finish_time,bpo.execute_status,bpo.allot_way,bpo.allot_status,bpo.accept_status,
+        (SELECT staff_name from xccj_community.bus_staff where bpo.staff_id=staff_id) as 'staff_name',
+        (SELECT staff_name from xccj_community.bus_staff where bpo.execute_id=staff_id) as 'execute_name',
+        (SELECT count(1) from xccj_work.bus_abnormal WHERE order_id=bpo.order_id and order_type='7') as 'error_count',
+        CASE
+        WHEN complaint.complaint_type IS NULL THEN
+        '待评价'
+        WHEN complaint.complaint_type = '0' THEN
+        '表扬'
+        WHEN complaint.complaint_type = '1' THEN
+        '投诉'
+        END AS complaintType
+        from xccj_work.bus_park_order bpo LEFT JOIN
+        xccj_work.bus_park_audit bpa ON bpo.audit_id=bpa.audit_id
+        LEFT JOIN
+        xccj_work.bus_park_repair bpr ON bpa.repair_id=bpr.repair_id and bpa.audit_status='1'
+        LEFT JOIN
+        xccj_community.bus_complaint complaint ON complaint.order_type = '2' AND complaint.order_id = bpo.order_id
+        WHERE bpo.del_flag='0'
+        and bpo.community_id=#{community_id,jdbcType=BIGINT}
+        <if test="order_name != null and order_name != '' ">
+            and bpo.order_name like concat('%',#{order_name,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="repair_type != null and repair_type != '' ">
+            and bpr.repair_id=#{repair_type,jdbcType=BIGINT}
+        </if>
+        <if test="state != '' and state != null ">
+            <if test="state == 0 or state == 2 or state == 3 ">
+                AND bpo.execute_status = #{state}
+            </if>
+            <if test="state == 1 ">
+                AND bpo.execute_status = '1' AND bpo.plan_end >= now()
+            </if>
+            <if test="state == 4 ">
+                AND bpo.execute_status = '1' AND bpo.plan_end &lt; now()
+            </if>
+        </if>
+        order by bpo.create_time desc
+    </select>
+
+    <select id="getByOrderNoInfo" resultType="com.wr.remote.estate.financial.ParkOrderDel">
+        SELECT id                AS "id",
+               order_no          AS "orderNo",
+               staff_property_id AS "staffPropertyId",
+               carport_id        AS "carportId",
+               fee               AS "fee",
+               `status`          AS "status",
+               fee_success_time  AS "feeSuccessTime",
+               create_time       AS "createTime",
+               create_by         AS "createBy",
+               update_time       AS "updateTime",
+               update_by         AS "updateBy",
+               del_flag          AS "delFlag",
+               lease_purchase    AS "leasePurchase",
+               purchase_package  AS "purchasePackage",
+               end_time          AS "endTime",
+               `year_month`      AS "yearMonth",
+               is_renew          AS "isRenew"
+        FROM xccj_community.bus_park_order
+        WHERE order_no = #{orderNo} and status!='1'
+    </select>
+
+    <update id="clearBusCarport" parameterType="String">
+        update xccj_community.bus_carport
+        set
+            rental_start=null,
+            rental_end=null,
+            rental_over=null,
+            account_id=0,
+            vehicle_id=0,
+            room_id=null,
+            all_status='0'
+        where del_flag = '0'
+          and carport_id = #{carportId}
+          and all_status IN ('0', '3')
+    </update>
+</mapper>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.lost.PeopleLostMapper">
+
+    <sql id="selectPeopleLostVo">
+        SELECT lost_id,
+               community_id,
+               people_type,
+               thumbnail,
+               lost_name,
+               gender,
+               birthday,
+               lost_age,
+               lost_height,
+               hometown,
+               lost_date,
+               lost_address,
+               contact_name,
+               contact_phone,
+               lost_info,
+               publish_time,
+               lost_status
+        FROM xccj_community.bus_people_lost
+    </sql>
+
+    <!--查询列表-->
+    <select id="selectPeopleLostList" resultType="com.wr.remote.estate.customer.lost.PeopleLostVo">
+        <include refid="selectPeopleLostVo"/>
+        WHERE del_flag = '0' AND community_id = #{communityId}
+        <if test="lostName != null and lostName != ''">AND lost_name like CONCAT('%',#{lostName},'%')</if>
+        <if test="lostStatus != null and lostStatus != ''">AND lost_status = #{lostStatus}</if>
+        <if test="contactName != null and contactName != ''">AND contact_name like CONCAT('%',#{contactName},'%')</if>
+        <if test="contactPhone != null and contactPhone != ''">AND contact_phone like CONCAT('%',#{contactPhone},'%')
+        </if>
+        ORDER BY publish_time DESC
+    </select>
+
+    <select id="get" resultType="com.wr.remote.estate.customer.lost.PeopleLostVo">
+        <include refid="selectPeopleLostVo"/>
+        WHERE del_flag = '0' AND lost_id = #{lostId}
+    </select>
+
+    <!--删除-->
+    <delete id="deleteById">
+        UPDATE xccj_community.bus_people_lost
+        SET del_flag = '1'
+        WHERE lost_id = #{lostId}
+    </delete>
+
+    <!-- 发布寻人启示-->
+    <insert id="addPeoLost">
+        insert into xccj_community.bus_people_lost
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">community_id,</if>
+            <if test="peopleType != null and peopleType != ''">people_type,</if>
+            <if test="thumbnail != null and thumbnail != ''">thumbnail,</if>
+            <if test="lostName != null and lostName != ''">lost_name,</if>
+            <if test="gender != null and gender != ''">gender,</if>
+            <if test="birthday != null">birthday,</if>
+            <if test="lostAge != null and lostAge != ''">lost_age,</if>
+            <if test="lostHeight != null and lostHeight != ''">lost_height,</if>
+            <if test="hometown != null and hometown != ''">hometown,</if>
+            <if test="lostDate != null">lost_date,</if>
+            <if test="lostAddress != null and lostAddress != ''">lost_address,</if>
+            <if test="contactName != null and contactName != ''">contact_name,</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone,</if>
+            <if test="lostInfo != null and lostInfo != ''">lost_info,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="lostStatus != null and lostStatus != ''">lost_status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null and communityId != ''">#{communityId},</if>
+            <if test="peopleType != null and peopleType != ''">#{peopleType},</if>
+            <if test="thumbnail != null and thumbnail != ''">#{thumbnail},</if>
+            <if test="lostName != null and lostName != ''">#{lostName},</if>
+            <if test="gender != null and gender != ''">#{gender,jdbcType=CHAR},</if>
+            <if test="birthday != null">#{birthday},</if>
+            <if test="lostAge != null and lostAge != ''">#{lostAge},</if>
+            <if test="lostHeight != null and lostHeight != ''">#{lostHeight},</if>
+            <if test="hometown != null and hometown != ''">#{hometown},</if>
+            <if test="lostDate != null">#{lostDate},</if>
+            <if test="lostAddress != null and lostAddress != ''">#{lostAddress},</if>
+            <if test="contactName != null and contactName != ''">#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">#{contactPhone},</if>
+            <if test="lostInfo != null and lostInfo != ''">#{lostInfo},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="lostStatus != null and lostStatus != ''">#{lostStatus},</if>
+        </trim>
+    </insert>
+
+    <!--修改发布状态-->
+    <update id="updateByStatus">
+        update xccj_community.bus_people_lost
+        set lost_status=#{lostStatus}
+        where lost_id = #{lostId}
+    </update>
+    <update id="updatePeoLost">
+        update xccj_community.bus_people_lost
+        <set>
+            <if test="peopleType != null and peopleType != ''">people_type=#{peopleType},</if>
+            <if test="thumbnail != null and thumbnail != ''">thumbnail=#{thumbnail},</if>
+            <if test="lostName != null and lostName != ''">lost_name=#{lostName},</if>
+            <if test="gender != null and gender != ''">gender=#{gender},</if>
+            <if test="birthday != null">birthday=#{birthday},</if>
+            <if test="lostAge != null and lostAge != ''">lost_age=#{lostAge},</if>
+            <if test="lostHeight != null and lostHeight != ''">lost_height=#{lostHeight},</if>
+            <if test="hometown != null and hometown != ''">hometown=#{hometown},</if>
+            <if test="lostDate != null">lost_date=#{lostDate},</if>
+            <if test="lostAddress != null and lostAddress != ''">lost_address=#{lostAddress},</if>
+            <if test="contactName != null and contactName != ''">contact_name=#{contactName},</if>
+            <if test="contactPhone != null and contactPhone != ''">contact_phone=#{contactPhone},</if>
+            <if test="lostInfo != null and lostInfo != ''">lost_info=#{lostInfo},</if>
+            <if test="publishTime != null">publish_time=#{publishTime},</if>
+            <if test="lostStatus != null and lostStatus != ''">lost_status=#{lostStatus},</if>
+        </set>
+        where lost_id=#{lostId}
+    </update>
+</mapper>
+

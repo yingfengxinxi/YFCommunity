@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.PropertyFeeMapper">
+
+
+    <sql id="columns">
+        bpf
+        .
+        property_fee_id
+        AS "propertyFeeId",
+            bpf.community_id AS "communityId",
+            bpf.fee_status AS "feeStatus",
+            bpf.fee_type AS "feeType",
+            bpf.fee_amount AS "feeAmount",
+            bpf.room_type AS "roomType",
+            bpf.start_time AS "startTime",
+            bpf.end_time AS "endTime",
+            bpf.pay_method as "payMethod",
+            bpf.order_no as "orderNo",
+            bpf.create_by AS "createBy",
+            bpf.create_time AS "createTime",
+            bpf.update_by AS "updateBy",
+            bpf.update_time AS "updateTime"
+    </sql>
+
+    <select id="selectBusPropertyFeeList" resultType="com.wr.remote.domain.PropertyFeeEntity">
+        SELECT
+        <include refid="columns"></include>
+        FROM
+        xccj_community.bus_property_fee bpf
+        WHERE
+        bpf.estate_id = #{estateId}
+        <if test="communityId != null and  communityId != ''">and bpf.community_id = #{communityId}</if>
+        <if test="feeStatus != null  and feeStatus != ''">and bpf.fee_status = #{feeStatus}</if>
+        <if test="feeType != null  and feeType != ''">and bpf.fee_type = #{feeType}</if>
+        ORDER BY
+        bpf.create_time DESC
+    </select>
+
+    <select id="selectBusPropertyFeeByCommunityId" resultType="com.wr.remote.domain.PropertyFeeEntity">
+        select
+        <include refid="columns"></include>
+        from xccj_community.bus_property_fee bpf
+        where bpf.property_fee_id = #{propertyFeeId}
+    </select>
+
+
+    <insert id="insertBusPropertyFee">
+        insert into xccj_community.bus_property_fee
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            property_fee_id,
+            <if test="estateId != null">estate_id,</if>
+            <if test="communityId != null">community_id,</if>
+            <if test="orderNo != null and orderNo!=''">order_no,</if>
+            <if test="feeStatus != null">fee_status,</if>
+            <if test="feeType != null">fee_type,</if>
+            <if test="feeAmount != null">fee_amount,</if>
+            <if test="roomType != null and roomType !=''">room_type,</if>
+            <if test="payMethod != null and payMethod !=''">pay_method,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{propertyFeeId},
+            <if test="estateId != null">#{estateId},</if>
+            <if test="communityId != null">#{communityId},</if>
+            <if test="orderNo != null and orderNo!=''">#{orderNo},</if>
+            <if test="feeStatus != null">#{feeStatus},</if>
+            <if test="feeType != null">#{feeType},</if>
+            <if test="feeAmount != null">#{feeAmount},</if>
+            <if test="roomType != null and roomType !=''">#{roomType},</if>
+            <if test="payMethod != null and payMethod !=''">#{payMethod},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <delete id="deleteByPropertyFeeBuilding">
+        delete
+        from xccj_community.bus_property_fee_building
+        where property_fee_id = #{propertyFeeId}
+    </delete>
+
+    <select id="getByBuildingIdPropertyFeeCount" resultType="Integer">
+        SELECT count(1) as "count"
+        FROM xccj_community.bus_property_fee bpf
+                 LEFT JOIN xccj_community.bus_property_fee_building bpfb ON bpfb.property_fee_id = bpf.property_fee_id
+        WHERE bpfb.building_id = #{buildingId}
+          AND bpf.community_id = #{communityId}
+          AND DATE_FORMAT(NOW(), '%Y-%m-%d') &lt;= DATE_FORMAT(bpf.end_time, '%Y-%m-%d')
+    </select>
+
+    <insert id="insertBusPropertyFeeBuilding">
+        insert into xccj_community.bus_property_fee_building
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            property_fee_building_id,
+            <if test="propertyFeeId != null">property_fee_id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{propertyFeeBuildingId},
+            <if test="propertyFeeId != null">#{propertyFeeId},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBusPropertyFee">
+        update xccj_community.bus_property_fee
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="feeStatus != null">fee_status=#{feeStatus},</if>
+            <if test="orderNo != null and orderNo!=''">order_no=#{orderNo},</if>
+            <if test="feeType != null">fee_type=#{feeType},</if>
+            <if test="feeAmount != null">fee_amount=#{feeAmount},</if>
+            <if test="roomType != null and roomType !=''">room_type=#{roomType},</if>
+            <if test="payMethod != null and payMethod !=''">pay_method=#{payMethod},</if>
+            <if test="startTime != null">start_time=#{startTime},</if>
+            <if test="endTime != null">end_time=#{endTime},</if>
+            <if test="updateBy != null">update_by=#{updateBy},</if>
+            <if test="createTime != null">update_time=#{updateTime},</if>
+        </trim>
+        where property_fee_id = #{propertyFeeId}
+    </update>
+
+    <delete id="deleteBusPropertyFeeByCommunityId">
+        delete
+        from xccj_community.bus_property_fee
+        where property_fee_id = #{propertyFeeId}
+    </delete>
+
+    <update id="clearByPropertyFeeIdTime">
+        update xccj_community.bus_property_fee
+        set start_time=null,
+            end_time=null,
+            order_no=null
+        where property_fee_id = #{propertyFeeId}
+    </update>
+
+    <delete id="deleteBusPropertyFeeByCommunityIds">
+        delete from xccj_community.bus_property_fee where community_id in
+        <foreach item="communityId" collection="array" open="(" separator="," close=")">
+            #{communityId}
+        </foreach>
+    </delete>
+
+    <select id="getByPropertyFeeIdBuildingInfo" resultType="String">
+        SELECT GROUP_CONCAT(building_id) AS "buildingId"
+        FROM xccj_community.bus_property_fee_building
+        WHERE property_fee_id = #{propertyFeeId}
+        GROUP BY property_fee_id
+    </select>
+
+
+    <!--    新增验证小区-->
+    <select id="getxqCount" resultType="int">
+        select count(*)
+        from xccj_community.bus_property_fee
+        where community_id = #{communityId}
+    </select>
+
+    <select id="getCommunityIdFeeTypeCount" resultType="Integer">
+        SELECT
+        count( 1 )
+        FROM
+        xccj_community.bus_property_fee bpf
+        LEFT JOIN xccj_community.bus_property_fee_building bpfb ON bpfb.property_fee_building_id = bpf.property_fee_id
+        WHERE
+        bpf.community_id = #{communityId}
+        AND bpf.fee_type = #{feeType}
+        AND bpf.pay_method = #{payMethod}
+        <if test="propertyFeeId !=null">
+            AND bpf.property_fee_id != #{propertyFeeId}
+        </if>
+        <if test="buildingIds !=null and buildingIds.size()>0">
+            AND bpfb.building_id IN
+            <foreach collection="buildingIds" item="buildingId" open="(" separator="," close=")">
+                #{buildingId}
+            </foreach>
+        </if>
+
+
+    </select>
+
+    <select id="getEntTimeFeeIdList" resultType="String">
+        SELECT property_fee_id
+        FROM xccj_community.bus_property_fee bpf
+        WHERE DATE_FORMAT(bpf.end_time, '%Y-%m-%d') &lt; DATE_FORMAT(
+                NOW(),
+                '%Y-%m-%d')
+    </select>
+
+    <select id="getPropertyIsPayCount" resultType="Integer">
+        SELECT count(1) as "count"
+        FROM xccj_community.bus_property_log bpl
+        WHERE bpl.pay_status = "2"
+          AND bpl.property_fee_id = #{propertyFeeId}
+    </select>
+
+    <select id="getAllPropertyFeeList" resultType="com.wr.remote.domain.PropertyFeeEntity">
+        SELECT
+        <include refid="columns"></include>
+        FROM
+        xccj_community.bus_property_fee bpf
+        WHERE
+        bpf.`fee_status` = '0'
+        AND DATE_FORMAT( NOW(), '%Y-%m-%d' )>= DATE_FORMAT(bpf.start_time, '%Y-%m-%d' )
+        AND DATE_FORMAT( NOW(), '%Y-%m-%d' )&lt; DATE_FORMAT(bpf.end_time,'%Y-%m-%d')
+    </select>
+</mapper>

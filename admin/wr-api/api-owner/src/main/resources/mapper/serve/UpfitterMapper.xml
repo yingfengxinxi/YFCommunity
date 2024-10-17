@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.UpfitterMapper">
+    <!--批量新增装修-->
+    <insert id="insertUpfitter" parameterType="List" useGeneratedKeys="true" keyProperty="workerId">
+        insert into xccj_community.bus_worker
+        (decorate_id,worker_name,worker_phone,card_no,account_id,worker_type,audit_status,audit_time,audit_by,int_out)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.decorateId},#{item.workerName},#{item.workerPhone},#{item.cardNo},
+            #{item.accountId},#{item.workerType},#{item.auditStatus},#{item.auditTime},
+           #{item.auditBy},#{item.intOut})
+        </foreach>
+    </insert>
+    <!-- 人员申请-->
+    <insert id="insertUpfitterList">
+        insert into xccj_community.bus_worker
+        (decorate_id,worker_name,worker_phone,card_no,account_id,worker_type,audit_status,audit_time,audit_by,int_out)
+        values
+            (#{decorateId},#{workerName},#{workerPhone},#{cardNo},
+            #{accountId},#{workerType},#{auditStatus},#{auditTime},
+            #{auditBy},#{intOut})
+    </insert>
+    <!-- 修改状态-->
+    <update id="updateWorkType">
+        update xccj_community.bus_worker set worker_type="1" , decorate_id=#{decorateId} where decorate_id=#{id}
+    </update>
+    <!-- 批量修改装修工人信息-->
+    <update id="updateUpitter">
+        update xccj_community.bus_worker
+        <trim prefix="set" suffixOverrides=",">
+
+            <trim prefix="worker_name=case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.workerName!=null">
+                        when worker_id=#{item.workerId} then #{item.workerName}
+                    </if>
+                </foreach>
+            </trim>
+
+            <trim prefix="worker_phone =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.workerPhone!=null">
+                        when worker_id=#{item.workerId} then #{item.workerPhone}
+                    </if>
+                </foreach>
+            </trim>
+
+            <trim prefix="card_no =case" suffix="end,">
+                <foreach collection="list" item="item" index="index">
+                    <if test="item.cardNo!=null">
+                        when worker_id=#{item.workerId} then #{item.cardNo}
+                    </if>
+                </foreach>
+            </trim>
+        </trim>
+        where
+        <foreach collection="list" separator="or" item="item" index="index">
+            worker_id=#{item.workerId}
+        </foreach>
+    </update>
+
+    <!--获取装修工人-->
+    <select id="getUpfitter" resultType="com.wr.api.owner.entity.vo.serve.UpfitterVo">
+       select  bw.worker_name,bw.int_out,
+        bw.worker_phone,
+        bw.card_no from xccj_community.bus_worker bw
+        LEFT JOIN xccj_community.bus_decorate bdc on bdc.decorate_id = bw.decorate_id
+        where bw.decorate_id=#{decorateId}
+    </select>
+    <!--查询是否为首次-->
+    <select id="selectWokrType" resultType="java.lang.Integer">
+            select worker_type from xccj_community.bus_worker where decorate_id =#{decorateId}
+    </select>
+</mapper>
+

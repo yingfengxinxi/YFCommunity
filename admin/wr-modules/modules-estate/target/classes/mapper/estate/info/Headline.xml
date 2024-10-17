@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.info.HeadlineMapper">
+  <resultMap type="com.wr.remote.estate.info.Headline" id="HeadlineResult">
+    <id property="estateId" column="estate_id"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="headlineId" column="headline_id"/>
+    <result property="headlineTitle" column="headline_title"/>
+    <result property="startTime" column="start_time"/>
+    <result property="endTime" column="end_time"/>
+    <result property="headlineUrl" column="headline_url"/>
+    <result property="communityContent" column="content"/>
+    <result property="readNum" column="read_num"/>
+    <result property="communityName" column="community_name"/>
+    <result property="communityId" column="community_id"/>
+
+  </resultMap>
+  <!--带操作用户，操作时间，更新用户，更新时间的sql片段-->
+  <sql id="selectHeadlineVo">
+        SELECT
+ h.*
+FROM
+ (
+ SELECT
+  bh.headline_id,
+  (
+  SELECT
+   group_concat( bc.community_name ) AS community_name
+  FROM
+   xccj_community.bus_headline bh1
+   LEFT JOIN xccj_community.bus_headline_community bhc ON bh1.headline_id = bhc.headline_id
+   LEFT JOIN xccj_community.bus_community bc ON find_in_set( bc.community_id, bhc.community_id )
+  WHERE
+   bh1.headline_id = bh.headline_id
+  ) AS community_name,
+  (
+  SELECT
+   group_concat( bc.community_id ) AS community_id
+  FROM
+   xccj_community.bus_headline bh1
+   LEFT JOIN xccj_community.bus_headline_community bhc ON bh1.headline_id = bhc.headline_id
+   LEFT JOIN xccj_community.bus_community bc ON find_in_set( bc.community_id, bhc.community_id )
+  WHERE
+   bh1.headline_id = bh.headline_id
+  ) AS community_id,
+  bh.estate_id,
+  headline_title,
+  start_time,
+  end_time,
+  headline_url,
+  content,
+  read_num,
+  bh.del_flag,
+  bh.create_by,
+  bh.create_time,
+  bh.update_by,
+  bh.update_time
+ FROM
+  xccj_community.bus_headline bh
+ ) h
+    </sql>
+
+  <!--根据主键获取对象-->
+  <select id="selectHeadlineById" parameterType="java.lang.Long" resultMap="HeadlineResult">
+    <include refid="selectHeadlineVo"/>
+        where headline_id = #{headlineId}
+    </select>
+
+  <!-- 校验标题唯一性 -->
+  <select id="checkTitleUnique" resultType="com.wr.remote.estate.info.Headline"
+          parameterType="com.wr.remote.estate.info.Headline">
+    <include refid="selectHeadlineVo"/>
+    where del_flag = '0'
+    and headline_title = trim(#{headlineTitle})
+  </select>
+
+  <!-- 校验文序号唯一性 -->
+  <select id="checkTitleUnique2" resultType="com.wr.remote.estate.info.Headline"
+          parameterType="com.wr.remote.estate.info.Headline">
+    <include refid="selectHeadlineVo"/>
+    where del_flag = '0'
+    and headline_title = trim(#{headlineTitle}) and headline_id!= #{headlineId}
+  </select>
+
+  <insert id="batchHeadlineCommunity">
+    insert into xccj_community.bus_headline_community(headline_id, community_id) values
+    <foreach item="item" index="index" collection="list" separator=",">
+      (#{item.headlineId},#{item.communityId})
+    </foreach>
+  </insert>
+
+  <delete id="deleteCommunityByHeadlineId" parameterType="Long">
+		delete from xccj_community.bus_headline_community where headline_id=#{headlineId}
+	</delete>
+
+  <!--根据物业id查询社区信息-->
+  <select id="selectCommunityById" parameterType="java.lang.Long" resultMap="HeadlineResult">
+    select
+        xccj_community.bus_community.community_id,
+        xccj_community.bus_community.community_name
+    from xccj_community.bus_community
+    where xccj_community.bus_community.estate_id =  #{estateId}
+  </select>
+
+  <!--分页列表-->
+  <select id="selectList" parameterType="com.wr.remote.estate.info.Headline"
+          resultMap="HeadlineResult">
+    <include refid="selectHeadlineVo"/>
+    <where>
+      h.del_flag='0'
+      and h.estate_id = #{estateId}
+      <if test="headlineTitle != null and headlineTitle !=''">
+        and headline_title like concat('%', #{headlineTitle}, '%')
+      </if>
+      <if test="communityId != null">
+        and h.community_id like concat('%', #{communityId}, '%')
+      </if>
+      <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+        AND date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+      </if>
+      <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+        AND date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+      </if>
+    </where>
+    order by create_time desc
+    ${params.dataScope}
+  </select>
+
+  <!--添加社区头条设置-->
+  <insert id="insertHeadline" parameterType="com.wr.remote.estate.info.Headline" useGeneratedKeys="true" keyProperty="headlineId">
+    insert into xccj_community.bus_headline (
+    estate_id,
+    headline_title,
+	  start_time,
+	  end_time,
+	  headline_url,
+	  content,
+	  create_by,
+	  create_time
+    )values(
+    #{estateId},
+    #{headlineTitle},
+    #{startTime},
+    #{endTime},
+    #{headlineUrl},
+    #{communityContent},
+    #{createBy},
+    sysdate()
+    )
+  </insert>
+
+
+  <!--编辑社区头条设置-->
+  <update id="updateHeadline" parameterType="com.wr.remote.estate.info.Headline">
+    update xccj_community.bus_headline
+    <set>
+      <if test="headlineTitle != null and headlineTitle != ''">headline_title = #{headlineTitle},</if>
+      <if test="startTime != null and startTime != ''">start_time = #{startTime},</if>
+      <if test="endTime != null and endTime != ''">end_time = #{endTime},</if>
+      <if test="headlineUrl != null and headlineUrl != ''">headline_url = #{headlineUrl},</if>
+      <if test="communityContent != null and communityContent != ''">content = #{communityContent},</if>
+      update_by = #{updateBy},
+      update_time = sysdate()
+    </set>
+    where headline_id = #{headlineId}
+  </update>
+
+  <!--修改阅读量-->
+  <update id="updateReadNum" parameterType="com.wr.remote.estate.info.Headline">
+    update xccj_community.bus_headline
+    <set>
+      bus_headline.read_num = #{readNum}
+    </set>
+    where headline_id = #{headlineId}
+  </update>
+
+
+  <!--删除项目文档设置-->
+  <delete id="deleteHeadlineByIds" parameterType="java.lang.Long">
+    UPDATE xccj_community.bus_headline
+    SET del_flag = '1'
+    WHERE headline_id IN
+    <foreach item="headlineId" collection="array" open="(" separator="," close=")">
+      #{headlineId}
+    </foreach>
+  </delete>
+
+</mapper>

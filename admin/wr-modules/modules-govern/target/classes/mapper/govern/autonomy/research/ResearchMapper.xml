@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.research.ResearchMapper">
+
+	<resultMap type="com.wr.remote.govern.autonomy.Research.Research" id="QuestionnaireResult">
+		<id     property="researchId"     column="research_id"     />
+		<result property="communityId"   column="community_id"   />
+		<result property="researchName"  column="research_name"   />
+		<result property="researchIntro"  column="research_intro"   />
+		<result property="researchStatus"   column="research_status"   />
+		<result property="deadlineTime" column="deadline_time" />
+		<result property="createBy"   column="create_by"   />
+		<result property="createTime" column="create_time" />
+		<result property="updateBy"   column="update_by"   />
+		<result property="updateTime" column="update_time" />
+		<result property="delFlag" column="del_flag" />
+	</resultMap>
+
+	<sql id="selectResearchVo">
+		SELECT
+			d.*
+		FROM
+			(
+				SELECT
+					bh.research_id,
+					(
+						SELECT
+							group_concat( bc.party_name ) AS community_name
+						FROM
+							xccj_govern.bus_research bh1
+								LEFT JOIN xccj_govern.bus_research_party bhc ON  bh1.research_id = bhc.research_id
+								LEFT JOIN xccj_govern.bus_party bc ON find_in_set( bc.party_id, bhc.party_id )
+						WHERE
+							bh1.research_id = bh.research_id
+					) AS estateName,
+					(
+						SELECT
+							group_concat( bc.party_id ) AS community_id
+						FROM
+							xccj_govern.bus_research bh1
+								LEFT JOIN xccj_govern.bus_research_party bhc ON  bh1.research_id = bhc.research_id
+								LEFT JOIN xccj_govern.bus_party bc ON find_in_set( bc.party_id, bhc.party_id )
+						WHERE
+							bh1.research_id = bh.research_id
+					) AS community_id,
+					research_name,
+					research_status,
+					bh.del_flag,
+					bh.create_by,
+					bh.create_time,
+					bh.update_by,
+					bh.update_time,
+				    bh.deadline_time,
+				    bh.research_intro
+				FROM
+					xccj_govern.bus_research bh
+			) d
+	</sql>
+
+	<select id="selectResearchList" parameterType="com.wr.remote.govern.autonomy.Research.Research" resultMap="QuestionnaireResult">
+		<include refid="selectResearchVo"/>
+		<where>
+			d.del_flag = '0'
+			<if test="researchName != null and researchName !=''">
+				and research_name like concat('%', #{researchName}, '%')
+			</if>
+			<if test="params.beginTime != null and params.beginTime != ''">
+				AND date_format(d.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+			</if>
+			<if test="params.endTime != null and params.endTime != ''">
+				AND date_format(d.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+			</if>
+			<if test="communityId != null and communityId  != 0">
+				and d.community_id= #{communityId}
+			</if>
+			<if test="questionId != null">
+				and d.question_id= #{questionId}
+			</if>
+		</where>
+		order by d.create_time desc
+	</select>
+
+
+	<select id="selectResearchById" parameterType="Long" resultMap="QuestionnaireResult">
+		<include refid="selectResearchVo"/>
+		where research_id = #{researchId}
+	</select>
+
+	<select id="selectCommunityById" parameterType="Long" resultType="com.wr.remote.domain.Community">
+	    select community_id,community_name from xccj_community.bus_community
+		where community_id = #{communityId}
+	</select>
+
+    <insert id="insertResearch" parameterType="com.wr.remote.govern.autonomy.Research.Research" useGeneratedKeys="true" keyProperty="researchId">
+		insert into xccj_govern.bus_research(
+		<if test="researchId != null and researchId != 0">research_id,</if>
+		<if test="community != null and community != 0">community_id,</if>
+		<if test="researchName != null and researchName !=''">research_name,</if>
+		<if test="researchIntro != null and researchIntro !=''">research_intro,</if>
+		<if test="deadlineTime != null">deadline_time,</if>
+		<if test="researchStatus != null and researchStatus !=''">research_status,</if>
+		<if test="createBy != null and createBy != ''">create_by,</if>
+		<if test="status != null and status != ''">status,</if>
+		<if test="startTime != null">start_time,</if>
+		create_time
+		)values(
+		<if test="researchId != null and researchId !=0">#{researchId},</if>
+		<if test="community != null and community !=0">#{community},</if>
+		<if test="researchName != null and researchName !=''">#{researchName},</if>
+		<if test="researchIntro != null and researchIntro !=''">#{researchIntro},</if>
+		<if test="deadlineTime != null">#{deadlineTime},</if>
+		<if test="researchStatus != null and researchStatus !=''">#{researchStatus},</if>
+		<if test="createBy != null and createBy != ''">#{createBy},</if>
+		<if test="status != null and status != ''">#{status},</if>
+		<if test="startTime != null">#{startTime},</if>
+		sysdate()
+		)
+	</insert>
+
+
+	<delete id="deleteResearchById" parameterType="java.lang.Long">
+		update xccj_govern.bus_research set del_flag = '1'    WHERE research_id IN
+		<foreach item="researchId" collection="array" open="(" separator="," close=")">
+			#{researchId}
+		</foreach>
+	</delete>
+
+	<select id="selectItem" resultType="com.wr.remote.domain.vo.ApiResearchVo">
+		SELECT bq.question_id AS questionId, bq.question_name AS questionName, bq.question_type AS questionType
+		FROM xccj_govern.bus_question AS bq
+		WHERE bq.table_type = '1'
+		  AND bq.del_flag = '0'
+		  AND table_id = #{researchId}
+		ORDER BY bq.question_type
+	</select>
+
+	<select id="selectQuestionList" resultType="com.wr.remote.domain.vo.QuestionItem">
+		SELECT item_id,
+			   question_id,
+			   item_name
+		FROM xccj_govern.bus_question_item
+		WHERE question_id = #{questionId}
+		  AND del_flag = '0'
+	</select>
+
+	<select id="answerDetail" resultType="com.wr.remote.domain.vo.AnswerVo" parameterType="com.wr.remote.govern.autonomy.Research.Research">
+		SELECT bqa.question_id, bqa.user_answer, bq.question_type
+		FROM xccj_govern.bus_question AS bq
+				 LEFT JOIN xccj_govern.bus_ques_answer AS bqa ON bqa.question_id = bq.question_id
+		WHERE bqa.table_type = '1'
+		  AND bqa.table_id = #{researchId}
+		  AND bqa.account_id = #{accountId}
+		  AND bq.del_flag = '0'
+	</select>
+</mapper>

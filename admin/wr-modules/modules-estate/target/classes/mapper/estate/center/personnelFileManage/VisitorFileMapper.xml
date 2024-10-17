@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.personnelfilemanage.VisitorFileMapper">
+    <insert id="insertVisitor">
+        INSERT INTO `xccj_community`.`bus_visitor` (
+        `visitor_id`,
+        <if test="communityId!=null">`community_id`,</if>
+        <if test="accountId!=null">`account_id`,</if>
+        <if test="visitorName!=null">`visitor_name`,</if>
+        <if test="visitorPhone!=null">`visitor_phone`,</if>
+        <if test="plantNo!=null">`plant_no`,</if>
+        <if test="withNum!=null">`with_num`,</if>
+        <if test="beginTime!=null">`begin_time`,</if>
+        <if test="endTime!=null">`end_time`,</if>
+        <if test="roomId!=null">`room_id`,</if>
+        <if test="ownerId!=null">`owner_id`,</if>
+        <if test="createBy!=null">`create_by`,</if>
+        `create_time`,
+        `del_flag`
+        )
+        VALUES
+        (
+        NULL,
+        <if test="communityId!=null">#{communityId},</if>
+        <if test="accountId!=null">#{accountId},</if>
+        <if test="visitorName!=null">#{visitorName},</if>
+        <if test="visitorPhone!=null">#{visitorPhone},</if>
+        <if test="plantNo!=null">#{plantNo},</if>
+        <if test="withNum!=null">#{withNum},</if>
+        <if test="beginTime!=null">#{beginTime},</if>
+        <if test="endTime!=null">#{endTime},</if>
+        <if test="roomId!=null">#{roomId},</if>
+        <if test="ownerId!=null">#{ownerId},</if>
+        <if test="createBy!=null">#{createBy},</if>
+        NOW(),
+        "0"
+        );
+    </insert>
+    <delete id="deleted">
+        update xccj_community.bus_visitor set del_flag='1'
+        where visitor_id in
+        <foreach collection="array" item="i" separator="," close=")" open="(">
+            #{i}
+        </foreach>
+    </delete>
+    <delete id="removeLiaison">
+        UPDATE xccj_community.bus_liaison set
+        del_flag = '1'
+        where account_id in (
+        <foreach collection="list" separator="," item="i">
+            #{i}
+        </foreach>
+        )
+    </delete>
+
+    <select id="query" resultType="com.wr.remote.estate.center.vo.VisitorFileVo">
+        SELECT bv.visitor_id AS "visitorId",
+        bv.visitor_name AS "visitorName",
+        bv.visitor_phone AS "visitorPhone",
+        CONCAT(bc.community_name, bb.building_name, bu.unit_name, br.room_name) AS "address",
+        bv.with_num AS "withNum",
+        bv.begin_time AS "beginTime",
+        bv.end_time AS "endTime",
+        bo.owner_name as "ownerName",
+        bo.owner_phone as "ownerPhone"
+        FROM xccj_community.bus_visitor bv
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bv.room_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = br.unit_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = br.building_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bv.community_id
+        LEFT JOIN xccj_community.bus_owner bo on bo.owner_id=bv.owner_id
+        WHERE bv.community_id =#{communityId}
+        <if test="visitorName!=null and visitorName!=''">
+            and bv.visitor_name like CONCAT('%',#{visitorName},'%')
+        </if>
+        <if test="visitorPhone!=null and visitorPhone!=''">
+            and bv.visitor_phone like  CONCAT('%',#{visitorPhone},'%')
+        </if>
+        <if test="ownerName!=null and ownerName!=''">
+            and bo.owner_name like  CONCAT('%',#{ownerName},'%')
+        </if>
+        <if test="ownerPhone!=null and ownerPhone!=''">
+            and bo.owner_phone like CONCAT('%',#{ownerPhone},'%')
+        </if>
+        order by bv.create_time desc
+    </select>
+
+    <!--根据通行表id查询详情-->
+    <select id="getVisitorById" resultType="com.wr.remote.domain.vo.VisitorVo">
+        SELECT
+            visitor_id AS "visitorId",
+            visitor_name AS "visitorName",
+            visitor_phone AS "visitorPhone",
+            with_num AS "withNum",
+            plant_no AS "plantNo",
+            begin_time AS "beginTime",
+            end_time AS "endTime",
+            CONCAT( com.community_name, bui.building_name, uni.unit_name, oom.room_name ) AS "address",
+            bo.owner_name AS "ownerName",
+            bo.owner_phone AS "ownerPhone"
+        FROM
+            xccj_community.bus_visitor AS bl
+                LEFT JOIN xccj_community.bus_owner AS bo ON bo.owner_id = bl.owner_id
+                LEFT JOIN xccj_community.bus_room AS oom ON bl.room_id = oom.room_id
+                LEFT JOIN xccj_community.bus_community AS com ON oom.community_id = com.community_id
+                LEFT JOIN xccj_community.bus_building AS bui ON oom.building_id = bui.building_id
+                LEFT JOIN xccj_community.bus_unit AS uni ON oom.unit_id = uni.unit_id
+        WHERE
+            bl.visitor_id=#{visitorId}
+    </select>
+
+
+    <select id="queryAccountId" resultType="java.lang.Long">
+        SELECT account_id from xccj_community.bus_visitor WHERE
+        visitor_id in
+        <foreach collection="array" item="i" separator="," close=")" open="(">
+            #{i}
+        </foreach>
+    </select>
+    <select id="queryLiaisonByAccountId" resultType="java.util.LinkedHashMap">
+        SELECT l.begin_time,l.end_time,o.owner_name,l.plant_no,l.with_num,CONCAT(c.community_name," ",b.building_name,"
+        ",u.unit_name," ",r.room_name) as "address"
+        from xccj_community.bus_liaison l,xccj_community.bus_room r,xccj_community.bus_owner
+        o,xccj_community.bus_building b,xccj_community.bus_community c,xccj_community.bus_unit u
+        WHERE l.del_flag='0' and l.room_id=r.room_id and l.owner_id=o.owner_id and o.community_id=c.community_id
+        and o.unit_id=u.unit_id and o.building_id=b.building_id and l.account_id=#{id}
+        <if test="date !='' and date != null ">
+            and YEAR(l.begin_time)=#{date}
+        </if>
+        ORDER BY l.begin_time asc
+    </select>
+    <select id="queryCountByAccountId" resultType="java.lang.Integer">
+        SELECT count(*)
+        from xccj_community.bus_liaison l,xccj_community.bus_room r,xccj_community.bus_owner
+        o,xccj_community.bus_building b,xccj_community.bus_community c,xccj_community.bus_unit u
+        WHERE l.del_flag='0' and l.room_id=r.room_id and l.owner_id=o.owner_id and o.community_id=c.community_id
+        and o.unit_id=u.unit_id and o.building_id=b.building_id and l.account_id=#{id}
+        <if test="date !='' and date != null ">
+            and YEAR(l.begin_time)=#{date}
+        </if>
+    </select>
+</mapper>

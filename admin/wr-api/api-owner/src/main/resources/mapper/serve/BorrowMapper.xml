@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.BorrowMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.ApiBorrow">
+        <id column="borrow_id" jdbcType="BIGINT" property="borrowId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="goods_id" jdbcType="BIGINT" property="goodsId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="apply_time" jdbcType="TIMESTAMP" property="applyTime"/>
+        <result column="return_time" jdbcType="TIMESTAMP" property="returnTime"/>
+        <result column="actually_time" jdbcType="TIMESTAMP" property="actuallyTime"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="audit_by" jdbcType="VARCHAR" property="auditBy"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="code_url" jdbcType="VARCHAR" property="codeUrl"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        borrow_id,
+        community_id,
+        goods_id,
+        account_id,
+        apply_time,
+        return_time,
+        actually_time,
+        audit_status,
+        audit_time,
+        reject_reason,
+        audit_by,
+        remark,
+        code_url,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_borrow
+        where borrow_id = #{borrowId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        UPDATE xccj_community.bus_borrow
+        SET del_flag = '1'
+        WHERE borrow_id = #{borrowId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="borrow_id" keyProperty="borrowId"
+            parameterType="com.wr.api.owner.entity.serve.ApiBorrow"
+            useGeneratedKeys="true">
+        insert into xccj_community.bus_borrow
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="goodsId != null">
+                goods_id,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="applyTime != null">
+                apply_time,
+            </if>
+            <if test="returnTime != null">
+                return_time,
+            </if>
+            <if test="actuallyTime != null">
+                actually_time,
+            </if>
+            <if test="auditStatus != null">
+                audit_status,
+            </if>
+            <if test="auditTime != null">
+                audit_time,
+            </if>
+            <if test="rejectReason != null">
+                reject_reason,
+            </if>
+            <if test="auditBy != null">
+                audit_by,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="codeUrl != null">
+                code_url,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsId != null">
+                #{goodsId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="applyTime != null">
+                #{applyTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="returnTime != null">
+                #{returnTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="actuallyTime != null">
+                #{actuallyTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="auditStatus != null">
+                #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="auditBy != null">
+                #{auditBy,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="codeUrl != null">
+                #{codeUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.ApiBorrow">
+        <!--@mbg.generated-->
+        update xccj_community.bus_borrow
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsId != null">
+                goods_id = #{goodsId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="applyTime != null">
+                apply_time = #{applyTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="returnTime != null">
+                return_time = #{returnTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="actuallyTime != null">
+                actually_time = #{actuallyTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="auditStatus != null">
+                audit_status = #{auditStatus,jdbcType=CHAR},
+            </if>
+            <if test="auditTime != null">
+                audit_time = #{auditTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="rejectReason != null">
+                reject_reason = #{rejectReason,jdbcType=VARCHAR},
+            </if>
+            <if test="auditBy != null">
+                audit_by = #{auditBy,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="codeUrl != null">
+                code_url = #{codeUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where borrow_id = #{borrowId,jdbcType=BIGINT}
+    </update>
+</mapper>

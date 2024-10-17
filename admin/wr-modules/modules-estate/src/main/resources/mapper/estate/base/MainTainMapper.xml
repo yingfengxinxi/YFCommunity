@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.base.MainTainMapper">
+
+    <resultMap type="com.wr.remote.estate.base.BusRepairWork" id="BusRepairWorks">
+        <result property="workId" column="work_id"/>
+        <result property="estateId" column="estate_id"/>
+        <result property="workName" column="work_name"/>
+        <result property="workStatus" column="work_status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectBusRepairWorVo">
+        select wr.*
+        from xccj_community.bus_repair_work wr
+                 left join xccj_community.bus_estate es on wr.estate_id = es.estate_id
+    </sql>
+
+    <select id="selectBusRepairWorkList" parameterType="com.wr.remote.estate.base.BusRepairWork"
+            resultMap="BusRepairWorks">
+        <include refid="selectBusRepairWorVo"/>
+        <where>
+            and wr.del_flag='0'and wr.estate_id = #{estateId}
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(wr.update_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(wr.update_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            <if test="updateBy != null  and updateBy != ''">and wr.update_by like concat('%', #{updateBy}, '%')</if>
+        </where>
+    </select>
+
+    <select id="selectBusRepairWorkId" parameterType="Long" resultMap="BusRepairWorks">
+        <include refid="selectBusRepairWorVo"/>
+        where work_id = #{workId}
+    </select>
+
+    <insert id="insertBusRepairWork" parameterType="com.wr.remote.estate.base.BusRepairWork" useGeneratedKeys="true"
+            keyProperty="workId">
+        insert into xccj_community.bus_repair_work
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="workId != null">parent_id,</if>
+            <if test="estateId != null ">estate_id,</if>
+            <if test="workName != null and workName != ''">work_name,</if>
+            <if test="workStatus != null and workStatus != ''">work_status,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="workId != null">#{workId},</if>
+            <if test="estateId != null">#{estateId},</if>
+            <if test="workName != null and workName != ''">#{workName},</if>
+            <if test="workStatus != null  and workStatus != ''">'0',</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null ">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBusRepairWork" parameterType="com.wr.remote.estate.base.BusRepairWork">
+        update xccj_community.bus_repair_work
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="workId != null">work_id = #{workId},</if>
+            <if test="estateId != null ">estate_id = #{estateId},</if>
+            <if test="workName != null and workName != ''">work_name = #{workName},</if>
+            <if test="workStatus != null  and workStatus != ''">work_status = #{workStatus},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where work_id = #{workId}
+    </update>
+
+
+
+    <delete id="deleteBusRepairWorkId" parameterType="Long">
+        update
+            xccj_community.bus_repair_work
+        set del_flag='1'
+        where work_id = #{workId}
+    </delete>
+
+    <delete id="deleteBusRepairWorkIds" parameterType="java.lang.Long">
+        update
+        xccj_community.bus_repair_work
+        set del_flag='1'
+        where work_id in
+        <foreach item="workId" collection="array" open="(" separator="," close=")">
+            #{workId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.center.audit.BusVehicleAuditMapper">
+
+    <resultMap id="BaseResultMap" type="com.wr.estate.entity.BusVehicle">
+        <id column="vehicle_id" jdbcType="BIGINT" property="vehicleId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="plate_no" jdbcType="VARCHAR" property="plateNo"/>
+        <result column="plate_color" jdbcType="VARCHAR" property="plateColor"/>
+        <result column="vehicle_brand" jdbcType="VARCHAR" property="vehicleBrand"/>
+        <result column="vehicle_type" jdbcType="VARCHAR" property="vehicleType"/>
+        <result column="vehicle_status" jdbcType="CHAR" property="vehicleStatus"/>
+        <result column="vehicle_color" jdbcType="VARCHAR" property="vehicleColor"/>
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus"/>
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime"/>
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <resultMap id="vehicleAuditMap" type="com.wr.estate.entity.vo.BusVehicleAuditvo">
+        <id column="vehicle_id" jdbcType="BIGINT" property="vehicleId" />
+        <result column="community_name" jdbcType="VARCHAR" property="communityName" />
+        <result column="building_name" jdbcType="VARCHAR" property="buildingName" />
+        <result column="unit_name" jdbcType="VARCHAR" property="unitName" />
+        <result column="room_name" jdbcType="VARCHAR" property="roomName" />
+        <result column="account_name" jdbcType="VARCHAR" property="accountName" />
+        <result column="login_name" jdbcType="VARCHAR" property="loginName" />
+        <result column="account_type" jdbcType="CHAR" property="accountType" />
+        <result column="owner_relation" jdbcType="CHAR" property="ownerRelation" />
+        <result column="plate_no" jdbcType="VARCHAR" property="plateNo" />
+        <result column="vehicle_brand" jdbcType="VARCHAR" property="vehicleBrand" />
+        <result column="vehicle_type" jdbcType="VARCHAR" property="vehicleType" />
+        <result column="plate_color" jdbcType="VARCHAR" property="plateColor" />
+        <result column="vehicle_status" jdbcType="VARCHAR" property="vehicleStatus" />
+        <result column="vehicle_color" jdbcType="VARCHAR" property="vehicleColor" />
+        <result column="audit_status" jdbcType="CHAR" property="auditStatus" />
+        <result column="audit_time" jdbcType="TIMESTAMP" property="auditTime" />
+        <result column="reject_reason" jdbcType="VARCHAR" property="rejectReason" />
+        <result column="create_by" jdbcType="VARCHAR" property="createBy" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="del_flag" jdbcType="CHAR" property="delFlag" />
+        <result column="plate_type" jdbcType="CHAR" property="plateType" />
+    </resultMap>
+
+
+    <!--分页查询审核信息-->
+    <select id="selectListVehicleAudit" resultMap="vehicleAuditMap">
+        SELECT
+        bv.vehicle_id,
+        bv.plate_no,
+        ba.account_name,
+        ba.login_name,
+        ba.account_type,
+        bo.owner_relation,
+        bv.vehicle_brand,
+        bc.community_name,
+        bv.create_time,
+        bv.audit_time,
+        bv.audit_status
+        FROM
+        xccj_community.bus_vehicle bv
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bv.account_id
+        AND ba.del_flag = '0'
+        LEFT JOIN xccj_community.bus_owner bo ON bo.account_id=bv.account_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bv.community_id
+        AND bc.del_flag = '0'
+        WHERE
+        bc.estate_id = #{estateId}
+        AND bv.del_flag = '0'
+        AND bv.vehicle_status = '0'
+        <if test="vehicleId != null and vehicleId !=''">
+            and bv.vehicle_id=#{vehicleId}
+        </if>
+        <if test="accountName != null and accountName !=''">
+            and ba.account_name  like concat('%', #{accountName}, '%')
+        </if>
+        <if test="loginName != null and loginName !=''">
+            and ba.login_name  like concat('%', #{loginName}, '%')
+        </if>
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            and date_format(bv.audit_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            and date_format(bv.audit_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <if test="communityId != null">
+            and bv.community_id = #{communityId}
+        </if>
+        <if test="auditStatus != null and auditStatus != ''">
+            and bv.audit_status = #{auditStatus}
+        </if>
+        order by bv.audit_status ASC,bv.create_time DESC
+    </select>
+
+    <select id="getVehicleIdAccountType" resultType="String">
+        SELECT
+            ba.account_type
+        FROM
+            xccj_community.bus_vehicle bv
+                LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bv.account_id
+        WHERE
+            bv.vehicle_id = #{vehicleId}
+    </select>
+
+    <!--  查询单个业主审核信息-->
+    <select id="selectoneOwneAuditVo" parameterType="java.lang.Long" resultMap="vehicleAuditMap">
+        SELECT
+        *
+        FROM
+        (
+        select
+        bv.vehicle_id,
+        bc.community_name,
+        bb.building_name,
+        bu.unit_name,
+        br.room_name,
+        ba.account_name,
+        ba.login_name,
+        ba.account_type,
+        bv.plate_no,
+        bv.vehicle_brand,
+        bv.vehicle_type,
+        bv.plate_color,
+        bv.vehicle_status,
+        bv.vehicle_color,
+        bv.audit_status,
+        bv.audit_time,
+        bv.reject_reason,
+        bv.create_by,
+        bv.create_time,
+        bv.update_by,
+        bv.update_time,
+        bv.del_flag,
+        bv.plate_type,
+        bv.front_id_card,
+        bv.back_id_card,
+        bv.real_estate,
+        bv.other_photo
+        from xccj_community.bus_vehicle bv
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bv.account_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bv.community_id
+        <if test="accountType==1">
+            LEFT JOIN xccj_community.bus_tenant bo on bo.account_id = ba.account_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bo.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+        </if>
+        <if test="accountType==0">
+            LEFT JOIN xccj_community.bus_owner bo ON bo.account_id = ba.account_id
+            LEFT JOIN xccj_community.bus_house bh on bh.owner_id=bo.owner_id
+            LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bh.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bh.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bh.room_id
+        </if>
+
+        where
+        bc.community_id in (select bcc.community_id from xccj_community.bus_community bcc where bcc.estate_id =
+        #{estateId} and bcc.del_flag = 0)
+        and bv.del_flag = 0
+        and bv.vehicle_id = #{vehicleId,jdbcType=BIGINT}
+
+        union all
+        SELECT
+        bv.vehicle_id,
+        bc.community_name,
+        bb.building_name,
+        bu.unit_name,
+        br.room_name,
+        ba.account_name,
+        ba.login_name,
+        ba.account_type,
+        bv.plate_no,
+        bv.vehicle_brand,
+        bv.vehicle_type,
+        bv.plate_color,
+        bv.vehicle_status,
+        bv.vehicle_color,
+        bv.audit_status,
+        bv.audit_time,
+        bv.reject_reason,
+        bv.create_by,
+        bv.create_time,
+        bv.update_by,
+        bv.update_time,
+        bv.del_flag,
+        bv.plate_type,
+        bv.front_id_card,
+        bv.back_id_card,
+        bv.real_estate,
+        bv.other_photo
+        FROM
+        xccj_community.bus_vehicle bv
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bv.account_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bv.community_id
+        LEFT JOIN xccj_community.bus_owner bos ON bos.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_house bh ON bh.owner_id = bos.parent_id
+        LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bh.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bh.unit_id
+        LEFT JOIN xccj_community.bus_room br ON br.room_id = bh.room_id
+        WHERE
+        bc.community_id IN ( SELECT bcc.community_id FROM xccj_community.bus_community bcc WHERE bcc.estate_id =
+        #{estateId} AND bcc.del_flag = 0 )
+        AND bv.del_flag = 0
+        AND bv.vehicle_id = #{vehicleId,jdbcType=BIGINT}
+        ) a
+        WHERE
+        a.building_name != ''
+        AND a.building_name IS NOT NULL
+        LIMIT 1
+    </select>
+
+    <update id="deleteByPrimaryKeys">
+        update xccj_community.bus_vehicle
+        set del_flag ="1"
+        where vehicle_id = #{vehicleId}
+    </update>
+
+    <update id="updataByownerIdAndAuditStatus" parameterType="java.lang.Long">
+        update xccj_community.bus_vehicle set audit_status = #{auditStatus}  , audit_time = now() ,update_by = #{updateBy} , update_time = now()
+        <if test="rejectReason != null">
+            ,reject_reason  = #{rejectReason,jdbcType=VARCHAR}
+        </if>
+        where vehicle_id = #{vehicleId}
+    </update>
+
+    <!--新增车辆信息-->
+    <insert id="insertvehicle" parameterType="com.wr.estate.entity.vo.BusVehicleImportVo">
+        INSERT INTO xccj_community.bus_vehicle
+        <trim prefix="(" suffix=")">
+            <if test="plateNo != null">
+                plate_no,
+            </if>
+            <if test="vehicleBrand != null">
+                vehicle_brand,
+            </if>
+            <if test="vehicleType != null">
+                vehicle_type,
+            </if>
+            <if test="vehicleStatus != null">
+                vehicle_status,
+            </if>
+            <if test="vehicleColor != null">
+                vehicle_color,
+            </if>
+            <if test="plateType != null">
+                plate_type,
+            </if>
+            <if test="plateColor != null">
+                plate_color,
+            </if>
+            audit_status,
+            account_id,
+            community_id,
+            create_by,
+            create_time,
+            audit_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="plateNo != null">
+                #{plateNo},
+            </if>
+            <if test="vehicleBrand != null">
+                #{vehicleBrand},
+            </if>
+            <if test="vehicleType != null">
+                #{vehicleType},
+            </if>
+            <if test="vehicleStatus != null">
+                #{vehicleStatus},
+            </if>
+            <if test="vehicleColor != null">
+                #{vehicleColor},
+            </if>
+            <if test="plateType != null">
+                #{plateType},
+            </if>
+            <if test="plateColor != null">
+                #{plateColor},
+            </if>
+            1, #{accountId},(SELECT
+            bcc.community_id
+            FROM
+            xccj_community.bus_community bcc
+            WHERE
+            bcc.estate_id = #{estateId} and bcc.del_flag = 0) ,#{createBy},sysdate(),sysdate()
+        </trim>
+    </insert>
+</mapper>

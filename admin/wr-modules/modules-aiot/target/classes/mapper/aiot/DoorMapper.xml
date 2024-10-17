@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.DoorMapper">
+    <sql id="doorColumns">
+        dbd.door_id, dbd.index_code, dbd.door_name, dbd.door_no, dbd.door_serial, dbd.channel_type, dbd.channel_no,
+        dbd.treaty_type, dbd.control_one_id, dbd.control_two_id, dbd.reader_in_id, dbd.reader_out_id,
+        dbd.create_time, dbd.update_time, dbd.online, dbd.manufacturer, dbd.renewal_by, dbd.renewal_time,
+        dbd.update_by, dbd.operate_time, dbd.community_id, dbd.address, dbd.del_flag
+    </sql>
+
+    <select id="selectDoorList" resultType="com.wr.remote.aiot.Door">
+        SELECT
+            <include refid="doorColumns"/>
+        FROM xccj_device.bus_door dbd
+        WHERE dbd.del_flag = '0' AND dbd.community_id = #{communityId}
+        <if test="doorName != null and doorName != ''">
+            AND dbd.door_name LIKE concat('%', #{doorName}, '%')
+        </if>
+        <if test="indexCode != null and indexCode != ''">
+            AND dbd.index_code LIKE concat('%', #{indexCode}, '%')
+        </if>
+        <if test="online != null and online != ''">
+            AND dbd.online=#{online}
+        </if>
+
+        ORDER BY dbd.operate_time DESC
+    </select>
+
+    <!--UPDATE xccj_device.bus_door SET `online` = #{online} WHERE door_id = #{doorId}-->
+    <update id="batchUpdateOnline">
+        INSERT INTO xccj_device.bus_door (index_code, `online`) VALUES
+        <foreach item="item" index="index" collection="doorList" separator=",">
+            ( #{item.indexCode}, #{item.online} )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        index_code = values(index_code), online = values(online)
+    </update>
+    <insert id="insert">
+        INSERT INTO xccj_device.bus_door (index_code,
+                                          door_name,
+                                          door_no,
+                                          door_serial,
+                                          channel_type,
+                                          channel_no,
+                                          online,
+                                          treaty_type,
+                                          control_one_id,
+                                          control_two_id,
+                                          reader_in_id,
+                                          reader_out_id,
+                                          create_time,
+                                          update_time,
+                                          manufacturer,
+                                          renewal_by,
+                                          renewal_time,
+                                          update_by,
+                                          community_id)
+        VALUES (#{indexCode},
+                #{name},
+                #{doorNo},
+                #{doorSerial},
+                #{channelType},
+                #{channelNo},
+                #{online},
+                #{treatyType},
+                #{controlOneId},
+                #{controlTwoId},
+                #{readerInId},
+                #{readerOutId},
+                NOW(),
+                NOW(),
+                #{manufacturer},
+                #{renewalBy},
+                sysdate(),
+                '',
+                #{communityId})
+    </insert>
+    <update id="update">
+        update xccj_device.bus_door
+        set index_code=#{indexCode},
+            door_name=#{doorName},
+            door_no=#{doorNo},
+            door_serial=#{doorSerial},
+            channel_type=#{channelType},
+            online=#{online},
+            channel_no=#{channelNo},
+            treaty_type=#{treatyType},
+            control_one_id=#{controlOneId},
+            control_two_id=#{controlTwoId},
+            reader_in_id=#{readerInId},
+            reader_out_id=#{readerOutId},
+            update_time=NOW(),
+            manufacturer=#{manufacturer},
+            renewal_by=#{renewalBy},
+            renewal_time=NOW(),
+            update_by=#{updateBy},
+            community_id=#{communityId}
+        where door_id = #{doorId}
+    </update>
+
+    <select id="getByIndexCodeInfo" resultType="com.wr.remote.aiot.Door">
+        select
+        <include refid="doorColumns"></include>
+        FROM xccj_device.bus_door dbd where index_code=#{indexCode}
+    </select>
+
+    <delete id="delete">
+        delete
+        from xccj_device.bus_door
+        where DATE_FORMAT(renewal_time, "%Y-%m-%d") != DATE_FORMAT(NOW(), "%Y-%m-%d")
+    </delete>
+    <insert id="insertOrUpdateDoor">
+        INSERT INTO xccj_device.bus_door (
+            index_code, door_name, door_no, door_serial, channel_type, channel_no, treaty_type, control_one_id, control_two_id,
+            reader_in_id, reader_out_id, create_time, update_time, manufacturer, renewal_by, renewal_time, update_by, community_id
+        ) VALUES
+        <foreach item="item" index="index" collection="dataList" separator=",">
+            (
+                #{item.indexCode}, #{item.name}, #{item.doorNo}, #{item.doorSerial}, #{item.channelType}, #{item.channelNo},
+                #{item.treatyType}, #{item.controlOneId}, #{item.controlTwoId}, #{item.readerInId}, #{item.readerOutId},
+                #{item.createTime}, #{item.updateTime}, #{manufacturer}, #{renewalBy}, sysdate(), '', #{communityId}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            index_code = values(index_code), door_name  = values(door_name), door_no  = values(door_no),
+            door_serial = values(door_serial), channel_type = values(channel_type), channel_no = values(channel_no),
+            treaty_type = values(treaty_type), control_one_id = values(control_one_id), control_two_id = values(control_two_id),
+            reader_in_id = values(reader_in_id), reader_out_id = values(reader_out_id), create_time = values(create_time),
+            update_time = values(update_time), manufacturer = values(manufacturer), renewal_by = values(renewal_by),
+            renewal_time = values(renewal_time), update_by = values(update_by), community_id = values(community_id)
+    </insert>
+
+    <select id="selectDoorById" resultType="com.wr.remote.aiot.Door">
+        SELECT
+            cbc.community_name AS "communityName",
+            <include refid="doorColumns"/>
+        FROM xccj_device.bus_door dbd
+            LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = dbd.community_id
+        WHERE dbd.del_flag = '0' AND dbd.door_id = #{doorId}
+    </select>
+
+    <update id="updateDoor">
+        UPDATE xccj_device.bus_door SET
+            address = #{address}, update_by = #{updateBy}, operate_time = sysdate()
+        WHERE door_id = #{doorId}
+    </update>
+
+</mapper>

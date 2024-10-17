@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.payment.mapper.VehicleLogMapper">
+    <sql id="vehicleLogColumns">
+        log_id, user_type, user_name, user_phone, id_card_no,
+        plate_no, plate_type, plate_color, vehicle_type, vehicle_color,
+        community_id, community_name, park_type, park_index, park_name,
+        gate_index, gate_name, roadway_index, roadway_name,
+        inout_type, inout_time, inout_open, pay_status, del_flag
+    </sql>
+
+    <select id="getNewestOutLogByParkIndex" resultType="com.wr.remote.govern.manage.VehicleLog">
+        SELECT
+        <include refid="vehicleLogColumns"/>
+        FROM ${tableName}
+        WHERE park_type = '0' AND inout_type = 1 AND park_index = #{parkIndex}
+        ORDER BY inout_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="getNewestInLogByPlateNo" resultType="com.wr.remote.govern.manage.VehicleLog">
+        SELECT
+        <include refid="vehicleLogColumns"/>
+        FROM ${tableName}
+        WHERE park_type = '0' AND inout_type = 0 AND plate_no = #{plateNo}
+        ORDER BY inout_time DESC
+        LIMIT 1
+    </select>
+
+    <update id="updateInLog">
+        UPDATE ${tableName} SET pay_status = '1' WHERE log_id = #{logId}
+    </update>
+
+    <update id="updateOutLog">
+        UPDATE ${tableName} SET
+          pay_status = '1', inout_open = sysdate()
+        WHERE log_id = #{logId}
+    </update>
+
+</mapper>

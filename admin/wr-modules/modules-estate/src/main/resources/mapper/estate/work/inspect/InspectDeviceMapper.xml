@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.inspect.InspectDeviceMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.work.inspect.InspectDevice">
+        <result column="inspect_id" jdbcType="BIGINT" property="inspectId"/>
+        <result column="device_type" jdbcType="VARCHAR" property="deviceType"/>
+        <result column="index_code" jdbcType="VARCHAR" property="indexCode"/>
+        <result column="inspect_result" jdbcType="CHAR" property="inspectResult"/>
+        <result column="result_info" jdbcType="VARCHAR" property="resultInfo"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        inspect_id,
+        device_type,
+        index_code,
+        inspect_result,
+        result_info
+    </sql>
+
+    <insert id="insertSelective" parameterType="com.wr.remote.work.inspect.InspectDevice">
+        insert into xccj_work.bus_inspect_device
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="inspectId != null">
+                inspect_id,
+            </if>
+            <if test="deviceType != null">
+                device_type,
+            </if>
+            <if test="indexCode != null">
+                index_code,
+            </if>
+            <if test="inspectResult != null">
+                inspect_result,
+            </if>
+            <if test="resultInfo != null">
+                result_info,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="inspectId != null">
+                #{inspectId,jdbcType=BIGINT},
+            </if>
+            <if test="deviceType != null">
+                #{deviceType,jdbcType=VARCHAR},
+            </if>
+            <if test="indexCode != null">
+                #{indexCode,jdbcType=VARCHAR},
+            </if>
+            <if test="inspectResult != null">
+                #{inspectResult,jdbcType=CHAR},
+            </if>
+            <if test="resultInfo != null">
+                #{resultInfo,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+
+</mapper>

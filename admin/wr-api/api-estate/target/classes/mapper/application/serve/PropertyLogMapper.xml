@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.serve.PropertyLogMapper">
+
+    <sql id="Base_Column_List">
+        log_id
+        , community_id, building_id, unit_id, room_id, room_area, fee_type, fee_amount,
+    pay_amount, pay_year, pay_time, del_flag
+    </sql>
+
+    <select id="selectPropertyLogList" resultType="com.wr.api.estate.entity.application.serve.PropertyLog">
+        SELECT bp.community_id,
+               bp.building_id,
+               bp.unit_id,
+               bp.room_id,
+               bp.room_area,
+               bp.fee_type,
+               bp.fee_amount,
+               bp.pay_amount,
+               bp.pay_year,
+               bp.pay_time
+        FROM xccj_community.bus_property_log bp
+                 LEFT JOIN xccj_community.bus_room br ON bp.room_id = br.room_id
+        WHERE br.owner_id = #{ownerId}
+          AND br.del_flag = '0'
+          AND bp.del_flag = '0'
+    </select>
+
+    <select id="selectOwnerList" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT owner_id,
+        gender,
+        room_id,
+        owner_phone,
+        owner_name
+        FROM xccj_community.bus_owner
+        WHERE community_id = #{communityId}
+        <if test="ownerName!=null and ownerName!=''">
+            AND owner_name like concat ('%',#{ownerName},'%')
+        </if>
+        AND del_flag = '0'
+    </select>
+
+    <select id="getPropertyList" resultType="com.wr.api.estate.entity.vo.application.serve.PropertyLogListVo">
+        SELECT
+        bpl.log_id,
+        bo.owner_name,
+        bo.gender,
+        bo.owner_phone,
+        bpl.pay_time
+        FROM
+        xccj_community.bus_property_log bpl
+        INNER JOIN xccj_community.bus_room br ON br.room_id = bpl.room_id
+        INNER JOIN xccj_community.bus_owner bo ON bo.owner_id = br.owner_id
+        WHERE
+        bpl.del_flag = '0'	and bpl.pay_status = '2'  and bpl.community_id=#{communityId}
+        <if test="searchValue!=null and searchValue!=''">
+            AND (bo.owner_name like concat ('%',#{searchValue},'%') or
+            bo.owner_phone like concat ('%',#{searchValue},'%')
+            )
+        </if>
+        order by bpl.pay_time desc
+    </select>
+
+    <select id="getByLogIdInfo" resultType="com.wr.api.estate.entity.vo.application.serve.PropertyLogListVo">
+        SELECT bb.building_name,
+               bu.unit_name,
+               br.room_name,
+               br.total_area as "room_area",
+               br.room_attribute,
+               bpl.pay_amount,
+               bpl.pay_time,
+               bo.owner_name,
+               bo.gender,
+               bo.owner_phone,
+               bpl.fee_type
+        FROM xccj_community.bus_property_log bpl
+                 LEFT JOIN xccj_community.bus_building bb ON bb.building_id = bpl.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bpl.unit_id
+                 LEFT JOIN xccj_community.bus_room br
+                           ON br.room_id = bpl.room_id and bpl.building_id = br.building_id and br.unit_id = bpl.unit_id
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.owner_id
+        WHERE bpl.del_flag = '0'
+          and bpl.log_id = #{logId}
+    </select>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.wr</groupId>
+        <artifactId>community</artifactId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>common-core</module>
+        <module>common-redis</module>
+        <module>common-security</module>
+        <module>common-datascope</module>
+        <module>common-datasource</module>
+        <module>common-swagger</module>
+        <module>common-log</module>
+        <module>common-customize</module>
+        <module>common-payment</module>
+    </modules>
+
+    <artifactId>wr-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>wr-common通用模块</description>
+
+</project>

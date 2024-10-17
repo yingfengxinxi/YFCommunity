@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.TableMapper">
+
+    <!--检查是否存在表-->
+    <select id="existTable" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM information_schema.TABLES WHERE table_schema = 'xccj_log' AND table_name = #{tableName}
+    </select>
+
+    <!--删除表-->
+    <update id="dropTable">
+        DROP TABLE IF EXISTS ${tableName}
+    </update>
+
+    <!--创建人员出行记录表-->
+    <update id="createUserLogTable">
+        CREATE TABLE ${tableName} (
+            log_id             BIGINT AUTO_INCREMENT COMMENT '主键id',
+            user_name      VARCHAR(64)  DEFAULT ''                NOT NULL COMMENT '用户姓名',
+            user_phone     VARCHAR(32)  DEFAULT ''                NOT NULL COMMENT '手机号',
+            id_card        VARCHAR(32)  DEFAULT ''                NOT NULL COMMENT '身份证号',
+            user_type      CHAR         DEFAULT '1'               NOT NULL COMMENT '用户类型 1 业主 2 租客',
+            community_id   BIGINT       DEFAULT 0                 NOT NULL COMMENT '小区id',
+            community_name VARCHAR(255) DEFAULT ''                NOT NULL COMMENT '识别小区',
+            room_name      VARCHAR(255) DEFAULT ''                NOT NULL COMMENT '楼栋、单元、房间',
+            device_type    VARCHAR(64)  DEFAULT '0'               NOT NULL COMMENT '设备类型 0门禁设备(bus_access) 1=云+设备(bus_cloud_access)',
+            device_name    VARCHAR(255) DEFAULT ''                NOT NULL COMMENT '设备名称',
+            index_code     VARCHAR(255) DEFAULT ''                NOT NULL COMMENT '设备唯一标识/设备序列号',
+            io_type        CHAR         DEFAULT '1'               NOT NULL COMMENT '识别方式 1  人脸识别 2 蓝牙开门 3 安康码 4  二维码 5 社保卡',
+            health_level   CHAR         DEFAULT '1'               NOT NULL COMMENT '安康码颜色 1绿色，2黄色，3红色',
+            discern_time   DATETIME     DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '识别时间',
+            pic_url        VARCHAR(500) DEFAULT ''                NOT NULL COMMENT '识别图片',
+            del_flag       CHAR         DEFAULT '0'               NOT NULL COMMENT '删除状态 0 未删除 1 已删除',
+            constraint bus_user_log_pk
+                primary key (log_id)
+        ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '人员出入记录' ROW_FORMAT = DYNAMIC;
+    </update>
+
+    <!--创建访客通行记录表-->
+    <update id="createVisitLogTable">
+        CREATE TABLE ${tableName}
+        (
+            log_id             BIGINT AUTO_INCREMENT COMMENT '主键id',
+            user_name      VARCHAR(64)  DEFAULT ''  NOT NULL COMMENT '来访姓名',
+            user_phone     VARCHAR(32)  DEFAULT ''  NOT NULL COMMENT '手机号',
+            id_card        VARCHAR(32)  DEFAULT ''  NOT NULL COMMENT '身份证号',
+            plant_no       VARCHAR(64)  DEFAULT ''  NULL     COMMENT '车牌号',
+            with_num       INT(11)      DEFAULT 0   NULL     COMMENT '同行人数',
+            community_id   BIGINT       DEFAULT 0   NOT NULL COMMENT '小区id',
+            community_name VARCHAR(255) DEFAULT ''  NOT NULL COMMENT '识别小区',
+            room_name      VARCHAR(255) DEFAULT ''  NOT NULL COMMENT '楼栋、单元、房间',
+            owner_name     VARCHAR(64)  DEFAULT ''  NOT NULL COMMENT '拜访目标人',
+            owner_phone    VARCHAR(255) DEFAULT ''  NOT NULL COMMENT '拜访目标人手机号',
+            health_level   CHAR         DEFAULT '1' NOT NULL COMMENT '安康码颜色 1绿色，2黄色，3红色',
+            device_name    VARCHAR(255) DEFAULT ''  NOT NULL COMMENT '设备名称',
+            index_code     VARCHAR(255) DEFAULT ''  NOT NULL COMMENT '设备唯一标识',
+            into_time      DATETIME                 NULL COMMENT '进门时间',
+            out_time       DATETIME                 NULL COMMENT '出门时间',
+            del_flag       CHAR         DEFAULT '0' NOT NULL COMMENT '删除状态 0 未删除 1 已删除',
+            constraint bus_visitor_log_pk
+                primary key (log_id)
+        ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '访客通行记录' ROW_FORMAT = DYNAMIC;
+    </update>
+
+    <update id="createVehicleLogTable">
+        create table ${tableName}
+        (
+            log_id BIGINT auto_increment COMMENT '主键',
+            user_type CHAR DEFAULT '0' NULL COMMENT '用户类型：0=业主，1=租客，2=临时车',
+            user_name VARCHAR(64) DEFAULT '' NOT NULL COMMENT '车主姓名，user_type=2时，可能为空',
+            user_phone VARCHAR(20) DEFAULT '' NOT NULL COMMENT '手机号，user_type=2时，可能为空',
+            id_card_no VARCHAR(64) DEFAULT '' NOT NULL COMMENT '身份证号，user_type=2时，可能为空',
+            plate_no VARCHAR(32) DEFAULT '' NOT NULL COMMENT '车牌号',
+            plate_type INT DEFAULT 0 NOT NULL COMMENT '车牌类型:见数据字典 sys_plate_type',
+            plate_color INT DEFAULT 0 NOT NULL COMMENT '车牌颜色: 见数据字典 sys_plate_color',
+            vehicle_type INT DEFAULT 0 NOT NULL COMMENT '车辆类型:0=其他车,1=小型车,2=大型车,3=摩托车',
+            vehicle_color INT DEFAULT 0 NOT NULL COMMENT '车辆颜色:见数据字典 sys_vehicle_color',
+            community_id BIGINT DEFAULT 0 NOT NULL COMMENT '小区id',
+            community_name VARCHAR(64) DEFAULT '' NOT NULL COMMENT '小区名称',
+            park_type CHAR DEFAULT '0' NOT NULL COMMENT '车库类型：0=车库，1=大门',
+            park_index VARCHAR(64) DEFAULT '' NOT NULL COMMENT '停车库编号',
+            park_name VARCHAR(64) DEFAULT '' NOT NULL COMMENT '停车库名称',
+            gate_index VARCHAR(64) DEFAULT '' NOT NULL COMMENT '出入口编号',
+            gate_name VARCHAR(64) DEFAULT '' NOT NULL COMMENT '出入口名称',
+            roadway_index VARCHAR(64) DEFAULT '' NOT NULL COMMENT '车道编号',
+            roadway_name VARCHAR(64) DEFAULT '' NOT NULL COMMENT '车道名称',
+            inout_type TINYINT DEFAULT 0 NOT NULL COMMENT '进出场类型，0：进场，1：出场',
+            inout_time DATETIME NULL COMMENT '进出场发生时间',
+            inout_open DATETIME NULL COMMENT '进出场开门时间',
+            pay_status CHAR DEFAULT '0' NOT NULL COMMENT '支付状态：0=未支付，1=已付',
+            del_flag CHAR DEFAULT '0' NOT NULL COMMENT '删除标记：0=未删除，1=已删除',
+            constraint bus_vehicle_log_pk
+                primary key (log_id)
+        ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '车辆进出记录' ROW_FORMAT = DYNAMIC;
+    </update>
+</mapper>

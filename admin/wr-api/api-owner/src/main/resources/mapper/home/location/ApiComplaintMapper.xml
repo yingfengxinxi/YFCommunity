@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.location.ApiComplaintMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.home.location.ApiComplaint">
+        <id column="complaint_id" jdbcType="BIGINT" property="complaintId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="account_id" jdbcType="BIGINT" property="accountId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="complaint_type" jdbcType="CHAR" property="complaintType"/>
+        <result column="order_type" jdbcType="CHAR" property="orderType"/>
+        <result column="order_id" jdbcType="BIGINT" property="orderId"/>
+        <result column="order_no" jdbcType="VARCHAR" property="orderNo"/>
+        <result column="complaint_url" jdbcType="VARCHAR" property="complaintUrl"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="public_status" jdbcType="CHAR" property="publicStatus"/>
+        <result column="public_time" jdbcType="TIMESTAMP" property="publicTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        complaint_id,
+        community_id,
+        account_id,
+        title,
+        complaint_type,
+        order_type,
+        order_id,
+        order_no,
+        complaint_url,
+        remark,
+        create_time,
+        public_status,
+        public_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_complaint
+        where complaint_id = #{complaintId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_community.bus_complaint
+        set del_flag = '1'
+        where complaint_id = #{complaintId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="complaint_id" keyProperty="complaintId"
+            parameterType="com.wr.api.owner.entity.home.location.ApiComplaint" useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_community.bus_complaint
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="accountId != null">
+                account_id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="complaintType != null">
+                complaint_type,
+            </if>
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="orderNo != null">
+                order_no,
+            </if>
+            <if test="complaintUrl != null">
+                complaint_url,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="publicStatus != null">
+                public_status,
+            </if>
+            <if test="publicTime != null">
+                public_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="complaintType != null">
+                #{complaintType,jdbcType=CHAR},
+            </if>
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="orderNo != null">
+                #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="complaintUrl != null">
+                #{complaintUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="publicStatus != null">
+                #{publicStatus,jdbcType=CHAR},
+            </if>
+            <if test="publicTime != null">
+                #{publicTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.home.location.ApiComplaint">
+        update xccj_community.bus_complaint
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="accountId != null">
+                account_id = #{accountId,jdbcType=BIGINT},
+            </if>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="complaintType != null">
+                complaint_type = #{complaintType,jdbcType=CHAR},
+            </if>
+            <if test="orderType != null">
+                order_type = #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                order_id = #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="orderNo != null">
+                order_no = #{orderNo,jdbcType=VARCHAR},
+            </if>
+            <if test="complaintUrl != null">
+                complaint_url = #{complaintUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="publicStatus != null">
+                public_status = #{publicStatus,jdbcType=CHAR},
+            </if>
+            <if test="publicTime != null">
+                public_time = #{publicTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where complaint_id = #{complaintId,jdbcType=BIGINT}
+    </update>
+</mapper>

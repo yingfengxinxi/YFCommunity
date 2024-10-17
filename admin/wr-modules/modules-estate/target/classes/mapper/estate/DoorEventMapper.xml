@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.device.DoorEventMapper">
+
+    <select id="getList" resultType="com.wr.remote.domain.vo.DoorEventVo">
+        SELECT bde.id as "id",
+        bd.door_name AS "doorName",
+        bde.cert_no AS "certNo",
+        bde.card_no AS "cardNo",
+        bde.person_name AS "personName",
+        bde.org_name AS "orgName",
+        bde.event_type AS "eventType",
+        bde.in_and_out_type AS "inAndOutType",
+        bde.dev_name AS "devName",
+        bde.event_time AS "eventTime"
+        FROM xccj_device.bus_door bd
+        LEFT JOIN xccj_device.bus_door_event bde ON bde.door_index_code = bd.index_code
+        WHERE bd.community_id = #{communityId}
+        <if test="indexCode !=null and indexCode!='' ">
+            AND bd.index_code = #{indexCode}
+        </if>
+        <if test="eventType !=null and eventType!='' ">
+            AND bde.event_type = #{eventType}
+        </if>
+        <if test="eventTypes !=null and eventTypes.size()>0">
+            AND bde.event_type in
+            <foreach collection="eventTypes" item="eventType" open="(" separator="," close=")">
+                #{eventType}
+            </foreach>
+        </if>
+
+        <if test="personName !=null and personName!='' ">
+            AND bde.person_name = #{personName}
+        </if>
+        <if test="startTime !=null and startTime!='' and endTime !=null and endTime !='' ">
+            AND DATE_FORMAT(bde.event_time, '%Y-%m-%d') BETWEEN #{startTime} and #{endTime}
+        </if>
+        ORDER BY bde.event_time DESC
+    </select>
+
+    <select id="getByIdEventInfo" resultType="com.wr.remote.domain.vo.DoorEventVo">
+        SELECT bde.id,
+               bd.door_no          AS "doorNo",
+               bd.door_serial      AS "doorSerial",
+               bd.channel_type     AS "channelType",
+               ba.`online`         AS "online",
+               bc.community_name   AS "communityName",
+               bb.building_name    AS "buildingName",
+               bu.unit_name        AS "unitName",
+               bd.address          AS "address",
+               bde.event_time      AS "eventTime",
+               bde.card_no         AS "cardNo",
+               bde.person_name     AS "personName",
+               bde.org_name        AS "orgName",
+               bde.door_name       AS "doorName",
+               bde.event_type      AS "eventType",
+               bde.in_and_out_type AS "inAndOutType",
+               bde.dev_name        AS "devName",
+               bde.cert_no         AS "certNo"
+        FROM xccj_device.bus_door_event bde
+                 LEFT JOIN xccj_device.bus_door bd ON bd.index_code = bde.door_index_code
+                 LEFT JOIN xccj_device.bus_access ba on ba.index_code = bde.dev_index_code
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bd.community_id
+                 LEFT JOIN xccj_community.bus_building bb ON bb.building_id = ba.building_id
+                 LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = ba.unit_id
+        WHERE bde.id = #{id}
+    </select>
+
+    <select id="getAllDoorList" resultType="com.wr.remote.aiot.Door">
+        SELECT index_code as "indexCode",
+               door_name  as "doorName"
+        FROM xccj_device.bus_door
+        WHERE del_flag = '0'
+    </select>
+</mapper>

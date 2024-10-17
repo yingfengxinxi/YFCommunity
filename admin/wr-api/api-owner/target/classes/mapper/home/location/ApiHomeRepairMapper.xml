@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.home.location.ApiHomeRepairMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.home.location.ApiHomeRepair">
+        <id column="repair_id" jdbcType="BIGINT" property="repairId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="repair_name" jdbcType="VARCHAR" property="repairName"/>
+        <result column="deposit" jdbcType="DECIMAL" property="deposit"/>
+        <result column="repair_status" jdbcType="CHAR" property="repairStatus"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        repair_id,
+        estate_id,
+        repair_name,
+        deposit,
+        repair_status,
+        remark,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_work.bus_home_repair
+        where repair_id = #{repairId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_work.bus_home_repair
+        set del_flag = '1'
+        where repair_id = #{repairId}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="repair_id" keyProperty="repairId"
+            parameterType="com.wr.api.owner.entity.home.location.ApiHomeRepair" useGeneratedKeys="true">
+        insert into xccj_work.bus_home_repair
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="repairName != null">
+                repair_name,
+            </if>
+            <if test="deposit != null">
+                deposit,
+            </if>
+            <if test="repairStatus != null">
+                repair_status,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="repairName != null">
+                #{repairName,jdbcType=VARCHAR},
+            </if>
+            <if test="deposit != null">
+                #{deposit,jdbcType=DECIMAL},
+            </if>
+            <if test="repairStatus != null">
+                #{repairStatus,jdbcType=CHAR},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.home.location.ApiHomeRepair">
+        update xccj_work.bus_home_repair
+        <set>
+            <if test="estateId != null">
+                estate_id = #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="repairName != null">
+                repair_name = #{repairName,jdbcType=VARCHAR},
+            </if>
+            <if test="deposit != null">
+                deposit = #{deposit,jdbcType=DECIMAL},
+            </if>
+            <if test="repairStatus != null">
+                repair_status = #{repairStatus,jdbcType=CHAR},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where repair_id = #{repairId,jdbcType=BIGINT}
+    </update>
+</mapper>

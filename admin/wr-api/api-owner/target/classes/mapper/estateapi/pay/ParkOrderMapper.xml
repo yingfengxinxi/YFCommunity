@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.estateapi.pay.ParkOrderMapper">
+
+    <select id="getList" resultType="com.wr.api.owner.entity.vo.pay.ParkOrderVo">
+        SELECT
+            bsp.plate_no AS "plateNo",
+            bsp.vehicle_no AS "vehicleNo",
+            IFNULL( bsp.lease_purchase, bpo.lease_purchase ) AS "leasePurchase",
+            IFNULL( bsp.purchase_package, bpo.purchase_package ) AS "purchasePackage",
+            IFNULL( bsp.end_time, bpo.end_time ) AS "endTime",
+            IFNULL( bsp.`year_month`, bpo.`year_month` ) AS "yearMonth",
+            bpo.fee AS "fee",
+            bpo.order_no AS "orderNo",
+            bpo.`status` AS "status",
+            bpo.update_time AS "updateTime"
+        FROM
+            xccj_community.bus_park_order bpo
+                LEFT JOIN xccj_community.bus_staff_property bsp ON bsp.id = bpo.staff_property_id
+        WHERE
+            bsp.user_id = #{userId}
+          AND bpo.del_flag = '0'
+        ORDER BY
+            bpo.`status` ASC,
+            bpo.update_time DESC
+    </select>
+
+    <delete id="deleteByOrderNo">
+        delete
+        from xccj_community.bus_park_order
+        where status!='1' and order_no = #{orderNo}
+    </delete>
+
+    <select id="getByOrderNoInfo" resultType="com.wr.remote.estate.financial.ParkOrderDel">
+        SELECT id                AS "id",
+               order_no          AS "orderNo",
+               staff_property_id AS "staffPropertyId",
+               carport_id        AS "carportId",
+               fee               AS "fee",
+               `status`          AS "status",
+               fee_success_time  AS "feeSuccessTime",
+               create_time       AS "createTime",
+               create_by         AS "createBy",
+               update_time       AS "updateTime",
+               update_by         AS "updateBy",
+               del_flag          AS "delFlag",
+               lease_purchase    AS "leasePurchase",
+               purchase_package  AS "purchasePackage",
+               end_time          AS "endTime",
+               `year_month`      AS "yearMonth",
+               is_renew          AS "isRenew"
+        FROM xccj_community.bus_park_order
+        WHERE order_no = #{orderNo} and status != '1'
+    </select>
+</mapper>

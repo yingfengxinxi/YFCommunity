@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.ServerContractMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.estate.manage.vo.contract.ServerContractVO">
+        <id column="server_id" jdbcType="BIGINT" property="serverId"/>
+        <result column="contract_no" jdbcType="VARCHAR" property="contractNo"/>
+        <result column="contract_name" jdbcType="VARCHAR" property="contractName"/>
+        <result column="user_id" jdbcType="BIGINT" property="userId"/>
+        <result column="estate_id" jdbcType="BIGINT" property="estateId"/>
+        <result column="company_name" jdbcType="VARCHAR" property="companyName"/>
+        <result column="company_head" jdbcType="VARCHAR" property="companyHead"/>
+        <result column="company_phone" jdbcType="VARCHAR" property="companyPhone"/>
+        <result column="annex_url" jdbcType="VARCHAR" property="annexUrl"/>
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+
+        <result column="legal" jdbcType="VARCHAR" property="legal"/>
+        <result column="hotline" jdbcType="VARCHAR" property="hotline"/>
+        <result column="nick_name" jdbcType="VARCHAR" property="nickName"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        s.server_id,s.server_amount, s.contract_no, s.contract_name, s.user_id, s.estate_id, s.company_name,
+    s.company_head, s.company_phone, s.annex_url, s.image_url,s.create_by, s.create_time, s.update_by, s.update_time,
+    s.del_flag
+    </sql>
+
+    <insert id="addServe">
+        insert into xccj_community.bus_server_contract
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="contractNo != null">
+                contract_no,
+            </if>
+            <if test="contractName != null">
+                contract_name,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="companyName != null">
+                company_name,
+            </if>
+            <if test="companyHead != null">
+                company_head,
+            </if>
+            <if test="companyPhone != null">
+                company_phone,
+            </if>
+            <if test="annexUrl != null">
+                annex_url,
+            </if>
+            <if test="imageUrl != null">
+                image_url,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+            <if test="serverAmount != null and serverAmount !=''">
+                server_amount,
+            </if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="contractNo != null and contractNo !=''">
+                #{contractNo,jdbcType=VARCHAR},
+            </if>
+            <if test="contractName != null and contractName !=''">
+                #{contractName,jdbcType=VARCHAR},
+            </if>
+            <if test="userId != null and userId !=''">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="estateId != null and estateId !=''">
+                #{estateId,jdbcType=BIGINT},
+            </if>
+            <if test="companyName != null and companyName !=''">
+                #{companyName,jdbcType=VARCHAR},
+            </if>
+            <if test="companyHead != null and companyHead !=''">
+                #{companyHead,jdbcType=VARCHAR},
+            </if>
+            <if test="companyPhone != null and companyPhone !=''">
+                #{companyPhone,jdbcType=VARCHAR},
+            </if>
+            <if test="annexUrl != null and annexUrl !=''">
+                #{annexUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="imageUrl != null and imageUrl !=''">
+                #{imageUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null and createBy !=''">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateBy != null and updateBy !=''">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null and updateTime !=''">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null and delFlag !=''">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+            <if test="serverAmount != null and serverAmount !=''">
+                #{serverAmount,jdbcType=DECIMAL},
+            </if>
+            sysDate()
+        </trim>
+    </insert>
+
+    <update id="delServe">
+        update xccj_community.bus_server_contract
+        <set>
+            <if test="userName != null and userName!=''">
+                update_by = #{userName},
+            </if>
+            update_time=sysDate(),
+            del_flag=1
+        </set>
+        where
+        server_id in
+        <foreach item="item" collection="serverId" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="getServeList" resultType="com.wr.remote.estate.manage.vo.contract.ServerContractVO">
+        select
+        e.estate_name,
+        e.legal,
+        e.hotline,
+        u.nick_name,
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_server_contract s
+        left join xccj_community.bus_estate e on s.estate_id=e.estate_id and e.del_flag=0
+        left join xccj_estate_sys.sys_user u on u.user_id=s.user_id and u.del_flag=0
+        <where>
+            s.del_flag='0'
+            <if test="companyName != null and companyName != ''"><!-- 乙方公司 -->
+                AND s.company_name like concat('%',#{companyName}, '%')
+            </if>
+            <if test="contractName != null and contractName != ''"><!-- 合同名称 -->
+                AND s.contract_name like concat('%', #{contractName}, '%')
+            </if>
+            <if test="estateId != null"><!-- 合同名称 -->
+                AND s.estate_id = #{estateId}
+            </if>
+            <if test="nickName!=null and nickName!=''"><!-- 签约人 -->
+                AND u.nick_name like concat('%', #{nickName}, '%')
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            order by s.create_time desc
+        </where>
+    </select>
+
+    <select id="getDetailInfo" resultType="com.wr.remote.estate.manage.vo.contract.ServerContractVO">
+        select
+        e.estate_name,
+        e.legal,
+        e.hotline,
+        u.nick_name,
+        u.phonenumber,
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_server_contract s
+        left join xccj_community.bus_estate e on s.estate_id=e.estate_id and e.del_flag=0
+        left join xccj_estate_sys.sys_user u on u.user_id=s.user_id and u.del_flag=0
+        <where>
+            s.del_flag=0
+            and s.server_id=#{serverId}
+        </where>
+    </select>
+
+    <select id="getEstateList" resultType="com.wr.remote.domain.Estate">
+        SELECT *
+        FROM xccj_community.bus_estate
+        WHERE del_flag = 0
+    </select>
+
+    <select id="checkServerContractVO" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_server_contract
+        WHERE contract_no = #{contractNo}
+          AND del_flag = 0
+    </select>
+
+    <select id="getUserInfoByEstateId" resultType="com.wr.remote.domain.SysUser">
+        SELECT user_id,
+               nick_name
+        FROM xccj_estate_sys.sys_user
+        WHERE dept_id =  #{estateId}
+          AND user_type IN (10, 11)
+          AND del_flag = 0
+    </select>
+
+    <select id="getEstateDetail" resultType="com.wr.remote.domain.Estate">
+        SELECT legal,hotline
+        FROM xccj_community.bus_estate
+        WHERE estate_id=#{estateId}
+    </select>
+
+</mapper>

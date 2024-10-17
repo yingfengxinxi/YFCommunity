@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.BorrowByMeMapper">
+    <select id="listPage" resultType="com.wr.api.owner.entity.vo.serve.ApiGoodsVo">
+        SELECT
+            xbb.borrow_id, xbb.audit_time AS auditTimeList,
+            (CASE
+                 WHEN xbb.audit_status = '0' THEN '0'
+                 WHEN xbb.audit_status = '1' THEN '1'
+                 WHEN xbb.audit_status = '2' AND xbb.actually_time IS NULL THEN '2'
+                 WHEN xbb.audit_status = '2' AND xbb.actually_time IS NOT NULL THEN '3' end
+                ) AS auditStatusByMe,
+            IF(xbb.audit_status = '2' AND xbb.actually_time IS NULL,
+               TIMESTAMPDIFF(HOUR, xbb.return_time, now()), TIMESTAMPDIFF(HOUR, xbb.return_time, xbb.actually_time)
+                ) AS hourTimeInterval,
+            xbb.goods_id, xbg.goods_name, xbg.goods_url
+        FROM xccj_community.bus_borrow xbb
+                 LEFT JOIN xccj_community.bus_goods xbg ON xbb.goods_id = xbg.goods_id
+        WHERE xbb.del_flag = '0' AND xbb.account_id = #{accountId}
+        ORDER BY actually_time, xbb.audit_status DESC
+    </select>
+
+    <select id="detail" resultType="com.wr.api.owner.entity.vo.serve.ApiBorrowVo">
+        SELECT bb.remark,
+               bb.apply_time,
+               bb.return_time,
+               bb.actually_time,
+               bb.reject_reason,
+               bg.goods_url      AS goodsUrl,
+               bg.goods_no       AS goodsNo,
+               bg.goods_name     AS goodsName,
+               bc.classify_name  AS classifyName,
+               bg.goods_price    AS goodsPrice,
+               bg.address,
+               ba.account_name   AS accountName,
+               ba.login_name     AS loginName,
+               bbg.building_name AS buildingName,
+               bu.unit_name      AS unitName,
+               br.room_name      AS roomName
+        FROM xccj_community.bus_borrow AS bb
+                 LEFT JOIN xccj_community.bus_goods AS bg ON bg.goods_id = bb.goods_id
+                 LEFT JOIN xccj_community.bus_classify AS bc ON bc.classify_id = bg.classify_id
+                 LEFT JOIN xccj_community.bus_account AS ba ON ba.account_id = bb.account_id
+                 LEFT JOIN xccj_community.bus_owner AS bo ON bo.account_id = ba.account_id
+                 LEFT JOIN xccj_community.bus_building AS bbg ON bbg.building_id = bo.building_id
+                 LEFT JOIN xccj_community.bus_unit AS bu ON bu.unit_id = bo.unit_id
+                 LEFT JOIN xccj_community.bus_room AS br ON br.room_id = bo.room_id
+        WHERE bb.del_flag = '0'
+          AND bb.borrow_id = #{borrowId}
+    </select>
+
+    <select id="qrCode" resultType="com.wr.api.owner.entity.vo.serve.ApiBorrowVo">
+        SELECT *
+        FROM xccj_community.bus_borrow
+        <where>
+            borrow_id = #{borrowId}
+              AND del_flag = '0'
+        </where>
+    </select>
+</mapper>

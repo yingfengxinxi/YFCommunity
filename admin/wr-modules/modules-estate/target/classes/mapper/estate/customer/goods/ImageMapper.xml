@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.goods.ImageMapper">
+
+    <select id="getImageList" resultType="com.wr.remote.estate.Image">
+        SELECT * FROM xccj_community.bus_image WHERE image_type = #{imageType} AND table_id = #{tableId} AND del_flag = '0'
+    </select>
+
+</mapper>
+

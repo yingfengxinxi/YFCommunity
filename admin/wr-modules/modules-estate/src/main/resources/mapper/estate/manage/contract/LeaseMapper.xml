@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.manage.contract.LeaseMapper">
+    <!--字段映射-->
+    <resultMap type="com.wr.remote.estate.manage.vo.contract.LeaseVo" id="leaseVoResult">
+        <id property="contractId" column="contract_id"/>
+        <result property="tenantName" column="tenant_name"/>
+        <result property="tenantPhone" column="tenant_phone"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="communityName" column="community_name"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomName" column="room_name"/>
+        <result property="monthRent" column="month_rent"/>
+        <result property="contractStart" column="contract_start"/>
+        <result property="contractEnd" column="contract_end"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="communityId" column="community_id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="unitId" column="unit_id"/>
+        <result property="roomId" column="room_id"/>
+    </resultMap>
+
+    <!--合同详情页映射-->
+    <resultMap type="com.wr.remote.estate.manage.vo.contract.LeaseVo" id="queryLeaseOneMap">
+        <result property="tenantName" column="tenant_name"/>
+        <result property="tenantPhone" column="tenant_phone"/>
+        <result property="gender" column="gender"/>
+        <result property="cardType" column="card_type"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="cardFont" column="card_font"/>
+        <result property="cardBack" column="card_back"/>
+        <result property="faceUrl" column="face_url"/>
+        <result property="domicileAddress" column="domicile_address"/>
+        <result property="politicsStatus" column="politics_status"/>
+        <result property="religion" column="religion"/>
+        <result property="nativePlace" column="native_place"/>
+        <result property="nation" column="nation"/>
+        <result property="eduLevel" column="edu_level"/>
+        <result property="military" column="military"/>
+        <result property="marriageStatus" column="marriage_status"/>
+        <result property="nationality" column="nationality"/>
+        <result property="population" column="population"/>
+        <result property="career" column="career"/>
+        <result property="qqNumber" column="qq_number"/>
+        <result property="email" column="email"/>
+        <result property="selfIntro" column="self_intro"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="communityName" column="community_name"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomName" column="room_name"/>
+        <result property="roomStatus" column="room_status"/>
+        <result property="contractNo" column="contract_no"/>
+        <result property="createTime" column="create_time"/>
+        <result property="contractStart" column="contract_start"/>
+        <result property="contractEnd" column="contract_end"/>
+        <result property="monthRent" column="month_rent"/>
+
+    </resultMap>
+
+
+    <select id="selectOneLeaseById" parameterType="java.lang.Long" resultMap="queryLeaseOneMap">
+        SELECT
+            ten.tenant_name,
+            ten.tenant_phone,
+            ten.gender,
+            ten.card_type,
+            ten.card_no,
+            ten.card_font,
+            ten.card_back,
+            ten.face_url,
+            ten.domicile_address,
+            ten.politics_status,
+            ten.religion,
+            ten.native_place,
+            ten.nation,
+            ten.edu_level,
+            ten.military,
+            ten.marriage_status,
+            ten.nationality,
+            ten.population,
+            ten.career,
+            ten.qq_number,
+            ten.email,
+            ten.self_intro,
+            own.owner_name,
+            own.card_no,
+            own.owner_phone,
+            comm.community_name,
+            bui.building_name,
+            uni.unit_name,
+            roo.room_name,
+            roo.room_status,
+            cont.contract_no,
+            cont.create_time,
+            cont.contract_start,
+            cont.contract_end,
+            cont.month_rent,
+            cont.contract_url,
+            TIMESTAMPDIFF( DAY, cont.contract_start, cont.contract_end ) AS leaseDay,
+            TIMESTAMPDIFF( MONTH, cont.contract_start, cont.contract_end ) AS leaseMonth,
+            cont.deposit_pay_time,
+            cont.deposit,
+            cont.total_money
+        FROM xccj_community.bus_rent_contract AS cont
+                 LEFT JOIN xccj_community.bus_tenant AS ten ON cont.tenant_id = ten.tenant_id
+                 LEFT JOIN xccj_community.bus_owner AS own ON cont.owner_id = own.owner_id
+                 LEFT JOIN xccj_community.bus_community AS comm ON cont.community_id = comm.community_id
+                 LEFT JOIN xccj_community.bus_building AS bui ON cont.building_id = bui.building_id
+                 LEFT JOIN xccj_community.bus_unit AS uni ON cont.unit_id = uni.unit_id
+                 LEFT JOIN xccj_community.bus_room AS roo ON cont.room_id = roo.room_id
+        WHERE cont.contract_id = #{contractId}
+
+    </select>
+
+
+    <select id="getLeaseList" resultMap="leaseVoResult" parameterType="com.wr.remote.estate.manage.vo.contract.LeaseVo">
+        select
+        cont.contract_id,
+        ten.tenant_name,ten.tenant_phone,
+        own.owner_name,own.owner_phone,
+        comm.community_name,
+        bui.building_name,
+        uni.unit_name,
+        roo.room_name,
+        cont.month_rent,
+        cont.contract_start,
+        cont.contract_end,
+        (CASE
+        WHEN cont.owner_id=0 THEN
+        '物业租赁'
+        ELSE
+        '业主租赁'
+        END ) as  rentType,
+        ten.audit_status,
+        cont.create_time,
+        cont.community_id,
+        cont.contract_no
+        from
+        xccj_community.bus_rent_contract AS cont
+        LEFT JOIN xccj_community.bus_tenant AS ten ON cont.tenant_id=ten.tenant_id
+        LEFT JOIN xccj_community.bus_owner as own ON cont.owner_id=own.owner_id
+        LEFT JOIN xccj_community.bus_community AS comm ON cont.community_id=comm.community_id
+        LEFT JOIN xccj_community.bus_building as bui ON cont.building_id=bui.building_id
+        LEFT JOIN xccj_community.bus_unit as uni ON cont.unit_id=uni.unit_id
+        LEFT JOIN xccj_community.bus_room as roo ON cont.room_id=roo.room_id
+        <where>
+            cont.del_flag='0'
+            <!--            <if test="communityId!=0">
+                            and cont.community_id=#{communityId},
+                        </if>-->
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(cont.contract_start,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(cont.contract_end,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+            <if test="tenantName!=null and tenantName!=''">
+                AND ten.tenant_name like concat('%', #{tenantName}, '%')
+            </if>
+            <if test="tenantPhone!=null and tenantPhone!=''">
+                AND ten.tenant_phone like concat('%', #{tenantPhone}, '%')
+            </if>
+            <if test="communityId!=null">
+                AND comm.community_id=#{communityId}
+            </if>
+            <if test="estateId != null">
+                AND comm.estate_id = #{estateId}
+            </if>
+            order by cont.create_time desc
+        </where>
+    </select>
+
+
+    <insert id="leaseAdd" parameterType="com.wr.remote.estate.manage.vo.contract.LeaseVo" useGeneratedKeys="true"
+            keyProperty="tenantId">
+        insert into xccj_community.bus_rent_contract
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tenantId != null ">tenant_id,</if>
+            <if test="communityId != null ">community_id,</if>
+            <if test="buildingId != null ">building_id,</if>
+            <if test="unitId != null ">unit_id,</if>
+            <if test="roomId != null ">room_id,</if>
+            <if test="ownerId != null ">owner_id,</if>
+            <if test="monthRent != null ">month_rent,</if>
+            <if test="contractStart != null ">contract_start,</if>
+            <if test="contractEnd != null ">contract_end,</if>
+            <if test="contractUrl != null ">contract_url,</if>
+            <if test="contractNo != null and contractNo !=''  ">contract_no,</if>
+            <if test="depositPayTime != null ">deposit_pay_time,</if>
+            <if test="deposit != null and deposit !=''  ">deposit,</if>
+            <if test="totalMoney != null and totalMoney !=''  ">total_money,</if>
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tenantId != null ">#{tenantId},</if>
+            <if test="communityId != null ">#{communityId},</if>
+            <if test="buildingId != null ">#{buildingId},</if>
+            <if test="unitId != null ">#{unitId},</if>
+            <if test="roomId != null ">#{roomId},</if>
+            <if test="ownerId != null ">#{ownerId},</if>
+            <if test="monthRent != null ">#{monthRent},</if>
+            <if test="contractStart != null ">#{contractStart},</if>
+            <if test="contractEnd != null ">#{contractEnd},</if>
+            <if test="contractUrl != null ">#{contractUrl},</if>
+            <if test="contractNo != null and contractNo !='' ">#{contractNo},</if>
+            <if test="depositPayTime != null ">#{depositPayTime},</if>
+            <if test="deposit != null and deposit !=''  ">#{deposit},</if>
+            <if test="totalMoney != null and totalMoney !=''  ">#{totalMoney},</if>
+            #{createBy},sysdate()
+        </trim>
+    </insert>
+
+    <!--租客注册，新增到account表格中-->
+    <insert id="addTenantAccount" parameterType="com.wr.remote.estate.manage.contract.Account" useGeneratedKeys="true" keyProperty="accountId" >
+        insert into xccj_community.bus_account
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null ">community_id,</if>
+            <if test="loginName!= null and loginName!=''  ">login_name,</if>
+            <if test="avatar!= null and avatar!=''  ">avatar,</if>
+            <if test="accountType!= null and accountType!=''  ">account_type,</if>
+            <if test="accountName!= null and accountName!=''  ">account_name,</if>
+            <if test="dataSource!= null and dataSource!=''  ">data_source,</if>
+            <if test="accountName!= null and accountName!=''  ">account_nick,</if>
+            create_by,create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null ">#{communityId},</if>
+            <if test="loginName!= null and loginName!=''  ">#{loginName},</if>
+            <if test="avatar!= null and avatar!=''  ">#{avatar},</if>
+            <if test="accountType!= null and accountType!=''  ">#{accountType},</if>
+            <if test="accountName!= null and accountName!=''  ">#{accountName},</if>
+            <if test="dataSource!= null and dataSource!=''  ">#{dataSource},</if>
+            <if test="accountName!= null and accountName!=''  ">#{accountName},</if>
+            #{createBy},sysdate()
+        </trim>
+
+    </insert>
+
+
+    <update id="deleteLeaseByIds" parameterType="String">
+        update xccj_community.bus_rent_contract set del_flag='1'
+        where contract_id in
+        <foreach item="contractId" collection="array" open="(" separator="," close=")">
+            #{contractId}
+        </foreach>
+    </update>
+
+    <select id="checkLeaseExist" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_tenant
+        WHERE del_flag='0'
+        AND card_no=#{cardNo}
+    </select>
+
+    <select id="checkLeaseExistByPhone" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_community.bus_tenant as ten
+        WHERE ten.del_flag='0'
+        AND ten.tenant_phone=#{tenantPhone}
+    </select>
+
+    <select id="checkTenantIsRegisterByPhone" resultType="com.wr.remote.estate.manage.contract.Account">
+        select *from xccj_community.bus_account as unt
+        where unt.del_flag='0' AND unt.login_name=#{tenantPhone} limit 1
+    </select>
+
+
+    <!--<select id="checkTenantIsRegisterByPhone"  parameterType="String" resultType="com.wr.remote.estate.manage.contract.Account">
+        select *
+        from xccj_community.bus_account as unt
+        where
+          unt.del_flag='0'
+          and unt.account_type='1'
+        <if test="tenantPhone!=null and tenantPhone!=''">
+          AND unt.login_name=#{tenantPhone}
+        </if>
+
+    </select>-->
+
+    <select id="getCkeckRoom" resultType="Integer">
+        SELECT
+            count( 1 ) as "count"
+        FROM
+            xccj_community.bus_rent_contract brc
+        WHERE
+            brc.community_id = #{communityId}
+          AND brc.room_id = #{roomId}
+          AND DATE_FORMAT( brc.contract_end, '%Y-%m-%d' )> DATE_FORMAT(
+                NOW(),
+                '%Y-%m-%d')
+    </select>
+
+
+</mapper>

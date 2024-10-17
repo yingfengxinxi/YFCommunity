@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.partypay.StatisticsMapper">
+    <insert id="addParyPay">
+        INSERT INTO xccj_govern.`bus_party_pay`(community_id, party_id, member_id, member_name, member_phone, pay_type,
+                                                party_fee, pay_time, pay_way, pay_month)
+        VALUES (#{communityId}, #{partyId}, #{memberId}, #{memberName}, #{memberPhone}, #{payType}, #{partyFee}, sysdate(), #{payWay}, #{payMonth})
+    </insert>
+    <update id="upCollectStatus">
+        UPDATE xccj_govern.`bus_party_pay` SET collect_name = #{collectName}, collect_status = '1' WHERE log_id IN
+        <foreach item="item" index="index" collection="logIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="getPartyPayNumByType" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM xccj_govern.`bus_party_pay` WHERE del_flag = '0'
+        AND community_id = #{communityId}
+        <if test="null != payType and '' != payType">
+            AND pay_type = #{payType}
+        </if>
+        <if test="null != payMonth">
+            AND pay_month = #{payMonth}
+        </if>
+    </select>
+    <select id="getPartyPayNumByWay" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM xccj_govern.`bus_party_pay` WHERE del_flag = '0'
+        AND community_id = #{communityId}
+        <if test="null != payWay and '' != payWay">
+            AND pay_way = #{payWay}
+        </if>
+        <if test="null != payMonth">
+            AND pay_month = #{payMonth}
+        </if>
+    </select>
+    <select id="getPartyPaySumType" resultType="java.math.BigDecimal">
+        SELECT SUM(party_fee) FROM xccj_govern.`bus_party_pay` WHERE del_flag = '0'
+        AND community_id = #{communityId}
+        <if test="null != payType and '' != payType">
+            AND pay_type = #{payType}
+        </if>
+        <if test="null != payMonth">
+            AND pay_month = #{payMonth}
+        </if>
+    </select>
+    <select id="getPartyPaySumWay" resultType="java.math.BigDecimal">
+        SELECT SUM(party_fee) FROM xccj_govern.`bus_party_pay` WHERE del_flag = '0'
+        AND community_id = #{communityId}
+        <if test="null != payWay and '' != payWay">
+            AND pay_way = #{payWay}
+        </if>
+        <if test="null != payTime">
+            AND pay_month = #{payMonth}
+        </if>
+    </select>
+    <select id="getPartyPayAll" resultType="com.wr.remote.govern.party.vo.PartyPayVO">
+        SELECT
+        pp.*,
+        bp.party_name
+        FROM
+        xccj_govern.bus_party_pay pp
+        LEFT JOIN xccj_govern.bus_member bm ON bm.member_id = pp.member_id
+        LEFT JOIN xccj_govern.bus_party bp ON bp.party_id = bm.party_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = pp.community_id
+        WHERE pp.del_flag = '0'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != communityId">
+            AND pp.community_id = #{communityId}
+        </if>
+        <if test="null != partyId">
+            AND pp.party_id = #{partyId}
+        </if>
+        <if test="null != memberName and '' != memberName">
+            AND pp.member_name = #{memberName}
+        </if>
+        <if test="null != memberPhone and '' != memberPhone">
+            AND pp.member_phone = #{memberPhone}
+        </if>
+        ORDER BY pp.pay_time DESC
+    </select>
+    <select id="getTotalMember" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_govern.bus_member bm
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bm.community_id
+        WHERE bm.del_flag = '0'
+        AND bm.audit_status = '1'
+        AND bm.community_id = #{communityId}
+    </select>
+    <select id="getMemberAll" resultType="com.wr.remote.govern.party.vo.MemberVO">
+        SELECT
+        bm.member_id,
+        ba.account_name AS `memberName`,
+        ba.login_name AS `memberPhone`
+        FROM
+        xccj_govern.bus_member bm
+        LEFT JOIN xccj_community.bus_account ba ON ba.account_id = bm.account_id
+        LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bm.community_id
+        WHERE
+        bm.del_flag = '0'
+        AND bm.audit_status = '1'
+        <if test="null != estateId">
+            and bc.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != partyId">
+            AND bm.party_id = #{partyId}
+        </if>
+    </select>
+    <select id="checkUnique" resultType="com.wr.remote.govern.party.PartyPay">
+        SELECT  * FROM xccj_govern.bus_party_pay WHERE member_id = #{memberId} AND pay_month = #{payMonth}
+    </select>
+    <select id="getPartyAll" resultType="com.wr.remote.govern.party.Party">
+        SELECT
+            bp.*
+        FROM
+            xccj_govern.bus_party bp
+                LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bp.community_id
+        WHERE
+            bp.del_flag = '0'
+          AND bp.community_id = #{communityId}
+    </select>
+</mapper>

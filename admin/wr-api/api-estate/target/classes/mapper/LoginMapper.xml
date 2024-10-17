@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.LoginMapper">
+    <sql id="userColumns">
+        su.user_id, su.dept_id, su.user_name, su.nick_name, su.user_type, su.email,
+        su.phonenumber, su.sex, su.avatar, su.password, su.status, su.del_flag,
+        su.login_ip, su.login_date, su.create_by, su.create_time, su.update_by, su.update_time, su.remark
+    </sql>
+
+    <select id="selectUserByLoginName" resultType="com.wr.remote.domain.SysUser">
+        SELECT
+            se.estate_id AS "estateId", sd.dept_id,
+            sd.dept_id AS "dept.deptId", sd.dept_name AS "dept.deptName",
+            <include refid="userColumns"/>
+        FROM xccj_estate_sys.sys_user su
+            LEFT JOIN xccj_community.bus_estate se ON se.estate_id = su.dept_id
+            LEFT JOIN xccj_estate_sys.sys_dept sd ON sd.dept_id = se.dept_id
+        WHERE su.del_flag = '0' AND su.user_type IN ('10','12') AND su.user_name = #{username}
+        UNION ALL
+        SELECT
+            se.estate_id AS "estateId", su.dept_id,
+            sd.dept_id AS "dept.deptId", sd.dept_name AS "dept.deptName",
+            <include refid="userColumns"/>
+        FROM xccj_estate_sys.sys_user su
+            LEFT JOIN xccj_estate_sys.sys_dept sd ON sd.dept_id = su.dept_id
+            LEFT JOIN xccj_community.bus_estate se ON se.dept_id = (
+                SELECT T3.dept_id
+                FROM(
+                    SELECT @code as _code, @l := @l+1 as level_, (SELECT @code := parent_id FROM xccj_estate_sys.sys_dept WHERE dept_id = @code) as T1
+                    FROM xccj_estate_sys.sys_dept,
+                        (SELECT @code := (SELECT dept_id FROM xccj_estate_sys.sys_user WHERE del_flag = '0' AND user_name = #{username}), @l := 0) T4
+                    WHERE @code is not null
+                    ) T2, xccj_estate_sys.sys_dept T3
+                WHERE T2._code = T3.dept_id AND T3.dept_type = '10' ORDER BY level_ LIMIT 1
+            )
+        WHERE su.del_flag = '0' AND su.user_type = '11' AND su.user_name = #{username}
+    </select>
+
+    <update id="updateLoginData">
+        UPDATE xccj_estate_sys.sys_user SET
+            login_ip = #{loginIp}, login_date = sysdate()
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="selectDeptByDeptId" resultType="com.wr.remote.domain.SysDept">
+        SELECT
+            dept_id, parent_id, dept_name, dept_type, del_flag
+        FROM xccj_estate_sys.sys_dept
+        WHERE del_flag = '0' AND dept_id = #{deptId}
+    </select>
+
+    <select id="selectEstateByDeptId" resultType="com.wr.remote.domain.Estate">
+        SELECT
+            estate_id, parent_id, estate_name, dept_id, del_flag
+        FROM xccj_community.bus_estate
+        WHERE del_flag = '0' AND dept_id = #{deptId}
+    </select>
+
+    <select id="getCurrentEstateId" resultType="java.lang.Long">
+        SELECT
+            xbe.estate_id
+        FROM xccj_community.bus_estate xbe
+        WHERE xbe.del_flag = '0'
+          AND xbe.dept_id = #{deptId}
+    </select>
+
+    <select id="selectStaffByUserId" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT
+            bs.staff_id, bs.user_id, bs.community_id, bs.staff_name, bs.staff_phone, bs.gender, bs.card_no,
+            bs.avatar, bs.staff_type, bs.work_post, bs.healthy, bs.education, bs.cert_url, bs.work_year,
+            bs.audit_status, bs.entry_time, bs.dimission_time, bs.address, bs.staff_intro, bs.create_by,
+            bs.create_time, bs.update_by, bs.update_time, bs.del_flag, bc.community_name
+        FROM xccj_community.bus_staff bs
+        LEFT JOIN xccj_community.bus_community bc ON bs.community_id = bc.community_id
+        WHERE bs.del_flag = '0' AND bs.user_id = #{userId}
+    </select>
+
+    <select id="selectEstateIdByCommunityId" resultType="com.wr.remote.domain.Estate">
+        SELECT
+               estate_id, estate_name, dept_id, hotline
+        FROM xccj_community.bus_estate
+        WHERE del_flag = '0'
+          AND estate_id = (
+            SELECT estate_id FROM xccj_community.bus_community
+            WHERE del_flag='0' AND community_id =  #{communityId}
+        )
+
+    </select>
+
+    <select id="selectEstateById" resultType="com.wr.remote.domain.Estate">
+        SELECT
+            estate_id, estate_name, dept_id, hotline
+        FROM xccj_community.bus_estate
+        WHERE del_flag = '0' AND estate_id = #{estateId}
+    </select>
+
+    <select id="selectCommunityList" resultType="com.wr.remote.domain.Community">
+        SELECT
+            community_id, community_name, area_id, del_flag
+        FROM xccj_community.bus_community
+        WHERE del_flag = '0' AND estate_id = #{estateId}
+    </select>
+
+    <select id="selectStaffByCardNo" resultType="com.wr.remote.estate.manage.Staff">
+        SELECT
+            staff_id, user_id, community_id, staff_name, staff_phone, gender, card_no, avatar,
+            staff_type, work_post, healthy, education, cert_url, work_year, audit_status, entry_time,
+            dimission_time, address, staff_intro, create_by, create_time, update_by, update_time, del_flag
+        FROM xccj_community.bus_staff
+        WHERE del_flag = '0' AND card_no = #{cardNo}
+    </select>
+
+    <update id="updatePassword">
+        UPDATE xccj_estate_sys.sys_user SET password = #{password} WHERE user_id = #{userId}
+    </update>
+
+    <select id="getUserNameNikeName" resultType="com.wr.remote.domain.SysUser">
+        SELECT user_id as "userId", nick_name as "nickName", phonenumber as "phonenumber", user_type as "userType"
+        from xccj_estate_sys.sys_user
+        WHERE user_name = #{userName}
+    </select>
+
+    <select id="getByUserIdUser" resultType="com.wr.remote.domain.SysUser">
+        SELECT user_name   as "userName",
+               nick_name   as "nickName",
+               phonenumber as "phonenumber",
+               user_type   as "userType"
+        from xccj_estate_sys.sys_user
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

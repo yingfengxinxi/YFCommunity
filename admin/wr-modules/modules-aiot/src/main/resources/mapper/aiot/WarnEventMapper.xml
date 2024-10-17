@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.WarnEventMapper">
+    <sql id="warnColumns">
+        bwe.warn_id, bwe.send_time, bwe.ability, bwe.event_id, bwe.src_index, bwe.src_type, bwe.src_name,
+        bwe.event_type, bwe.status, bwe.timeout, bwe.event_name, bwe.happen_time, bwe.stop_time, bwe.remark,
+        bwe.record_time, bwe.community_id, bwe.del_flag
+    </sql>
+
+    <select id="selectWarnEventList" resultType="com.wr.remote.aiot.WarnEvent">
+        SELECT
+            <include refid="warnColumns"/>
+        FROM xccj_device.bus_warn_event bwe
+        WHERE bwe.del_flag = '0' AND bwe.community_id = #{communityId}
+        <if test="eventType != null and eventType != ''">
+            AND bwe.event_type = #{eventType}
+        </if>
+        <if test="startTime != null and startTime != ''"><!-- 开始时间检索 -->
+            AND date_format(bwe.record_time,'%y%m%d') &gt;= date_format(#{startTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(bwe.record_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+        ORDER BY bwe.record_time DESC
+    </select>
+
+    <select id="selectWarnEventById" resultType="com.wr.remote.aiot.WarnEvent">
+        SELECT
+            cbc.community_name AS "communityName",
+            <include refid="warnColumns"/>
+        FROM xccj_device.bus_warn_event bwe
+        LEFT JOIN xccj_community.bus_community cbc ON cbc.community_id = bwe.community_id
+        WHERE bwe.del_flag = '0' AND bwe.warn_id = #{warnId}
+    </select>
+
+    <select id="selectAcsDataList" resultType="com.wr.remote.aiot.AcsData">
+        SELECT
+            data_id, community_id, warn_id, user_type, id_num, user_name, user_sex, ext_access_channel,
+            entry_times, exit_times, total_times, ext_event_card_no, ext_event_case_id, ext_event_code,
+            ext_event_door_id, ext_event_id_card_picture_url, ext_event_in_out, ext_event_person_no,
+            ext_event_picture_url, ext_event_swip_num, ext_receive_time, seq, svr_index_code, del_flag
+        FROM xccj_device.bus_acs_data
+        WHERE del_flag = '0' AND warn_id = #{warnId}
+    </select>
+
+    <select id="selectVisDataList" resultType="com.wr.remote.aiot.VisData">
+        SELECT
+            data_id, community_id, warn_id, ext_access_channel, entry_times, exit_times, total_times,
+            ext_event_card_no, ext_event_code, ext_event_door_id, ext_event_id_card_picture_url,
+            user_type, id_num, user_name, user_sex, ext_event_in_out, ext_event_person_no, ext_event_picture_url,
+            ext_event_swip_num, ext_receive_time, seq, svr_index_code, del_flag
+        FROM xccj_device.bus_vis_data
+        WHERE del_flag = '0' AND warn_id = #{warnId}
+    </select>
+
+    <select id="selectVideoDataList" resultType="com.wr.remote.aiot.VideoData">
+        SELECT
+            data_id, community_id, warn_id, data_type, recv_time, send_time, date_time,
+            ip_address, port_no, channel_id, event_type, event_description, del_flag
+        FROM xccj_device.bus_video_data
+        WHERE del_flag = '0' AND warn_id = #{warnId}
+    </select>
+
+    <select id="selectVideoResultList" resultType="com.wr.remote.aiot.VideoResult">
+        SELECT
+            result_id, community_id, warn_id, data_id, device_index_code, camera_index_code, channel_name,
+            camera_address, longitude, latitude, image_server_code, image_url, del_flag
+        FROM xccj_device.bus_video_result
+        WHERE del_flag = '0' AND data_id = #{dataId}
+    </select>
+
+    <select id="selectSmokeFireList" resultType="com.wr.remote.aiot.SmokeFire">
+        SELECT
+            result_id, community_id, warn_id, data_id, image_url, visible_pic_url, image_server_code, device_index_code,
+            camera_index_code, camera_address, fire_region_width, fire_region_height, fire_highest_x, fire_highest_y,
+            fire_elevation, fire_azimuth, fire_zoom, temperature_unit, fire_max_temperature, target_distance, fire_scan_wait_mode,
+            smoke_region_width, smoke_region_height, smoke_elevation, smoke_azimuth, smoke_zoom, del_flag
+        FROM xccj_device.bus_smoke_fire
+        WHERE del_flag = '0' AND data_id = #{dataId}
+    </select>
+    <select id="getEventIdInfo" resultType="java.lang.Long">
+        select warn_id
+        from xccj_device.bus_warn_event
+        where del_flag = "0"
+          and event_id = #{eventId}
+    </select>
+
+    <update id="removeWarnEventByIds">
+        UPDATE xccj_device.bus_warn_event SET del_flag = '1' where warn_id in
+        <foreach collection="array" item="warnId" open="(" separator="," close=")">
+            #{warnId}
+        </foreach>
+    </update>
+    <insert id="insertWarnEvent" useGeneratedKeys="true" keyProperty="warnId">
+        INSERT INTO xccj_device.bus_warn_event(
+            send_time, ability, event_id, src_index, src_type, src_name,
+            event_type, `status`, timeout, event_name, happen_time, stop_time,
+            remark, record_time, community_id, del_flag
+        ) VALUES (
+                     #{sendTime,jdbcType = VARCHAR}, #{ability,jdbcType = VARCHAR},
+                     #{eventId,jdbcType = VARCHAR}, #{srcIndex,jdbcType = VARCHAR},
+                     #{srcType,jdbcType = VARCHAR}, #{srcName,jdbcType = VARCHAR},
+                     #{eventType}, #{status}, #{timeout}, #{eventName,jdbcType = VARCHAR},
+                     #{happenTime,jdbcType = VARCHAR}, #{stopTime,jdbcType = VARCHAR},
+                     #{remark,jdbcType = VARCHAR}, sysdate(), #{communityId,jdbcType = BIGINT}, '0'
+                 )
+    </insert>
+</mapper>

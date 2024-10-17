@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.advice.IllegalMapper">
+
+    <!--查询列表-->
+    <select id="selectIllegalList" resultType="com.wr.api.owner.entity.home.advice.Illegal">
+        select
+            illegal_id,
+            illegal_type,
+            illegal_url,
+            remark,
+            create_time
+        from xccj_community.bus_illegal
+        <where>
+            AND del_flag = '0'
+            AND account_id = #{accountId}
+            <if test="communityId != null">
+                AND community_id = #{communityId}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <!--查询详情-->
+    <select id="getIllegalById" resultType="com.wr.api.owner.entity.home.advice.Illegal">
+        SELECT
+            ega.illegal_id,
+            ega.community_id,
+            ega.account_id,
+            ega.illegal_type,
+            ega.illegal_url,
+            ega.remark,
+            ega.create_time,
+            ega.del_flag,
+            acc.account_name,
+            acc.account_nick
+        FROM xccj_community.bus_illegal ega
+                 LEFT JOIN xccj_community.bus_account acc on ega.account_id = acc.account_id
+        WHERE ega.illegal_id = #{illegalId}
+          AND ega.del_flag='0'
+    </select>
+
+    <!--新增 -->
+    <insert id="insertIllegal" parameterType="com.wr.api.owner.entity.home.advice.Illegal">
+        INSERT INTO xccj_community.bus_illegal
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="null != communityId ">
+                community_id,
+            </if>
+            <if test="null != accountId ">
+                account_id,
+            </if>
+            <if test="null != illegalType and '' != illegalType">
+                illegal_type,
+            </if>
+            <if test="null != illegalUrl and '' != illegalUrl">
+                illegal_url,
+            </if>
+            <if test="null != remark and '' != remark">
+                remark,
+            </if>
+            <if test="null != createTime ">
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="null != communityId ">
+                #{communityId},
+            </if>
+            <if test="null != accountId ">
+                #{accountId},
+            </if>
+            <if test="null != illegalType and '' != illegalType">
+                #{illegalType},
+            </if>
+            <if test="null != illegalUrl and '' != illegalUrl">
+                #{illegalUrl},
+            </if>
+            <if test="null != remark and '' != remark">
+                #{remark},
+            </if>
+            <if test="null != createTime ">
+                sysdate(),
+            </if>
+        </trim>
+    </insert>
+</mapper>

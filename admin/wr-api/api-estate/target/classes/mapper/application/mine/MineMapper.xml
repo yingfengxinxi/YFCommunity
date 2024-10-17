@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.mine.MineMapper">
+    <sql id="selectSalaryVo">
+        select salary.salary_id,
+               salary.community_id,
+               salary.staff_id,
+               staff.staff_name,
+               staff.staff_phone,
+               salary.`year_month`,
+               salary.full_day,
+               salary.attend_day,
+               salary.full_award,
+               salary.age_award,
+               salary.gross_salary,
+               salary.social_fee,
+               salary.late_fee,
+               salary.tax_fee,
+               salary.actually_salary,
+               salary.remark,
+               salary.create_by,
+               salary.create_time,
+               salary.update_by,
+               salary.update_time,
+               salary.del_flag
+        from xccj_community.bus_salary salary
+                 left join xccj_community.bus_staff as staff on salary.staff_id = staff.staff_id
+    </sql>
+
+    <select id="selectSalaryList" parameterType="com.wr.api.estate.entity.vo.application.mine.SalaryVO"
+            resultType="com.wr.api.estate.entity.vo.application.mine.SalaryVO">
+        <include refid="selectSalaryVo"/>
+        <where>
+            salary.del_flag = '0'
+            and staff.community_id = #{communityId}
+            and salary.staff_id = #{staffId}
+            and SUBSTRING(salary.`year_month`,1,4) = #{year}
+        </where>
+    </select>
+    <update id="updateStaff" parameterType="com.wr.api.estate.entity.vo.application.mine.StaffVO">
+        UPDATE xccj_community.bus_staff
+        <set>
+            <if test="null != avatar">
+                avatar = #{avatar},
+            </if>
+            <if test="null != gender">
+                gender = #{gender},
+            </if>
+            <if test="null != staffName">
+                staff_name = #{staffName},
+            </if>
+            <if test="null != address">
+                address =#{address},
+            </if>
+            update_time = sysdate()
+        </set>
+        WHERE staff_id = #{staffId}
+    </update>
+    <select id="getStaffId" parameterType="com.wr.api.estate.entity.vo.application.mine.StaffVO" resultType="java.lang.Long">
+        select staff_id as staffId from xccj_community.bus_staff where user_id = #{userId}
+    </select>
+    <update id="updateUser" parameterType="com.wr.api.estate.entity.vo.application.mine.StaffVO">
+        UPDATE xccj_estate_sys.sys_user
+        <set>
+            <if test="null != avatar">
+                avatar = #{avatar},
+            </if>
+            <if test="null != sex">
+                sex = #{sex},
+            </if>
+            <if test="null != userName">
+                nick_name = #{userName},
+            </if>
+            update_time = sysdate()
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+    <insert id="insertVehicle" parameterType="com.wr.api.estate.entity.application.mine.Vehicle" useGeneratedKeys="true"
+            keyProperty="vehicleId">
+        insert into xccj_community.bus_vehicle
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="accountId != null">account_id,</if>
+            <if test="plateNo != null and plateNo != ''">plate_no,</if>
+            <if test="plateColor != null">plate_color,</if>
+            <if test="plateType != null">plate_type,</if>
+            <if test="vehicleBrand != null and vehicleBrand != ''">vehicle_brand,</if>
+            <if test="vehicleType != null">vehicle_type,</if>
+            <if test="vehicleStatus != null and vehicleStatus != ''">vehicle_status,</if>
+            <if test="vehicleColor != null and vehicleColor != ''">vehicle_color,</if>
+            audit_status,
+            <if test="auditTime != null">audit_time,</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            create_time,
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            update_time,
+            del_flag,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="accountId != null">#{accountId},</if>
+            <if test="plateNo != null and plateNo != ''">#{plateNo},</if>
+            <if test="plateColor != null">#{plateColor},</if>
+            <if test="plateType != null">#{plateType},</if>
+            <if test="vehicleBrand != null and vehicleBrand != ''">#{vehicleBrand},</if>
+            <if test="vehicleType != null">#{vehicleType},</if>
+            <if test="vehicleStatus != null and vehicleStatus != ''">#{vehicleStatus},</if>
+            <if test="vehicleColor != null and vehicleColor != ''">#{vehicleColor},</if>
+            '0',
+            <if test="auditTime != null">#{auditTime},</if>
+            <if test="rejectReason != null and rejectReason != ''">#{rejectReason},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            sysdate(),
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            sysdate(),
+            '0',
+        </trim>
+    </insert>
+</mapper>

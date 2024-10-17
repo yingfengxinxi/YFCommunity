@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.inspect.OrderRecordMapper">
+    <resultMap id="BaseResultMap" type="com.wr.remote.work.inspect.OrderRecord">
+        <result column="order_type" jdbcType="CHAR" property="orderType"/>
+        <result column="order_id" jdbcType="BIGINT" property="orderId"/>
+        <result column="data_type" jdbcType="CHAR" property="dataType"/>
+        <result column="order_result" jdbcType="VARCHAR" property="orderResult"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="relevant" jdbcType="VARCHAR" property="relevant"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <!--@mbg.generated-->
+        order_type,
+        order_id,
+        data_type,
+        order_result,
+        user_name,
+        relevant,
+        create_time
+    </sql>
+
+    <insert id="insertSelective" parameterType="com.wr.remote.work.inspect.OrderRecord">
+        <!--@mbg.generated-->
+        insert into xccj_work.bus_order_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                order_type,
+            </if>
+            <if test="orderId != null">
+                order_id,
+            </if>
+            <if test="dataType != null">
+                data_type,
+            </if>
+            <if test="orderResult != null">
+                order_result,
+            </if>
+            <if test="userName != null">
+                user_name,
+            </if>
+            <if test="relevant != null">
+                relevant,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderType != null">
+                #{orderType,jdbcType=CHAR},
+            </if>
+            <if test="orderId != null">
+                #{orderId,jdbcType=BIGINT},
+            </if>
+            <if test="dataType != null">
+                #{dataType,jdbcType=CHAR},
+            </if>
+            <if test="orderResult != null">
+                #{orderResult,jdbcType=VARCHAR},
+            </if>
+            <if test="userName != null">
+                #{userName,jdbcType=VARCHAR},
+            </if>
+            <if test="relevant != null">
+                #{relevant,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective">
+        update xccj_work.bus_order_record
+        <set>
+            <if test="dataType != null">
+                data_type = #{dataType},
+            </if>
+            <if test="orderResult != null">
+                order_result = #{orderResult},
+            </if>
+            <if test="userName != null">
+                user_name = #{userName},
+            </if>
+            <if test="relevant != null">
+                relevant = #{relevant},
+            </if>
+        </set>
+        <where>
+            order_type = #{orderType}
+              AND order_id = #{orderId}
+        </where>
+    </update>
+
+    <select id="selectDataRepeat" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM xccj_work.bus_order_record
+        WHERE order_type = #{orderType}
+          AND order_id = #{orderId}
+    </select>
+
+    <select id="deatilListThree" resultType="com.wr.remote.work.inspect.OrderRecord">
+        SELECT *
+        FROM xccj_work.bus_order_record
+        WHERE order_type = #{orderType}
+          AND order_id = #{orderId}
+        ORDER BY create_time DESC
+    </select>
+    <select id="getRecord" resultType="com.wr.remote.work.inspect.OrderRecord">
+   SELECT *
+        FROM xccj_work.bus_order_record
+        WHERE order_type = #{orderType}
+          AND order_id = #{orderId}
+        ORDER BY create_time DESC
+    </select>
+    <select id="getRecordTwo" resultType="com.wr.remote.work.vo.OrderRecordVo">
+        SELECT
+	bor.*,
+	bdo.appraise_star,
+	bdo.appraise_remark,
+	bdo.execute_status,
+	bdo.appraise_status
+FROM
+	xccj_work.bus_order_record bor
+	LEFT JOIN xccj_work.bus_disaster_order bdo ON bor.order_id = bdo.order_id
+	LEFT JOIN xccj_community.bus_staff bs ON bdo.community_id = bdo.community_id
+WHERE
+	bor.order_type = #{orderType}
+	AND bor.order_id = #{orderId}
+	GROUP BY bdo.order_id
+
+ORDER BY
+	create_time DESC
+    </select>
+</mapper>

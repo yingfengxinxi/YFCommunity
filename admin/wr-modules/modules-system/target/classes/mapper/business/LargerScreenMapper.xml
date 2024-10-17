@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.system.business.mapper.LargerScreenMapper">
+
+    <!--物业服务人员统计-->
+    <select id="selectEmployeeData" resultType="com.wr.system.business.domain.screen.EmployeeData">
+        select count(staff_id)                         as "empTotal",
+               count(if(staff_type = '0', true, null)) AS "repairEmp",
+               count(if(staff_type = '1', true, null)) AS "securityEmp",
+               count(if(staff_type = '2', true, null)) AS "propertyEmp",
+               CONCAT(CAST(round((count(if(staff_type = '0', true, null)) / count(staff_id)) * 100, 1) AS CHAR),
+                      '%')                             AS "repairEmpProportion",
+               CONCAT(CAST(round((count(if(staff_type = '1', true, null)) / count(staff_id)) * 100, 1) AS CHAR),
+                      '%')                             AS "securityEmpProportion",
+               CONCAT(CAST(round((count(if(staff_type = '2', true, null)) / count(staff_id)) * 100, 1) AS CHAR),
+                      '%')                             AS "propertyEmpProportion"
+        from xccj_community.bus_staff
+        where del_flag = '0'
+        -- and dept_id  = #{deptId}
+    </select>
+
+    <!--小区房间动态数量统计-->
+    <select id="selectHousingStatusData" resultType="java.lang.Integer">
+        SELECT count(*) FROM xccj_community.bus_room
+        WHERE del_flag = '0'
+        <if test="communityId != null">
+            AND community_id = #{communityId}
+        </if>
+        <choose>
+            <when test="roomStatus == 8">AND room_status IN ('5','6','7')</when>
+            <otherwise>AND room_status = #{roomStatus}</otherwise>
+        </choose>
+    </select>
+
+    <!--业主年龄统计-->
+    <select id="selectOwnerAgeData" resultType="java.lang.Integer">
+        SELECT
+        <if test="type == 0">
+            count(if((TIMESTAMPDIFF(YEAR,SUBSTRING(card_no, 7, 8),CURDATE())) BETWEEN 0 AND 10,true,null))
+        </if>
+        <if test="type == 1">
+            count(if((TIMESTAMPDIFF(YEAR,SUBSTRING(card_no, 7, 8),CURDATE())) BETWEEN 11 AND 20,true,null))
+        </if>
+        <if test="type == 2">
+            count(if((TIMESTAMPDIFF(YEAR,SUBSTRING(card_no, 7, 8),CURDATE())) BETWEEN 21 AND 40,true,null))
+        </if>
+        <if test="type == 3">
+            count(if((TIMESTAMPDIFF(YEAR,SUBSTRING(card_no, 7, 8),CURDATE())) > 40,true,null))
+        </if>
+        <if test="type == 4">
+            count(*)
+        </if>
+        FROM
+        xccj_community.bus_owner
+        WHERE del_flag = '0' and audit_status = '1' AND card_type = 'I'
+        <if test="communityId !=null">
+            AND community_id = #{communityId}
+        </if>
+    </select>
+
+    <!--社区人员结构统计-->
+    <select id="selectCommunityPersonnel" resultType="com.wr.system.business.domain.screen.CommunityPersonnel">
+        select
+        (
+        select count(*) from xccj_community.bus_owner
+        where del_flag =0 and audit_status = '1'
+        <if test="communityId != null">
+            AND community_id = #{communityId}
+        </if>
+
+        ) as "ownerTotal",
+        (
+        select count(*) from xccj_community.bus_tenant
+        where del_flag =0 and audit_status = '1'
+        <if test="communityId != null">
+            AND community_id = #{communityId}
+        </if>
+        ) as "tenantTotal"
+    </select>
+
+    <!--工单统计-->
+    <select id="selectWorkOrderData" resultType="com.wr.system.business.domain.screen.WorkOrder">
+        select
+        SUM(
+        (select count(*) from xccj_community.bus_cleaning_work_order WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) +
+        (select count(*) from xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) +
+        (select count(*) from xccj_community.bus_decorate WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) +
+        (select count(*) from xccj_community.bus_inspection WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) +
+        (select count(*) from xccj_community.bus_patrol_work_order WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) +
+        (select count(*) from xccj_community.bus_patrol WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) +
+        (select count(*) from xccj_community.bus_meter_reading_work_order WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW()))
+        ) AS "workOrderSum",
+        (select count(*) from xccj_community.bus_cleaning_work_order WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "cleanCount",
+        (select count(*) from xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "reportCount",
+        (select count(*) from xccj_community.bus_decorate WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "decorateCount",
+        (select count(*) from xccj_community.bus_inspection WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "inspectionCount",
+        (select count(*) from xccj_community.bus_patrol_work_order WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "patrolCount",
+        (select count(*) from xccj_community.bus_patrol WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "watchmanCount",
+        (select count(*) from xccj_community.bus_meter_reading_work_order WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW())) AS "meterCount"
+    </select>
+
+
+    <!--各设备统计-->
+    <select id="selectEquipmentStatistics" resultType="com.wr.system.business.domain.screen.EquipmentStatistics">
+        SELECT
+        (select count(*) from xccj_device.bus_access WHERE del_flag = '0'  <if test="communityId !=null">
+        and community_id = #{communityId}
+    </if>) as "access",
+        (select count(*) from xccj_device.bus_camera WHERE del_flag = '0'  <if test="communityId !=null">
+        and community_id = #{communityId}
+    </if>) as "camera",
+        (select count(*) from xccj_device.bus_cloud_access WHERE del_flag = '0'  <if test="communityId !=null">
+        and community_id = #{communityId}
+    </if>) as "cloudAccess",
+        (select count(*) from xccj_device.bus_visual WHERE del_flag = '0'  <if test="communityId !=null">
+        and community_id = #{communityId}
+    </if>) as "visual",
+        (select count(*) from xccj_device.bus_barrier WHERE del_flag = '0'  <if test="communityId !=null">
+        and community_id = #{communityId}
+    </if>) as "barrier"
+    </select>
+
+
+    <!--设备状态统计-->
+    <select id="selectEquipmentStatus" resultType="com.wr.system.business.domain.screen.EquipmentStatus">
+        select
+        (
+        (select count(*) from xccj_device.bus_visual where `online`= 1 and del_flag = '0'
+        <if test="communityId !=null">and community_id = #{communityId}</if>
+        ) +
+        (select count(*) from xccj_device.bus_camera where `online`= 1 and del_flag = '0'
+        <if test="communityId !=null">and community_id = #{communityId}</if>
+        ) +
+        (select count(*) from xccj_device.bus_access where `online` = 1 and del_flag = '0'
+        <if test="communityId !=null">and community_id = #{communityId}</if>
+        )
+        ) as "online",
+        (
+        (select count(*) from xccj_device.bus_visual where `online` = 0 and del_flag = '0'
+        <if test="communityId !=null">and community_id = #{communityId}</if>
+        ) +
+        (select count(*) from xccj_device.bus_camera where `online` = 0 and del_flag = '0'
+        <if test="communityId !=null">and community_id = #{communityId}</if>
+        ) +
+        (select count(*) from xccj_device.bus_access where `online` = 0 and del_flag = '0'
+        <if test="communityId !=null">and community_id = #{communityId}</if>
+        )
+        ) as "offline"
+    </select>
+
+    <!--巡查巡更巡检列表-->
+    <select id="selectPatrolOrder" resultType="com.wr.system.business.domain.screen.OperPatrolOrder">
+        (SELECT
+        '0' AS patrolType,wbw.`no` AS orderName,su.nick_name as staff_name,wbw.patrol_status as execute_status
+        FROM xccj_community.bus_patrol wbw
+        LEFT JOIN xccj_estate_sys.sys_user su on su.user_id=wbw.`name`
+        WHERE wbw.del_flag = '0'
+        AND date_format(wbw.create_time,'%y%m%d')>= date_format(#{startTime},'%y%m%d')
+        AND date_format(wbw.create_time,'%y%m%d')&lt;= date_format(sysdate(),'%y%m%d')
+        <if test="communityId!=null and communityId!=0">
+            AND wbw.community_id = #{communityId}
+        </if>
+        limit 20)
+        UNION ALL
+        (SELECT
+        '1' AS patrolType,bpwo.`no` AS orderName,su.nick_name as staff_name,bpwo.patrol_status as execute_status
+        FROM xccj_community.bus_patrol_work_order bpwo
+        LEFT JOIN xccj_estate_sys.sys_user su on su.user_id=bpwo.`name`
+        WHERE bpwo.del_flag = '0'
+        AND date_format(bpwo.create_time,'%y%m%d')>= date_format(#{startTime},'%y%m%d')
+        AND date_format(bpwo.create_time,'%y%m%d')&lt;= date_format(sysdate(),'%y%m%d')
+        <if test="communityId!=null and communityId!=0">
+            AND bpwo.community_id = #{communityId}
+        </if>
+        limit 20)
+        UNION ALL
+        (SELECT
+        '2' AS patrolType,bi.`no` AS orderName,su.nick_name as staff_name,bi.report_type as execute_status
+        FROM xccj_community.bus_inspection bi
+        LEFT JOIN xccj_estate_sys.sys_user su on su.user_id=bi.`name`
+        WHERE bi.del_flag = '0'
+        AND date_format(bi.create_time,'%y%m%d')>= date_format(#{startTime},'%y%m%d')
+        AND date_format(bi.create_time,'%y%m%d')&lt;= date_format(sysdate(),'%y%m%d')
+        <if test="communityId!=null and communityId!=0">
+            AND bi.community_id = #{communityId}
+        </if>
+        limit 20)
+    </select>
+
+    <!--社区人流量统计-->
+    <select id="selectPeopleUser" resultType="com.wr.system.business.domain.screen.PeopleVisit">
+        SELECT hour (discern_time) AS hour_num, ifnull(COUNT (*), 0) AS pass_num
+        FROM ${userTable}
+        WHERE del_flag ='0'
+        GROUP BY hour (discern_time)
+    </select>
+    <select id="selectPeopleVisit" resultType="com.wr.system.business.domain.screen.PeopleVisit">
+        SELECT hour (into_time) AS hour_num, ifnull(COUNT (*), 0) AS pass_num
+        FROM ${visitTable}
+        WHERE del_flag ='0'
+        GROUP BY hour (into_time)
+    </select>
+
+    <!--社区车辆出门记录统计-->
+    <select id="selectVehicleCountOut" resultType="com.wr.system.business.domain.screen.PeopleVisit">
+        SELECT hour (inout_time) AS hour_num, ifnull(COUNT (*), 0) AS pass_num
+        FROM ${vehicleTable}
+        WHERE del_flag ='0' AND inout_type = #{inoutType}
+        GROUP BY hour (inout_time)
+
+    </select>
+
+    <!--社区车辆进入铜统计-->
+    <select id="selectVehicleCount" resultType="com.wr.system.business.domain.screen.PeopleVisit">
+        SELECT ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 00:00:00') AND date_format(inout_time, '%Y-%m-%d 01:00:00')))) as "zeroToOne",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 01:00:01') AND date_format(inout_time, '%Y-%m-%d 02:00:00')))) as "oneToTwo",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 02:00:01') AND date_format(inout_time, '%Y-%m-%d 03:00:00')))) as "twoToThree",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 03:00:01') AND date_format(inout_time, '%Y-%m-%d 04:00:00')))) as "threeToFour",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 04:00:01') AND date_format(inout_time, '%Y-%m-%d 05:00:00')))) as "fourToFive",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 05:00:01') AND date_format(inout_time, '%Y-%m-%d 06:00:00')))) as "fiveToSix",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 06:00:01') AND date_format(inout_time, '%Y-%m-%d 07:00:00')))) as "sixToSeven",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 07:00:01') AND date_format(inout_time, '%Y-%m-%d 08:00:00')))) as "sevenToEight",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 08:00:01') AND date_format(inout_time, '%Y-%m-%d 09:00:00')))) as "eightToNine",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 09:00:01') AND date_format(inout_time, '%Y-%m-%d 10:00:00')))) as "nineToTen",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 10:00:01') AND date_format(inout_time, '%Y-%m-%d 11:00:00')))) as "tenToEleven",
+               ((SELECT count(*)
+                 FROM ${tableName}
+                 WHERE TO_DAYS(inout_time) = TO_DAYS(NOW())
+                   and inout_type = 0
+                   and (inout_time BETWEEN date_format(inout_time, '%Y-%m-%d 11:00:01') AND date_format(inout_time, '%Y-%m-%d 12:00:00')))) as "elevenToTwelve"
+
+    </select>
+
+    <!--年度报事报修-->
+    <select id="selectReportRepair" resultType="com.wr.system.business.domain.screen.ReportRepair">
+        SELECT
+        (SELECT count(*) FROM xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW()) and report_type = 0) as "reportRepair",
+        (SELECT count(*) FROM xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW()) and report_type = 1) as "clean",
+        (SELECT count(*) FROM xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW()) and report_type = 2) as "project",
+        (SELECT count(*) FROM xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        and YEAR(create_time)=YEAR(NOW()) and report_type = 3) as "complaint",
+        (SELECT count(*) FROM xccj_community.bus_reporting_warranty WHERE del_flag = '0'
+        and YEAR(create_time)=YEAR(NOW()) and report_type = 4
+        <if test="communityId !=null">
+            and community_id = #{communityId}
+        </if>
+        ) as "other"
+    </select>
+
+    <select id="selectCommunityByAeraId" resultType="com.wr.remote.domain.Community">
+        select * from xccj_community.bus_community
+        where del_flag = '0'
+        <if test="areaId !=null and areaId != 0">
+            and area_id = #{areaId}
+        </if>
+    </select>
+
+    <select id="selectAreaList" resultType="com.wr.remote.domain.Area">
+        select *
+        from xccj_community.bus_area
+        where del_flag = '0'
+    </select>
+
+    <select id="selectCommunityById" resultType="com.wr.remote.domain.Community">
+        select *
+        from xccj_community.bus_community
+        where community_id = #{communityId}
+    </select>
+
+    <select id="selectCameraVo" resultType="com.wr.system.business.domain.screen.CameraVo">
+        select
+        ca.camera_id,ca.camera_name,ca.index_code,ca.community_id,
+        sc.hik_ip,sc.hik_ak,sc.hik_port,sc.hik_sk
+        from xccj_device.bus_camera ca
+        left join xccj_community.bus_community_hik sc on ca.community_id = sc.community_id
+        where ca.del_flag = 0
+        <if test="communityId !=null">and ca.community_id = #{communityId}</if>
+    </select>
+
+    <select id="getCommunityById" resultType="com.wr.remote.domain.Community">
+        select *
+        from xccj_community.bus_community
+        where community_id = #{communityId}
+    </select>
+
+    <select id="getCameraById" resultType="com.wr.system.business.domain.screen.CameraVo">
+        select *
+        from xccj_device.bus_camera
+        where camera_id = #{id}
+    </select>
+
+    <select id="selectSuggestScore" resultType="com.wr.system.business.domain.screen.SuggestVo">
+        SELECT cbe.estate_name                                AS deptName,
+               ROUND(COALESCE(avg(star.appraise_star), 0), 2) AS score
+        FROM xccj_community.bus_estate cbe
+                 LEFT JOIN (SELECT cbc.community_id, cbc.estate_id, ifnull(avg(bho.evaluate), 0) AS appraise_star
+                            FROM xccj_community.bus_community cbc
+                                     LEFT JOIN xccj_community.bus_reporting_warranty bho
+                                               ON cbc.community_id = bho.community_id
+                            WHERE cbc.del_flag = '0'
+                              AND bho.del_flag = '0'
+                              and bho.report_status = 3
+                            GROUP BY cbc.community_id) star ON star.estate_id = cbe.estate_id
+        WHERE cbe.del_flag = '0'
+        GROUP BY cbe.estate_id
+    </select>
+
+    <select id="selectAmount" resultType="com.wr.system.business.domain.screen.AmountFee">
+        SELECT
+            (SELECT IFNULL(sum(paid_amount),0)
+                 FROM xccj_community.bus_pay_billing_record
+                 where del_flag = '0' and pay_time like CONCAT(#{startTime},'%')
+                 <if test="communityId != null and communityId != ''">
+                    and community_id = #{communityId}
+                 </if>
+             ) AS totalAmount,
+            (SELECT IFNULL(sum(paid_amount),0)
+                 FROM xccj_community.bus_pay_billing_record
+                 WHERE pay_type = '1' and del_flag = '0' and pay_time like CONCAT(#{startTime},'%')
+                 <if test="communityId != null and communityId != ''">
+                    and community_id = #{communityId}
+                 </if>
+            ) AS parkAmount
+    </select>
+
+    <select id="selectStaffCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM xccj_community.bus_staff ss
+        WHERE ss.del_flag='0'
+        <if test="deptId!=null">
+            AND ss.community_id IN (
+            SELECT community_id FROM xccj_community.bus_community
+            WHERE del_flag='0' AND estate_id = #{deptId}
+            )
+        </if>
+        <if test="workPost!=null and workPost!=''">
+            AND ss.work_post = #{workPost}
+        </if>
+
+    </select>
+
+    <select id="getDeptByCommunityId" resultType="com.wr.system.business.domain.screen.DeptVo"
+            parameterType="java.lang.Long">
+        SELECT sd.estate_id AS deptId,sd.estate_name AS deptName
+        FROM xccj_community.bus_estate sd
+        WHERE sd.del_flag ='0'
+        <if test="communityId!=null">
+            AND sd.estate_id = (
+            SELECT sc.estate_id FROM xccj_community.bus_community sc
+            WHERE sc.community_id = #{communityId} AND sc.del_flag ='0'
+            )
+        </if>
+
+    </select>
+
+    <select id="selectUserLogList" resultType="com.wr.system.business.domain.screen.UserLog">
+        SELECT
+        user_name,user_type,community_id,device_name,io_type,discern_time,pic_url
+        FROM ${tableName}
+        WHERE del_flag = '0'
+        <if test="startTime != null and startTime != ''"><!-- 开始时间检索 -->
+            and date_format(discern_time,'%y%m%d') &gt;= date_format(#{startTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            and date_format(discern_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+    </select>
+
+    <select id="selectCommunityCount" resultType="com.wr.system.business.domain.screen.CommunityCount">
+        SELECT
+        (select count(*) from xccj_community.bus_building where del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>)
+        buildingNum,
+        (select resident_num from xccj_community.bus_community where del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>
+        <if test="communityId == null">
+            and community_name LIKE CONCAT('%','彩金湖畔','%')
+        </if>)
+        ownerNum,
+        (select count(*) from xccj_community.bus_owner where del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>)
+        peopleNum,
+        (select count(*) from xccj_community.bus_carport where del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>)
+        carportNum,
+        (select count(*) from xccj_community.bus_vehicle where del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>)
+        vehicleNum
+    </select>
+
+    <select id="selectCommunityDetail" resultType="com.wr.system.business.domain.screen.CommunityDetail">
+        SELECT community_name,
+        plot_ratio,
+        green_ratio,
+        land_space,
+        covered_area
+        from xccj_community.bus_community
+        where del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>
+        <if test="communityId == null">
+            and community_name LIKE CONCAT('%','彩金湖畔','%')
+        </if>
+    </select>
+
+    <select id="selectNotice" resultType="com.wr.system.business.domain.screen.NoticeVo">
+        SELECT
+        a.notice_title ,a.`range` ,a.notice_status ,a.create_time ,a.read_num ,c.community_name
+        from xccj_community.bus_notice a
+        left join xccj_community.bus_community c on a.community_id = c.community_id
+        where a.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and a.community_id = #{communityId}
+        </if>
+        order by a.create_time desc
+    </select>
+
+    <select id="selectInvest" resultType="com.wr.system.business.domain.screen.InvestVo">
+        SELECT
+        a.invest_title ,a.invest_type ,a.create_time ,a.invest_status ,a.read_num ,c.community_name
+        from xccj_community.bus_invest a
+        left join xccj_community.bus_community c on a.community_id = c.community_id
+        where a.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            and a.community_id = #{communityId}
+        </if>
+        order by a.create_time desc
+    </select>
+
+    <select id="selectDictData" resultType="com.wr.system.business.domain.screen.DictDataVo">
+        SELECT dict_label,
+               dict_value,
+               dict_type
+        from xccj_estate_sys.sys_dict_data
+        where dict_type = #{dictType}
+          and status = '0'
+        <if test="type != null and type != ''">
+            and remark = #{type}
+        </if>
+        order by dict_sort
+    </select>
+
+    <select id="selectWaterNum" resultType="String">
+        SELECT SUM(a.data)
+        from xccj_community.bus_meter_reading_record_work_order a
+                 left join xccj_community.bus_meter_reading_work_order b
+                           on a.meter_reading_work_order_id = b.id
+        where a.del_flag = '0'
+          and b.energy_consumption_type = #{energyConsumptionType}
+          and b.meter_reading_type = #{meterReadingType}
+          and b.meter_reading_time LIKE CONCAT(#{createTime}, '%')
+        <if test="communityId != null and communityId != ''">
+            and b.community_id = #{communityId}
+        </if>
+    </select>
+
+    <select id="selectMonthVisitCount" resultType="int">
+        WITH RECURSIVE DateSeries AS (
+        SELECT CONCAT(#{startTime},'-01') AS date_only
+        UNION ALL
+        SELECT DATE_ADD(date_only, INTERVAL 1 DAY)
+        FROM DateSeries
+        WHERE DATE_ADD(date_only, INTERVAL 1 DAY) like CONCAT(#{startTime},'%')
+        )
+        SELECT
+        COUNT(bv.create_time) AS count
+        FROM DateSeries ds
+        LEFT JOIN xccj_device.bus_visiting_record bv ON DATE(bv.create_time) = ds.date_only
+        <if test="communityId != null and communityId != ''">
+            and bv.community_id = #{communityId}
+        </if>
+        WHERE ds.date_only like CONCAT(#{startTime},'%')
+        GROUP BY ds.date_only
+        ORDER BY ds.date_only;
+    </select>
+
+    <select id="selectYearVisitCount" resultType="int">
+        SELECT
+        count(*)
+        from xccj_device.bus_visiting_record
+        where create_time like CONCAT(#{startTime},'%')
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>
+    </select>
+
+    <select id="getUserCount" resultType="int">
+        WITH RECURSIVE DateSeries AS (
+        SELECT CONCAT(#{startTime},'-01') AS date_only
+        UNION ALL
+        SELECT DATE_ADD(date_only, INTERVAL 1 DAY)
+        FROM DateSeries
+        WHERE DATE_ADD(date_only, INTERVAL 1 DAY) like CONCAT(#{startTime},'%')
+        )
+        SELECT
+        COUNT(bv.create_time) AS count
+        FROM DateSeries ds
+        LEFT JOIN xccj_device.bus_door_event bv ON DATE(bv.create_time) = ds.date_only
+        LEFT JOIN xccj_device.bus_door bd ON bv.door_index_code = bd.index_code
+        <if test="communityId != null and communityId != ''">
+            and bd.community_id = #{communityId}
+        </if>
+        WHERE ds.date_only like CONCAT(#{startTime},'%')
+        GROUP BY ds.date_only
+        ORDER BY ds.date_only;
+    </select>
+
+    <select id="getVehicleCount" resultType="int">
+        WITH RECURSIVE DateSeries AS (
+        SELECT CONCAT(#{startTime},'-01') AS date_only
+        UNION ALL
+        SELECT DATE_ADD(date_only, INTERVAL 1 DAY)
+        FROM DateSeries
+        WHERE DATE_ADD(date_only, INTERVAL 1 DAY) like CONCAT(#{startTime},'%')
+        )
+        SELECT
+        COUNT(bv.create_time) AS count
+        FROM DateSeries ds
+        LEFT JOIN xccj_device.bus_cross_record bv ON DATE(bv.create_time) = ds.date_only
+        <if test="communityId != null and communityId != ''">
+            and bv.community_id = #{communityId}
+        </if>
+        WHERE ds.date_only like CONCAT(#{startTime},'%')
+        GROUP BY ds.date_only
+        ORDER BY ds.date_only;
+    </select>
+
+    <select id="selectFlowNum" resultType="Map">
+        SELECT
+        (select count(*) from xccj_device.bus_door_event bv
+        LEFT JOIN xccj_device.bus_door bd ON bv.door_index_code = bd.index_code
+        where bv.create_time &gt;= #{startTime} and bv.create_time &lt;= #{endTime}
+        <if test="communityId != null and communityId != ''">
+            and bd.community_id = #{communityId}
+        </if>) as doorNum ,
+        (select count(*) from xccj_device.bus_cross_record where create_time &gt;= #{startTime} and create_time &lt;= #{endTime}
+        and vehicle_out = 0
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>) as inNum,
+        (select count(*) from xccj_device.bus_cross_record where create_time &gt;= #{startTime} and create_time &lt;= #{endTime}
+        and vehicle_out = 1
+        <if test="communityId != null and communityId != ''">
+            and community_id = #{communityId}
+        </if>) as outNum
+    </select>
+
+    <select id="selectUserDoorLogList" resultType="com.wr.system.business.domain.screen.UserDoorPeopleVo">
+        select be.person_name, be.door_name, be.in_and_out_type, be.receive_time, bc.community_name
+        from xccj_device.bus_door_event be
+        left join xccj_device.bus_door bd on be.door_index_code = bd.index_code
+        left join xccj_community.bus_community bc on bd.community_id = bc.community_id
+        where be.del_flag = '0'
+        and be.person_name is not null
+        <if test="communityId != null and communityId != ''">
+            and bd.community_id = #{communityId}
+        </if>
+        order by be.receive_time desc limit 20
+    </select>
+</mapper>

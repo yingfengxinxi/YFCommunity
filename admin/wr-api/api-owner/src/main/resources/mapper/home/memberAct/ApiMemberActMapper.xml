@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.memberAct.ApiMemberActMapper">
+    <!--    <resultMap type="com.wr.api.owner.entity.home.memberAct.ApiMemberAct" id="activity">
+            <id     property="activityId"     column="activity_id"     />
+            <result property="actUrl"   column="act_url"   />
+            <result property="activityName"   column="activity_name"   />
+            <result property="createTime"   column="create_time"   />
+            <result property="typeName"   column="type_name"   />
+            <result property="startTime"   column="start_time"   />
+            <result property="endTime"   column="end_time"   />
+            <result property="closeTime"   column="close_time"   />
+            <result property="address"   column="address"   />
+            <result property="actAmount"   column="act_amount"   />
+            <result property="actIntro"   column="act_intro"   />
+            <result property="supplyName"   column="supply_name"   />
+            <collection property="actSupplyList" ofType="com.wr.api.owner.entity.home.activity.ApiActSupply"  >
+                <result property="supplyName" column="supply_name"/>
+            </collection>
+        </resultMap>-->
+
+    <!--列表-->
+    <select id="getList" resultType="com.wr.api.owner.entity.home.memberAct.ApiMemberAct"
+            parameterType="com.wr.api.owner.entity.home.memberAct.ApiMemberAct">
+        select
+        bma.status,
+        bma.activity_id,
+        bma.picture_url,
+        bma.act_theme,
+        bma.create_time,
+        bma.plan_status
+        from xccj_govern.bus_member_act as bma
+        where bma.del_flag = '0'
+        <if test="communityId != null">
+            and bma.community_id=#{communityId}
+        </if>
+        order by bma.create_time desc
+    </select>
+
+    <!--详情（详情页内容）-->
+    <select id="getInfo" resultType="com.wr.api.owner.entity.home.memberAct.ApiMemberAct"
+            parameterType="com.wr.api.owner.entity.home.memberAct.ApiMemberAct">
+        select
+        bma.activity_id,
+        bma.picture_url,
+        bma.act_theme,
+        bma.start_time,
+        bma.end_time,
+        bma.create_time,
+        bma.address,
+        bma.content,
+        bma.status,
+        bma.plan_status
+        from xccj_govern.bus_member_act as bma
+        where bma.del_flag = '0'
+        <if test="activityId != null">
+            and bma.activity_id=#{activityId}
+        </if>
+        <if test="communityId != null">
+            and bma.community_id=#{communityId}
+        </if>
+    </select>
+
+    <!--新增报名-->
+    <insert id="add" parameterType="com.wr.api.owner.entity.home.memberAct.ApiMemberJoin">
+        insert into xccj_govern.bus_member_join
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="activityId!=null ">
+                activity_id,
+            </if>
+            <if test="memberId!=null ">
+                member_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="activityId!=null ">
+                #{activityId},
+            </if>
+            <if test="memberId!=null ">
+                #{memberId},
+            </if>
+        </trim>
+    </insert>
+
+    <!--通过当前accountId查询当前用户是否是党员 bus_member-->
+    <select id="selectMemberById" parameterType="Long" resultType="com.wr.api.owner.entity.home.memberAct.ApMember">
+        select bm.member_id,
+               bm.account_id
+        from xccj_govern.bus_member as bm
+        where bm.account_id = #{accountId}
+    </select>
+
+
+
+
+
+    <!--查询当前用户是否参与成功-->
+    <select id="getOwnerStatus" resultType="com.wr.api.owner.entity.home.memberAct.ApiMemberJoin"
+            parameterType="com.wr.api.owner.entity.home.memberAct.ApiMemberJoin">
+        select
+        *
+        from xccj_govern.bus_member_join as bmj
+        where
+        bmj.member_id in (select
+        bm.member_id
+        from xccj_govern.bus_member as bm
+        where bm.account_id=#{accountId})
+
+        <if test="activityId != null">
+            and bmj.activity_id=#{activityId}
+        </if>
+    </select>
+
+
+<!--根据开始、结束时间，更新状态码-->
+    <update id="updateActivityStatus" parameterType="com.wr.api.owner.entity.home.memberAct.ApiMemberAct" >
+        UPDATE xccj_govern.bus_member_act as bma
+        <set>
+            <if test="status != null  ">
+                bma.status = #{status},
+            </if>
+            <if test="planStatus != null">
+                bma.plan_status = #{planStatus}
+            </if>
+        </set>
+        WHERE bma.activity_id = #{activityId}
+    </update>
+
+
+
+
+</mapper>

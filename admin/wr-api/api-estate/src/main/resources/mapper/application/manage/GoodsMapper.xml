@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.manage.GoodsMapper">
+    <select id="getList" resultType="com.wr.api.estate.entity.vo.application.manage.GoodsVo">
+        SELECT
+            bg.*,bc.classify_name
+        FROM xccj_community.bus_goods bg
+        LEFT JOIN xccj_community.bus_classify bc ON bc.classify_id = bg.classify_id
+        WHERE bg.del_flag = '0' AND bc.classify_status = '0' AND bc.del_flag = '0' AND bg.community_id = #{communityId}
+        <if test="classifyName != null and classifyName != ''"> AND bc.classify_name = #{classifyName} </if>
+        <if test="borrowStatus != null and borrowStatus != ''"> AND bg.borrow_status = #{borrowStatus} </if>
+    </select>
+
+    <select id="getById" resultType="com.wr.api.estate.entity.vo.application.manage.GoodsVo">
+        SELECT
+            bg.goods_id,bg.goods_no,bg.goods_name,bg.goods_price,bg.goods_url,bg.borrow_status,bc.classify_name,
+               (SELECT count(*) FROM xccj_community.bus_borrow bb
+               WHERE bb.del_flag='0' AND bb.audit_status='2' and bb.goods_id = #{goodsId}) as numbers
+        FROM xccj_community.bus_goods bg
+                 LEFT JOIN xccj_community.bus_classify bc ON bg.classify_id = bc.classify_id
+        WHERE bg.del_flag='0' and bc.classify_status='0' and bg.goods_id = #{goodsId}
+    </select>
+
+    <update id="updateBorrowStatus">
+        UPDATE xccj_community.bus_borrow SET actually_time = sysdate() WHERE borrow_id = #{borrowId}
+    </update>
+
+    <update id="updateGoodsVoFree">
+        UPDATE xccj_community.bus_goods SET borrow_status = '0' WHERE goods_id = #{goodsId}
+    </update>
+
+    <update id="removeGoods">
+        UPDATE xccj_community.bus_goods SET del_flag = '1' WHERE goods_id = #{goodsId}
+    </update>
+
+    <update id="updateGoodsVoBusy">
+        UPDATE xccj_community.bus_goods
+        SET borrow_status = '1',
+            update_time = sysdate()
+        WHERE goods_id = #{goodsId}
+    </update>
+
+    <select id="getBorrowList" resultType="com.wr.api.estate.entity.vo.application.manage.BorrowVo">
+        SELECT
+            bb.audit_time,ba.account_name,ba.login_name,bg.address,bb.return_time
+        FROM xccj_community.bus_goods bg
+                 LEFT JOIN xccj_community.bus_borrow bb  ON bb.goods_id = bg.goods_id
+                 LEFT JOIN xccj_community.bus_account ba ON bb.account_id = ba.account_id
+        WHERE bb.del_flag = '0' AND bg.del_flag = '0' AND bb.audit_status = '2' AND bb.goods_id = #{goodsId}
+        ORDER BY bb.audit_time
+    </select>
+
+    <update id="updateBorrowRefuse" >
+        UPDATE xccj_community.bus_borrow
+        SET audit_status = '1',
+            reject_reason=#{rejectReason},
+            audit_time = sysdate()
+        WHERE audit_status='0' and borrow_id = #{borrowId}
+    </update>
+
+    <update id="updateBorrowAgree" >
+        UPDATE xccj_community.bus_borrow
+        SET audit_status = '2',
+            audit_time = sysdate(),
+            code_url = #{codeUrl}
+        WHERE audit_status='0' and borrow_id = #{borrowId}
+    </update>
+
+    <select id="getCount" resultType="int">
+        SELECT count(*)  FROM xccj_community.bus_goods bg
+        LEFT JOIN xccj_community.bus_borrow bb ON bg.goods_id = bb.goods_id
+        WHERE bg.del_flag = '0' AND bb.del_flag = '0' AND bg.borrow_status='1' AND bb.audit_status='2' AND bg.community_id = #{communityId}
+    </select>
+
+    <select id="getApplyList" resultType="com.wr.api.estate.entity.vo.application.manage.BorrowVo">
+        SELECT
+            bb.borrow_id,ba.account_name,bb.return_time,bg.goods_url,bg.goods_name,ba.account_id,ba.account_type
+        FROM xccj_community.bus_borrow bb
+                 LEFT JOIN xccj_community.bus_account ba ON bb.account_id = ba.account_id
+                 LEFT JOIN xccj_community.bus_goods bg ON bb.goods_id = bg.goods_id
+                 LEFT JOIN xccj_community.bus_account b ON bb.account_id = b.account_id
+        WHERE bb.del_flag = '0' AND bg.del_flag = '0' AND b.del_flag = '0' AND bg.borrow_status = '0'
+          AND bb.audit_status = '0' AND bb.community_id = #{communityId}
+    </select>
+    <select id="getApplyDetail" resultType="com.wr.api.estate.entity.vo.application.manage.BorrowVo">
+        <if test="accountType == 0">
+            SELECT
+            bb.borrow_id,bg.address,bb.return_time,bg.goods_url,bg.goods_no,bg.goods_id,
+            bg.goods_name,bc.classify_name,bg.goods_price,bo.owner_name AS name,bo.owner_phone AS phone,bbg.building_name,
+            bu.unit_name,br.room_name
+            FROM xccj_community.bus_borrow bb
+            LEFT JOIN xccj_community.bus_account ba ON bb.account_id = ba.account_id and ba.del_flag = '0'
+            LEFT JOIN xccj_community.bus_goods bg ON bb.goods_id = bg.goods_id
+            LEFT JOIN xccj_community.bus_classify bc ON bc.classify_id = bg.classify_id
+            LEFT JOIN xccj_community.bus_owner bo ON bo.account_id = bb.account_id and ba.del_flag = '0'
+            LEFT JOIN xccj_community.bus_building bbg ON bbg.building_id = bo.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bo.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bo.room_id
+            WHERE bb.del_flag = '0' AND bg.del_flag = '0' AND bb.borrow_id = #{borrowId}
+            limit 1
+        </if>
+        <if test="accountType == 1">
+            SELECT
+            bb.borrow_id,bg.address,bb.return_time,bg.goods_url,bg.goods_no,bg.goods_id,
+            bg.goods_name,bc.classify_name,bg.goods_price,bt.tenant_name AS name,bt.tenant_phone AS phone,bbg.building_name,
+            bu.unit_name,br.room_name
+            FROM xccj_community.bus_borrow bb
+            LEFT JOIN xccj_community.bus_account ba ON bb.account_id = ba.account_id and ba.del_flag = '0'
+            LEFT JOIN xccj_community.bus_goods bg ON bb.goods_id = bg.goods_id
+            LEFT JOIN xccj_community.bus_classify bc ON bc.classify_id = bg.classify_id
+            LEFT JOIN xccj_community.bus_tenant bt ON bt.account_id = bb.account_id and ba.del_flag = '0'
+            LEFT JOIN xccj_community.bus_building bbg ON bbg.building_id = bt.building_id
+            LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = bt.unit_id
+            LEFT JOIN xccj_community.bus_room br ON br.room_id = bt.room_id
+            WHERE bb.del_flag = '0' AND bg.del_flag = '0' AND bb.borrow_id = #{borrowId}
+            limit 1
+        </if>
+    </select>
+    <select id="getDetailById" resultType="com.wr.api.estate.entity.vo.application.manage.GoodsVo">
+        SELECT
+            bg.goods_id,bg.goods_no,bg.community_id,bg.goods_name,bg.goods_price,
+            bg.goods_url,bg.borrow_status,bc.classify_name,bb.account_id,bb.audit_time
+        FROM xccj_community.bus_goods bg
+                 LEFT JOIN xccj_community.bus_borrow bb ON bg.goods_id = bb.goods_id
+                 LEFT JOIN xccj_community.bus_classify bc ON bg.classify_id = bc.classify_id
+        WHERE bg.del_flag='0' and bc.classify_status='0' AND bb.audit_status = '2' AND bb.del_flag = '0' and bg.goods_id = #{goodsId}
+                order by bb.audit_time DESC
+        limit 1
+    </select>
+
+    <select id="getClassifyName" resultType="com.wr.api.estate.entity.vo.application.manage.GoodsVo">
+        SELECT
+            bc.classify_name
+        FROM xccj_community.bus_classify bc
+        WHERE bc.del_flag='0' and bc.classify_status='0'and bc.estate_id = #{estateId}
+    </select>
+
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.homeorder.HomeRepairMapper">
+    <sql id="homeRepairColumns">
+        bh.repair_id, bh.estate_id, bh.repair_name, bh.deposit, bh.repair_status, bh.remark,
+        bh.create_by, bh.create_time, bh.update_by, bh.update_time, bh.del_flag
+    </sql>
+    <insert id="addHomeRepair">
+        INSERT INTO xccj_work.`bus_home_repair`(estate_id, repair_name, deposit, repair_status
+        <if test="null != remark and '' != remark">
+            , remark
+        </if>
+        , create_by, create_time, update_by, update_time)
+        VALUES (#{estateId}, #{repairName}, #{deposit}, #{repairStatus},
+        <if test="null != remark and '' != remark">
+            #{remark},
+        </if>
+        #{createBy}, sysdate() , #{createBy}, sysdate())
+    </insert>
+    <update id="upHomeRepair">
+        UPDATE xccj_work.`bus_home_repair`
+        SET repair_name = #{repairName}, deposit = #{deposit}, repair_status = #{repairStatus}
+        <if test="null != remark and '' != remark">
+            , remark = #{remark}
+        </if>
+        , update_by = #{updateBy}, update_time = sysdate() WHERE repair_id = #{repairId}
+    </update>
+    <delete id="delHomeRepair">
+        UPDATE xccj_work.`bus_home_repair` SET del_flag = '1' WHERE repair_id IN
+        <foreach item="item" index="index" collection="repairIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </delete>
+    <select id="getHomeRepairAll" resultType="com.wr.estate.entity.vo.HomeRepairVO">
+        SELECT
+        <include refid="homeRepairColumns"/>
+        FROM xccj_work.`bus_home_repair` bh
+        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bh.estate_id
+        WHERE bh.del_flag = '0'
+        <if test="null != estateId">
+            and bh.estate_id IN (
+            SELECT sd.estate_id FROM xccj_community.bus_estate sd
+            WHERE sd.del_flag = '0'
+            AND (sd.estate_id = #{estateId} OR find_in_set( #{estateId} ,sd.ancestors))
+            )
+        </if>
+        <if test="null != repairName and '' != repairName">
+            AND repair_name LIKE CONCAT('%',#{repairName},'%')
+        </if>
+        <if test="null != repairStatus and '' != repairStatus">
+            AND repair_status = #{repairStatus}
+        </if>
+        ORDER BY bh.create_time DESC
+    </select>
+    <select id="getHomeRepairById" resultType="com.wr.estate.entity.vo.HomeRepairVO">
+        SELECT
+        <include refid="homeRepairColumns"/>
+        FROM xccj_work.`bus_home_repair` bh
+        LEFT JOIN xccj_community.bus_estate be ON be.estate_id = bh.estate_id
+        WHERE bh.del_flag = '0' AND repair_id = #{repairId}
+    </select>
+    <select id="checkNameUnique" resultType="com.wr.estate.entity.HomeRepair">
+        SELECT
+        <include refid="homeRepairColumns"/>
+        FROM xccj_work.`bus_home_repair` bh
+        WHERE bh.del_flag = '0'
+        AND bh.estate_id = #{estateId}
+        AND bh.repair_name = #{repairName}
+        <if test="null != repairId">
+            AND bh.repair_id != #{repairId}
+        </if>
+    </select>
+</mapper>

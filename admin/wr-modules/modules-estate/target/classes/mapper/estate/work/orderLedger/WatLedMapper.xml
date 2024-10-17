@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.orderLedger.WatLedMapper">
+    <select id="listWatLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.WatchmanLedVo">
+        SELECT bw.*,
+        bs.staff_name,
+        bt.tour_name,
+        br.route_name,
+        if(COUNT(brp.route_id)>0,COUNT(brp.route_id),'') AS pointNo,
+        bwp.watchman_result,
+        bwpn.watchman_type
+        FROM xccj_work.bus_watchman bw
+        LEFT JOIN xccj_community.bus_staff bs ON bw.execute_id = bs.staff_id
+        LEFT JOIN xccj_work.bus_tour bt ON bw.tour_id = bt.tour_id
+        LEFT JOIN xccj_work.bus_route br ON bw.route_id = br.route_id
+        LEFT JOIN xccj_work.bus_route_point brp ON brp.route_id = br.route_id
+        LEFT JOIN xccj_work.bus_watchman_point bwp ON bwp.watchman_id = bw.watchman_id
+        LEFT JOIN xccj_work.bus_watchman_plan bwpn ON bwpn.plan_id = bw.plan_id
+        WHERE bw.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            AND bw.community_id = #{communityId}
+        </if>
+        <if test="tourName != null and tourName != ''">
+            AND bt.tour_name like concat('%', #{tourName}, '%')
+        </if>
+        <if test="dataSource != null and dataSource != ''">
+            AND bw.data_source = #{dataSource}
+        </if>
+        <if test="allotWay != null and allotWay != ''">
+            AND bw.allot_way = #{allotWay}
+        </if>
+        <if test="staffName != null and staffName != ''">
+            AND bs.staff_name like concat('%', #{staffName}, '%')
+        </if>
+        <if test="routeName != null and routeName != ''">
+            AND br.route_name like concat('%', #{routeName}, '%')
+        </if>
+        /*and bp.point_type != '1'*/
+        and bw.execute_status = '2' or bw.execute_status = '3'
+        <if test="pointNo != null and pointNo != ''">
+            GROUP BY brp.route_id HAVING pointNo=#{pointNo}
+        </if>
+    </select>
+    <select id="getWatLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.WatchmanLedVo">
+        SELECT DISTINCT bw.*,
+                        bs.staff_name,
+                        bt.tour_name,
+                        br.route_name,
+                        COUNT(brp.point_id) AS pointNo,
+                        if(ba.abnormal_id != '' and ba.abnormal_id != null ,'异常','正常') AS status
+        FROM xccj_work.bus_watchman bw
+                 LEFT JOIN xccj_community.bus_staff bs ON bw.staff_id = bs.staff_id
+                 LEFT JOIN xccj_work.bus_tour bt ON bw.tour_id = bt.tour_id AND bt.tour_status = '0'
+                 LEFT JOIN xccj_work.bus_route br ON bw.route_id = br.route_id AND br.route_status = '0'
+                 LEFT JOIN xccj_work.bus_route_point brp ON brp.route_id = br.route_id
+                 LEFT JOIN xccj_work.bus_abnormal ba ON bw.watchman_id = ba.order_id
+        WHERE bs.del_flag = '0' AND bw.watchman_id = #{watchmanId}
+    </select>
+    <select id="getWatStaffList" resultType="com.wr.remote.estate.order.vo.ledgerVo.WatchmanLedVo">
+        SELECT bsf.staff_name,
+               bsf.staff_phone,
+               bsf.card_no,
+               bsf.work_post
+        FROM xccj_work.bus_order_audit AS boat
+                 LEFT JOIN xccj_work.bus_order_assist AS boar ON boar.audit_id = boat.audit_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = boar.staff_id
+                 LEFT JOIN xccj_work.bus_watchman AS bw ON bw.watchman_id = boat.order_id
+        WHERE bsf.del_flag = '0' and boat.audit_status='1' and boat.del_flag='0' and boat.audit_type='1'
+          AND boat.order_type = '1'
+          AND bw.watchman_id = #{watchmanId}
+
+    </select>
+
+    <select id="getTourName" resultType="com.wr.remote.estate.order.vo.ledgerVo.WatchmanLedVo">
+
+        SELECT DISTINCT br.tour_name
+        FROM xccj_work.bus_watchman AS bw
+                 LEFT JOIN xccj_work.bus_tour AS br ON br.tour_id = bw.tour_id
+        WHERE br.del_flag = '0'
+          AND bw.del_flag = '0'
+          AND br.tour_type = '1'
+          AND bw.community_id = #{communityId}
+    </select>
+    <select id="getRouteName" resultType="com.wr.remote.estate.order.vo.ledgerVo.WatchmanLedVo">
+
+        SELECT DISTINCT br.route_name
+        FROM xccj_work.bus_watchman AS bw
+                 LEFT JOIN xccj_work.bus_route AS br ON br.route_id = bw.route_id
+        WHERE br.del_flag = '0'
+          AND bw.del_flag = '0'
+          AND br.route_status = '0'
+          AND bw.community_id = #{communityId}
+    </select>
+    <select id="getPointNo" resultType="com.wr.remote.estate.order.vo.ledgerVo.WatchmanLedVo">
+
+        SELECT DISTINCT count(br.point_id) AS pointNo
+        FROM xccj_work.bus_watchman AS bw
+                 LEFT JOIN xccj_work.bus_route_point AS br ON br.route_id = bw.route_id
+        WHERE  bw.del_flag = '0'
+          AND bw.community_id = #{communityId}
+        GROUP BY br.route_id
+    </select>
+</mapper>

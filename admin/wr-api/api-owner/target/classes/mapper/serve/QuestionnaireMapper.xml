@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.QuestionnaireMapper">
+    <insert id="addQuesAnswer">
+        INSERT INTO xccj_govern.bus_ques_answer(
+        account_id,
+        table_type,
+        table_id,
+        question_id,
+        user_answer
+        ) VALUES
+        <foreach collection="quesAnswers" item="item" index="index" separator=",">
+            (
+            #{accountId},
+            '0',
+            #{tableId},
+            #{item.questionId},
+            #{item.userAnswer}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getQuestionnaireNewAll" resultType="com.wr.api.owner.entity.vo.serve.QuestionnaireVO">
+        SELECT bq.questionnaire_id,
+               bqc.community_id,
+               bc.community_name,
+               bq.ques_name,
+               bq.create_time,
+               bq.start_date,
+               bq.end_date,
+               (
+                   CASE
+                       WHEN SYSDATE() >= bq.start_date AND
+
+                                    SYSDATE() &lt;= bq.end_date THEN
+                           '0'
+                       WHEN SYSDATE() > bq.end_date THEN
+                           '2'
+                       END
+                   ) AS `status`
+        FROM xccj_govern.`bus_questionnaire` bq
+                 LEFT JOIN xccj_govern.bus_ques_community bqc ON bqc.questionnaire_id = bq.questionnaire_id
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bqc.community_id
+        WHERE bq.del_flag = '0'
+          AND bqc.community_id = #{communityId}
+          AND SYSDATE() >= bq.start_date
+        ORDER BY bq.create_time DESC
+    </select>
+    <select id="getQuestionnaireIds" resultType="java.lang.Long">
+        SELECT table_id
+        FROM xccj_govern.bus_ques_answer
+        WHERE del_flag = '0'
+          AND table_type = '0'
+          AND table_id = #{questionnaireId}
+          AND account_id = #{accountId}
+    </select>
+    <select id="getQuestionnaireById" resultType="com.wr.api.owner.entity.vo.serve.QuestionnaireVO">
+        SELECT bq.questionnaire_id,
+               bq.ques_name,
+               bq.create_time,
+               bq.end_date
+        FROM xccj_govern.`bus_questionnaire` bq
+        WHERE bq.del_flag = '0'
+          AND bq.questionnaire_id = #{questionnaireId}
+    </select>
+    <select id="getQuestionList" resultType="com.wr.api.owner.entity.serve.Question">
+        SELECT *
+        FROM xccj_govern.`bus_question`
+        WHERE del_flag = '0'
+          AND table_type = '0'
+          AND table_id = #{questionnaireId}
+        ORDER BY question_type ASC
+    </select>
+    <select id="getQuestionItemList" resultType="com.wr.api.owner.entity.serve.QuestionItem">
+        SELECT *
+        FROM xccj_govern.bus_question_item
+        WHERE del_flag = '0'
+          AND question_id = #{questionId}
+    </select>
+    <select id="getQuesAnswerList" resultType="com.wr.api.owner.entity.serve.QuesAnswer">
+        SELECT *
+        FROM xccj_govern.`bus_ques_answer`
+        WHERE del_flag = '0'
+          AND table_type = '0'
+          AND table_id = #{tableId}
+          AND question_id = #{questionId}
+    </select>
+    <select id="getParticipateCount" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT account_id)
+        FROM xccj_govern.`bus_ques_answer`
+        WHERE del_flag = '0'
+          AND table_type = '0'
+          AND table_id = #{tableId}
+    </select>
+</mapper>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.StaffEvaluationMapper">
+
+
+    <select id="getList" resultType="com.wr.remote.domain.vo.StaffEvaluationVo">
+        SELECT
+            bo.owner_name AS "ownerName",
+            bo.owner_phone AS "ownerPhone",
+            bse.satisfaction_level AS "satisfactionLevel",
+            bse.comments AS "comments",
+            bse.create_time as "createTime"
+        FROM
+            xccj_community.bus_staff_evaluation bse
+                LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = bse.own_id
+        WHERE
+            staff_id = #{staffId}
+        ORDER BY
+            bse.create_time DESC
+    </select>
+
+
+
+</mapper>

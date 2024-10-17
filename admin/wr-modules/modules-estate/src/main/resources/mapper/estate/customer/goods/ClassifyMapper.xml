@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.goods.ClassifyMapper">
+
+    <resultMap type="com.wr.remote.estate.customer.goods.Classify" id="ClassifyMap">
+        <id     property="classifyId"      column="classify_id"/>
+        <result property="estateId"      column="estate_id"/>
+        <result property="classifyName"      column="classify_name"/>
+        <result property="classifyStatus"      column="classify_status"/>
+        <result property="remark"      column="remark"/>
+        <result property="createBy"      column="create_by"/>
+        <result property="createTime"      column="create_time"/>
+        <result property="updateBy"      column="update_by"/>
+        <result property="updateTime"      column="update_time"/>
+    </resultMap>
+
+    <sql id="selectClassifyVo">
+        SELECT  classify_id, estate_id, classify_name, classify_status, remark, create_by, create_time, update_by, update_time FROM xccj_community.bus_classify
+    </sql>
+
+    <!--查询列表-->
+    <select id="selectClassifyList"  resultMap="ClassifyMap" parameterType="com.wr.remote.estate.customer.goods.Classify">
+        <include refid="selectClassifyVo"/>
+        WHERE del_flag = '0' AND estate_id = #{estateId}
+        <if test="classifyStatus != null and classifyStatus != ''">
+            AND classify_status = #{classifyStatus}
+        </if>
+        <if test="updateBy != null and updateBy != ''">
+            AND update_by = #{updateBy}
+        </if>
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(update_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(#{params.endTime},'%y%m%d') &gt;=  date_format(update_time,'%y%m%d')
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!--根据id查询-->
+    <select id="getClassifyById" resultMap="ClassifyMap">
+        <include refid="selectClassifyVo"/>
+        WHERE classify_id = #{classifyId}
+    </select>
+
+    <!--新增-->
+    <insert id="insertClassify" parameterType="com.wr.remote.estate.customer.goods.Classify">
+        INSERT INTO
+            xccj_community.bus_classify(estate_id, classify_name, classify_status, remark, create_by, create_time, update_by, update_time, del_flag)
+        VALUES
+            (#{estateId}, #{classifyName}, '0', #{remark}, #{createBy}, sysdate(), #{createBy}, sysdate(), '0')
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="updateClassify" parameterType="com.wr.remote.estate.customer.goods.Classify">
+        UPDATE xccj_community.bus_classify
+        <set>
+            <if test="estateId != null">estate_id = #{estateId},</if>
+            <if test="classifyName != null and classifyName != ''">classify_name = #{classifyName},</if>
+            <if test="classifyStatus != null and classifyStatus != ''">classify_status = #{classifyStatus},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = sysdate()
+        </set>
+        WHERE classify_id = #{classifyId}
+    </update>
+
+    <!--批量删除-->
+    <delete id="deleteClassifyByIds" parameterType="java.lang.String">
+        UPDATE xccj_community.bus_classify SET del_flag = '1' WHERE classify_id IN
+        <foreach item="classifyId" collection="array" open="(" separator="," close=")">
+            #{classifyId}
+        </foreach>
+    </delete>
+
+    <select id="getIsExsit" resultType="int">
+        SELECT count(1) FROM xccj_community.bus_classify WHERE classify_name = #{classifyName} AND estate_id = #{estateId} AND del_flag = '0'
+    </select>
+
+</mapper>
+

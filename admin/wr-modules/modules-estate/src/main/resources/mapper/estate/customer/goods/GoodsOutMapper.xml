@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.goods.GoodsOutMapper">
+    <!--查询列表-->
+    <select id="selectGoodsOutList" resultType="com.wr.remote.estate.customer.goods.vo.GoodsOutVo">
+        SELECT
+        bgo.community_id,
+        bgo.out_id,
+        bgo.out_title,
+        ba.account_name,
+        ba.login_name AS loginName,
+        bp.passage_name,
+        bgo.submit_time,
+        bgo.out_time,
+        bs.staff_name,
+        bgo.out_status
+        FROM
+        xccj_community.bus_goods_out bgo
+        LEFT JOIN xccj_community.bus_account ba ON bgo.account_id = ba.account_id
+        LEFT JOIN xccj_community.bus_passage bp ON bgo.passage_id = bp.passage_id
+        LEFT JOIN xccj_community.bus_staff bs ON bgo.staff_id = bs.staff_id
+        WHERE bgo.del_flag = '0'
+        <if test="communityId != null">
+            AND bgo.community_id = #{communityId}
+        </if>
+        <if test="outTitle != null and outTitle != ''">
+            AND bgo.out_title LIKE concat('%', #{outTitle}, '%')
+        </if>
+        <if test="accountName != null and accountName != ''">
+            AND ba.account_name LIKE CONCAT('%',#{accountName},'%')
+        </if>
+        <if test="loginName != null and loginName != ''">
+            AND ba.login_name LIKE CONCAT('%',#{loginName},'%')
+        </if>
+        <if test="passageName != null and passageName != ''">
+            AND bp.passage_name = #{passageName}
+        </if>
+        <if test="outStatus != null and outStatus != ''">
+            AND bgo.out_status = #{outStatus}
+        </if>
+        ORDER BY bgo.out_status,bgo.out_time desc
+    </select>
+
+    <select id="getInfo" resultType="com.wr.remote.estate.customer.goods.vo.GoodsOutVo">
+        SELECT bgo.out_id,
+               bgo.out_title,
+               ba.account_name,
+               ba.login_name AS loginName,
+               bp.passage_name,
+               bgo.submit_time,
+               bgo.out_time,
+               bs.staff_name,
+               bgo.out_status,
+               bgo.remark
+        FROM xccj_community.bus_goods_out bgo
+                 LEFT JOIN xccj_community.bus_account ba ON bgo.account_id = ba.account_id
+                 LEFT JOIN xccj_community.bus_passage bp ON bgo.passage_id = bp.passage_id
+                 LEFT JOIN xccj_community.bus_staff bs ON bgo.staff_id = bs.staff_id
+        WHERE out_id = #{outId}
+    </select>
+
+    <!--通过主键修改数据-->
+    <update id="updateOutStatus" parameterType="com.wr.remote.estate.customer.goods.vo.GoodsOutVo">
+        UPDATE xccj_community.bus_goods_out
+        <set>
+            out_time = sysdate(),
+            out_status = '1',
+            staff_id = #{staffId},
+        </set>
+        WHERE out_id = #{outId}
+    </update>
+
+    <select id="getStaffId" resultType="string">
+        SELECT staff_id AS staffId
+        FROM xccj_community.bus_staff
+        WHERE user_id = #{userId}
+          AND del_flag = '0'
+        LIMIT 1
+    </select>
+</mapper>
+

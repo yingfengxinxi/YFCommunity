@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.autonomy.vote.CommunityNoticeMapper">
+  <resultMap type="com.wr.remote.estate.info.CommunityNotice" id="CommunityNoticeResult">
+    <id property="estateId" column="estate_id"/>
+    <result property="createBy" column="create_by"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateBy" column="update_by"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="noticeId" column="notice_id"/>
+    <result property="noticeTitle" column="notice_title"/>
+    <result property="noticeStatus" column="notice_status"/>
+    <result property="word" column="content"/>
+    <result property="readNum" column="read_num"/>
+    <result property="communityName" column="community_name"/>
+    <result property="communityId" column="community_id"/>
+    <result property="estateName" column="estate_name"/>
+
+  </resultMap>
+  <!--带操作用户，操作时间，更新用户，更新时间的sql片段-->
+  <sql id="selectCommunityNoticeVo">
+        SELECT
+ h.*
+FROM
+ (
+ SELECT
+  bn.notice_id,
+  (
+  SELECT
+   group_concat( bc.community_name ) AS community_name
+  FROM
+   xccj_community.bus_notice bn1
+   LEFT JOIN xccj_community.bus_notice_community bnc ON bn1.notice_id = bnc.notice_id
+   LEFT JOIN xccj_community.bus_community bc ON find_in_set( bc.community_id, bnc.community_id )
+  WHERE
+   bn1.notice_id = bn.notice_id
+  ) AS community_name,
+  (
+   SELECT
+   group_concat( bc.community_id ) AS community_id
+  FROM
+   xccj_community.bus_notice bn1
+   LEFT JOIN xccj_community.bus_notice_community bnc ON bn1.notice_id = bnc.notice_id
+   LEFT JOIN xccj_community.bus_community bc ON find_in_set( bc.community_id, bnc.community_id )
+  WHERE
+   bn1.notice_id = bn.notice_id
+  ) AS community_id,
+  bn.estate_id,
+  bn.content,
+  bn.notice_title,
+  bn.notice_status,
+  bn.read_num,
+  bn.del_flag,
+  bn.create_by,
+  bn.create_time,
+  bn.update_by,
+  bn.update_time
+ FROM
+  xccj_community.bus_notice bn
+ ) h
+  </sql>
+
+  <!--根据主键获取对象-->
+  <select id="selectNoticeById" parameterType="java.lang.Long" resultMap="CommunityNoticeResult">
+    <include refid="selectCommunityNoticeVo"/>
+    where notice_id = #{noticeId}
+  </select>
+
+  <insert id="batchCommunityNotice">
+    insert into xccj_community.bus_notice_community(notice_id, community_id) values
+    <foreach item="item" index="index" collection="list" separator=",">
+      (#{item.noticeId},#{item.communityId})
+    </foreach>
+  </insert>
+
+  <delete id="deleteCommunityByNoticeId" parameterType="Long">
+		delete from xccj_community.bus_notice_community where notice_id=#{noticeId}
+	</delete>
+
+  <!--根据物业id查询物业名称-->
+  <select id="selectEstateNameById" parameterType="java.lang.Long" resultMap="CommunityNoticeResult">
+    select
+        estate_name
+    from xccj_community.bus_estate
+    where estate_id = #{estateId}
+  </select>
+
+  <!--分页列表-->
+  <select id="selectList" parameterType="com.wr.remote.estate.info.CommunityNotice"
+          resultMap="CommunityNoticeResult">
+    <include refid="selectCommunityNoticeVo"/>
+    <where>
+      h.del_flag='0'
+      and h.estate_id = #{estateId}
+      <if test="noticeTitle != null and noticeTitle !=''">
+        and notice_title like concat('%', #{noticeTitle}, '%')
+      </if>
+      <if test="communityId != null">
+        and h.community_id like concat('%', #{communityId}, '%')
+      </if>
+    </where>
+    order by h.create_time desc
+    ${params.dataScope}
+  </select>
+
+  <!--添加社区头条设置-->
+  <insert id="insertNotice" parameterType="com.wr.remote.estate.info.CommunityNotice" useGeneratedKeys="true" keyProperty="noticeId">
+    insert into xccj_community.bus_notice (
+    estate_id,
+    content,
+    notice_title,
+    notice_status,
+    create_by,
+    create_time
+    )values(
+    #{estateId},
+    #{word},
+    #{noticeTitle},
+    '0',
+    #{createBy},
+    sysdate()
+    )
+  </insert>
+
+  <!-- 校验标题唯一性 -->
+  <select id="checkTitleUnique" resultType="com.wr.remote.estate.info.CommunityNotice"
+          parameterType="com.wr.remote.estate.info.CommunityNotice">
+    <include refid="selectCommunityNoticeVo"/>
+    where del_flag = '0'
+    and notice_title = trim(#{noticeTitle})
+  </select>
+
+  <!-- 校验标题唯一性 -->
+  <select id="checkTitleUnique2" resultType="com.wr.remote.estate.info.CommunityNotice"
+          parameterType="com.wr.remote.estate.info.CommunityNotice">
+    <include refid="selectCommunityNoticeVo"/>
+    where del_flag = '0'
+    and notice_title = trim(#{noticeTitle}) and notice_id!= #{noticeId}
+  </select>
+
+<!--  发布公示-->
+  <update id="updateStatus" parameterType="com.wr.remote.estate.info.CommunityNotice">
+    update xccj_community.bus_notice
+    <set>
+      notice_status = '0',
+      update_time = sysdate()
+    </set>
+    where notice_id = #{noticeId}
+  </update>
+
+  <!--  撤回公示-->
+  <update id="updateStatus2" parameterType="com.wr.remote.estate.info.CommunityNotice">
+    update xccj_community.bus_notice
+    <set>
+      notice_status = '1',
+      read_num = 0
+    </set>
+    where notice_id = #{noticeId}
+  </update>
+
+  <!--编辑社区头条设置-->
+  <update id="updateNotice" parameterType="com.wr.remote.estate.info.CommunityNotice">
+    update xccj_community.bus_notice
+    <set>
+      <if test="noticeTitle != null and noticeTitle != ''">notice_title = #{noticeTitle},</if>
+      <if test="word != null and word != ''">content = #{word},</if>
+      update_by = #{updateBy}
+    </set>
+    where notice_id = #{noticeId}
+  </update>
+
+  <!--修改阅读量-->
+  <!--<update id="updateReadNum" parameterType="com.wr.remote.business.info.CommunityNotice">
+    update xccj_community.bus_notice
+    <set>
+      bus_notice.read_num = #{readNum}
+    </set>
+    where notice_id = #{noticeId}
+  </update>-->
+
+
+  <!--删除项目文档设置-->
+  <delete id="deleteNoticeByIds" parameterType="java.lang.Long">
+    UPDATE xccj_community.bus_notice
+    SET del_flag = '1'
+    WHERE notice_id IN
+    <foreach item="noticeId" collection="array" open="(" separator="," close=")">
+      #{noticeId}
+    </foreach>
+  </delete>
+
+</mapper>

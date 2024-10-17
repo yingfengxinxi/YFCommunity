@@ -1,0 +1,10 @@
+com\wr\common\log\aspect\LogAspect.class
+com\wr\common\log\enums\BusinessType.class
+com\wr\common\log\annotation\Log.class
+com\wr\common\log\filter\PropertyPreExcludeFilter.class
+com\wr\common\log\annotation\ApiLog.class
+com\wr\common\log\aspect\LogApiAspect.class
+com\wr\common\log\service\AsyncLogService.class
+com\wr\common\log\enums\BusinessStatus.class
+com\wr\common\log\enums\OperatorType.class
+com\wr\common\log\aspect\LogAspectUtil.class

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.estateapi.BusCommunityCareTypeMapper">
+
+
+    <sql id="columns">
+        id,
+        `name`,
+        backgroup_color,
+        sort,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="getList" resultType="com.wr.api.owner.entity.estateapi.BusCommunityCareType">
+        select
+        <include refid="columns"></include>
+        from xccj_community.bus_community_care_type bcct
+        where bcct.del_flag='0'
+        <if test="name !=null and name !=''">
+            and bcct.name like CONCAT('%',#{name},'%')
+        </if>
+        order by bcct.sort asc, bcct.create_time desc
+    </select>
+
+
+    <select id="getById" resultType="com.wr.api.owner.entity.estateapi.BusCommunityCareType">
+        select
+        <include refid="columns"></include>
+        from xccj_community.bus_community_care_type bcct
+        where bcct.del_flag='0'
+        and bcct.id=#{id}
+    </select>
+
+    <insert id="insert">
+        insert into xccj_community.bus_community_care_type(name,
+                                                           sort,
+                                                           create_by,
+                                                           create_time,
+                                                           update_by,
+                                                           update_time,
+                                                           del_flag)
+        values (#{name},
+                #{sort},
+                #{createBy},
+                NOW(),
+                #{createBy},
+                NOW(),
+                '0')
+    </insert>
+
+
+    <update id="update">
+        update xccj_community.bus_community_care_type
+        set name=#{name},
+            sort=#{sort},
+            update_by=#{updateBy},
+            update_time=NOW()
+        where id = #{id}
+    </update>
+
+    <update id="delete">
+        update xccj_community.bus_community_care_type
+        set del_flag='1'
+        where id = #{id}
+    </update>
+
+    <select id="getByNameId" resultType="Long">
+        select id from xccj_community.bus_community_care_type where name=#{name}
+    </select>
+
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.system.business.mapper.UserVehicleMapper">
+
+    <select id="getUserCount" resultType="com.wr.system.business.domain.screen.UserVehicle">
+        SELECT day(smo.discern_time) AS day,COUNT(*) AS num
+        FROM ${tableName} smo
+        GROUP BY day(smo.discern_time)
+    </select>
+
+    <select id="getVehicleCount" resultType="com.wr.system.business.domain.screen.UserVehicle">
+        SELECT day(smo.inout_time) AS day,COUNT(*) AS num
+        FROM ${tableName} smo
+        WHERE smo.inout_type = 0
+        GROUP BY day(smo.inout_time)
+    </select>
+
+    <!--按月份查询每天访客次数-->
+    <select id="selectMonthVisitCount" resultType="com.wr.system.business.domain.screen.MonthVisit">
+        SELECT day(into_time) AS day,COUNT(*) AS num
+        FROM ${tableName}
+        WHERE del_flag ='0'
+        GROUP BY day(into_time)
+    </select>
+
+    <!--按年查询每月访问次数-->
+    <select id="selectYearVisitCount" resultType="java.lang.Integer">
+        SELECT count(*) FROM ${tableName}
+    </select>
+
+</mapper>

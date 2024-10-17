@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.customer.decorate.LedgerMapper">
+    <!--字段映射-->
+    <resultMap type="com.wr.remote.estate.customer.vo.decorate.DecorateVo" id="DecorateVoResult">
+        <id property="decorateId" column="decorate_id"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="ownerPhone" column="owner_phone"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="unitName" column="unit_name"/>
+        <result property="roomName" column="room_name"/>
+        <result property="decorationNumber" column="decorationNumber"/>
+        <result property="planStart" column="plan_start"/>
+        <result property="planEnd" column="plan_end"/>
+        <result property="deposit" column="deposit"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="communityName" column="community_name"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="decorateType" column="decorate_type"/>
+        <result property="auditBy" column="audit_by"/>
+    </resultMap>
+
+    <!--查询装修台账列表-->
+    <select id="getDecorateLedgerList" resultMap="DecorateVoResult" parameterType="com.wr.remote.estate.customer.vo.decorate.DecorateVo">
+        select
+        xcbd.decorate_id, xcbd.plan_start,  xcbd.plan_end, xcbd.deposit,
+        xcbo.owner_name, xcbo.owner_phone,
+        xcbb.building_name, xcbu.unit_name, xcbr.room_name
+        from xccj_community.bus_decorate xcbd
+        left join xccj_community.bus_owner xcbo on xcbd.owner_id = xcbo.owner_id and xcbo.del_flag = '0'
+        left join xccj_community.bus_community xcbc on xcbd.community_id = xcbc.community_id and xcbc.del_flag = '0'
+        left join xccj_community.bus_building xcbb on xcbd.building_id = xcbb.building_id and xcbb.del_flag = '0'
+        left join xccj_community.bus_unit xcbu on xcbd.unit_id = xcbu.unit_id and xcbu.del_flag = '0'
+        left join xccj_community.bus_room xcbr on xcbd.room_id = xcbr.room_id and xcbr.del_flag = '0'
+        <where>
+            xcbd.del_flag = '0' and xcbd.audit_status = '5'
+            <if test="ownerName != null and ownerName != ''">
+                AND xcbo.owner_name like concat('%', #{ownerName}, '%')
+            </if>
+            <if test="ownerPhone != null and ownerPhone != ''">
+                AND xcbo.owner_phone like concat('%', #{ownerPhone}, '%')
+            </if>
+            <if test="buildingName != null and buildingName != ''">
+                AND xcbb.building_name like concat('%', #{buildingName}, '%')
+            </if>
+            <if test="roomName != null and roomName != ''">
+                AND xcbr.room_name like concat('%', #{roomName}, '%')
+            </if>
+            <if test="communityId != null and communityId != 0">
+                AND xcbd.community_id = #{communityId}
+            </if>
+        </where>
+    </select>
+
+    <!--查询装修台账详情-->
+    <select id="getDecorateLedgerDetail" resultMap="DecorateVoResult">
+         select
+            xcbd.decorate_id, xcbd.plan_start,  xcbd.plan_end, xcbd.deposit, xcbd.audit_time, xcbd.reject_reason, xcbd.remark, xcbd.audit_by,
+            (case when xcbd.decorate_type='0' then '装修申请' when xcbd.decorate_type='1' then '延期申请' end) decorate_type,
+            (case when xcbd.audit_status='0' then '审核中' when xcbd.audit_status='1' then '驳回' when xcbd.audit_status='2' then '通过' when xcbd.audit_status='3' then '延期待确认' when xcbd.audit_status='4' then '已延期' when xcbd.audit_status='5' then '已完成' end) audit_status,
+            xcbo.owner_name, xcbo.owner_phone,
+            xcbb.building_name, xcbu.unit_name, xcbr.room_name
+        from xccj_community.bus_decorate xcbd
+        left join xccj_community.bus_owner xcbo on xcbd.owner_id = xcbo.owner_id and xcbo.del_flag = '0'
+        left join xccj_community.bus_community xcbc on xcbd.community_id = xcbc.community_id and xcbc.del_flag = '0'
+        left join xccj_community.bus_building xcbb on xcbd.building_id = xcbb.building_id and xcbb.del_flag = '0'
+        left join xccj_community.bus_unit xcbu on xcbd.unit_id = xcbu.unit_id and xcbu.del_flag = '0'
+        left join xccj_community.bus_room xcbr on xcbd.room_id = xcbr.room_id and xcbr.del_flag = '0'
+        where xcbd.decorate_id = #{decorateId} and xcbd.del_flag = '0'
+    </select>
+
+    <!--查询装修工信息-->
+    <select id="getWorkerList" resultType="com.wr.remote.estate.customer.decorate.Worker">
+        select worker_id workerId, decorate_id decorateId, worker_name workerName, worker_phone workerPhone, card_no cardNo, account_id accountId, audit_by auditBy, audit_time auditTime
+        from xccj_community.bus_worker where decorate_id = #{decorateId} and del_flag = '0' and audit_status = '2'
+    </select>
+</mapper>

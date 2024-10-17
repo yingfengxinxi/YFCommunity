@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.RoomMapper">
+    <!-- 房间列表 -->
+    <select id="listRooms" resultType="com.wr.remote.estate.center.vo.RoomVO">
+        SELECT
+        br.room_id AS id,
+        br.owner_id AS ownerId,
+        bb.building_name AS buildingName,
+        bu.unit_name AS unitName,
+        br.room_name AS roomName,
+        br.room_status AS roomStatus,
+        IFNULL(br.total_area, '-') AS totalArea,
+        IFNULL(bo.owner_name, '-') AS ownerName,
+        IFNULL(bo.owner_phone, '-') AS ownerPhone,
+        IFNULL(br.live_num, '-') AS liveNum,
+        br.room_attribute AS roomType,
+        br.update_time AS updateTime,
+        br.community_id as "communityId",
+        br.building_id as "buildingId",
+        br.unit_id as "unitId",
+        br.room_id as "roomId"
+        <if test="flag==1">
+            ,bd.update_time as "updateTime",
+            bd.renovation_audit_status as "renovationAuditStatus",
+            bd.id as "decorateId"
+        </if>
+
+        FROM xccj_community.bus_room br
+        LEFT JOIN xccj_community.bus_owner bo ON br.owner_id = bo.owner_id AND bo.del_flag = '0'
+        LEFT JOIN xccj_community.bus_building bb ON br.building_id = bb.building_id
+        LEFT JOIN xccj_community.bus_unit bu ON br.unit_id = bu.unit_id
+        <if test="flag==1">
+            LEFT JOIN xccj_community.bus_decorate bd on bd.building_id=br.building_id and bd.unit_id=br.unit_id and
+            bd.room_id=br.room_id
+        </if>
+        WHERE br.del_flag = '0'
+        <if test="flag==1">
+            <if test="renovationAuditStatus !=null and renovationAuditStatus !=''">
+                AND bd.renovation_audit_status=#{renovationAuditStatus}
+            </if>
+        </if>
+        <if test="level == 1">
+            AND br.community_id = #{id}
+        </if>
+        <if test="level == 2">
+            AND br.building_id = #{id}
+        </if>
+        <if test="level == 3">
+            AND br.unit_id = #{id}
+        </if>
+        <if test="ownerName != null and ownerName != ''">
+            AND bo.owner_name LIKE CONCAT('%',#{ownerName},'%')
+        </if>
+        <if test="roomStatus != null">
+            AND br.room_status = #{roomStatus}
+        </if>
+        ORDER BY
+        bb.building_name,
+        bu.unit_name,
+        CAST( br.room_name AS SIGNED )
+    </select>
+    <select id="getVoteListRooms" resultType="com.wr.remote.estate.vote.BusVoteScope">
+        SELECT a.*
+        <if test="flag==0">
+            ,"1" as "delFlag"
+        </if>
+        <if test="flag==1">
+            ,(SELECT
+            count( 1 )
+            FROM
+            xccj_community.bus_vote_scope bvc
+            INNER JOIN xccj_community.bus_vote_owner bvo ON bvo.vote_scope_id = bvc.id
+            WHERE
+            bvc.vote_id = #{voteId}
+            AND bvc.room_id = a.roomId
+            AND bvo.account_id = a.accountId
+            AND bvc.del_flag = '0' )
+            as "delFlag"
+        </if>
+        FROM (SELECT br.room_id AS id,
+        bb.building_name AS buildingName,
+        bu.unit_name AS unitName,
+        br.room_name AS roomName,
+        br.community_id AS "communityId",
+        br.building_id AS "buildingId",
+        br.unit_id AS "unitId",
+        br.room_id AS "roomId",
+        br.house_address AS "houseAddress",
+        bo.owner_relation AS "ownerRelation",
+        bo.owner_id AS "ownerId",
+        IFNULL(bo.owner_name, '-') AS ownerName,
+        IFNULL(bo.owner_phone, '-') AS ownerPhone,
+        bo.account_id as "accountId"
+        FROM xccj_community.`bus_owner` `bo`
+        LEFT JOIN xccj_community.`bus_house` `bh` ON `bo`.`owner_id` = `bh`.`owner_id`
+        LEFT JOIN xccj_community.`bus_community` `bc` ON `bh`.`community_id` = `bc`.`community_id`
+        LEFT JOIN xccj_community.`bus_building` `bb` ON `bh`.`building_id` = `bb`.`building_id`
+        LEFT JOIN xccj_community.`bus_unit` `bu` ON `bh`.`unit_id` = `bu`.`unit_id`
+        LEFT JOIN xccj_community.`bus_room` `br` ON `bh`.`room_id` = `br`.`room_id`
+        WHERE br.del_flag = '0'
+        UNION ALL
+        SELECT br.room_id AS id,
+        bb.building_name AS buildingName,
+        bu.unit_name AS unitName,
+        br.room_name AS roomName,
+        br.community_id AS "communityId",
+        br.building_id AS "buildingId",
+        br.unit_id AS "unitId",
+        br.room_id AS "roomId",
+        br.house_address AS "houseAddress",
+        bo.owner_relation AS "ownerRelation",
+        bo.owner_id AS "ownerId",
+        IFNULL(bo.owner_name, '-') AS ownerName,
+        IFNULL(bo.owner_phone, '-') AS ownerPhone,
+        bo.account_id as "accountId"
+        FROM xccj_community.`bus_owner` `bo`
+        LEFT JOIN xccj_community.`bus_owner` `bos` ON `bo`.`parent_id` = `bos`.`owner_id`
+        LEFT JOIN xccj_community.`bus_house` `bh` ON `bos`.`owner_id` = `bh`.`owner_id`
+        LEFT JOIN xccj_community.`bus_community` `bc` ON `bh`.`community_id` = `bc`.`community_id`
+        LEFT JOIN xccj_community.`bus_building` `bb` ON `bh`.`building_id` = `bb`.`building_id`
+        LEFT JOIN xccj_community.`bus_unit` `bu` ON `bh`.`unit_id` = `bu`.`unit_id`
+        LEFT JOIN xccj_community.`bus_room` `br` ON `bh`.`room_id` = `br`.`room_id`
+        WHERE br.del_flag = '0') a
+        <where>
+            <if test="level == 1">
+                AND a.communityId = #{id}
+            </if>
+            <if test="level == 2">
+                AND a.buildingId = #{id}
+            </if>
+            <if test="level == 3">
+                AND a.unitId = #{id}
+            </if>
+            <if test="level == 4">
+                AND a.roomId = #{id}
+            </if>
+            <if test="ownerName != null and ownerName != ''">
+                AND a.ownerName LIKE CONCAT('%',#{ownerName},'%')
+            </if>
+        </where>
+        GROUP BY a.ownerId
+        ORDER BY
+        CAST( a.buildingId AS SIGNED ),
+        CAST( a.unitId AS SIGNED ),
+        CAST( a.roomId AS SIGNED )
+    </select>
+
+
+    <!-- 根据单元id查询所有房子 -->
+    <select id="listByUnitId" resultType="com.wr.remote.estate.center.Room">
+        SELECT br.room_id     AS id,
+               br.room_name   AS roomName,
+               br.room_status AS roomStatus
+        FROM xccj_community.bus_room br
+        WHERE br.unit_id = #{unitId}
+          AND br.del_flag = '0'
+    </select>
+
+    <!-- 根据楼栋id查询所有房子 -->
+    <select id="listByBuildingId" resultType="com.wr.remote.estate.center.Room">
+        SELECT br.room_id     AS id,
+               br.room_name   AS roomName,
+               br.room_status AS roomStatus
+        FROM xccj_community.bus_room br
+        WHERE br.building_id = #{buildingId}
+          AND br.del_flag = '0'
+    </select>
+
+    <select id="getByBuildingIdRoomList" resultType="com.wr.remote.estate.center.Room">
+        SELECT br.room_id                                AS roomId,
+               br.room_name                              AS roomName,
+               br.room_status                            AS roomStatus,
+               DATE_FORMAT(br.delivery_time, '%Y-%m-%d') AS "deliveryTime",
+               br.total_area                             AS "totalArea",
+               br.community_id                           AS "communityId",
+               br.building_id                            AS "buildingId",
+               br.unit_id                                AS "unitId"
+        FROM xccj_community.bus_room br
+        WHERE br.building_id = #{buildingId}
+          AND br.del_flag = '0'
+          AND br.delivery_time IS NOT NULL
+          AND br.total_area IS NOT NULL
+          AND br.total_area > 0
+          AND br.owner_id IS NOT NULL
+          AND DATE_FORMAT(br.delivery_time, '%Y-%m-%d') &lt;= DATE_FORMAT(
+                NOW(),
+                '%Y-%m-%d')
+    </select>
+
+    <select id="getByBuildingIdNullRoomList" resultType="com.wr.remote.estate.center.Room">
+        SELECT br.room_id                                AS roomId,
+               br.room_name                              AS roomName,
+               br.room_status                            AS roomStatus,
+               DATE_FORMAT(br.delivery_time, '%Y-%m-%d') AS "deliveryTime",
+               br.total_area                             AS "totalArea",
+               br.community_id                           AS "communityId",
+               br.building_id                            AS "buildingId",
+               br.unit_id                                AS "unitId"
+        FROM xccj_community.bus_room br
+        WHERE br.building_id = #{buildingId}
+          AND br.del_flag = '0'
+          AND (br.delivery_time IS NULL)
+          AND br.total_area IS NOT NULL
+          AND br.total_area > 0
+          AND br.owner_id IS NOT NULL
+    </select>
+
+    <!-- 根据条件获取所有楼层 -->
+    <select id="listFloorsByBuildingId" resultType="java.lang.Integer">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        SUBSTRING_INDEX( room_name, RIGHT ( room_name, 2 ), 1 ) AS "roomName"
+        FROM
+        xccj_community.bus_room
+        WHERE
+        del_flag = '0'
+        <if test="level == 1">
+            AND community_id = #{id}
+        </if>
+        <if test="level == 2">
+            AND building_id = #{id}
+        </if>
+        <if test="level == 3">
+            AND unit_id = #{id}
+        </if>
+        GROUP BY
+        CAST( SUBSTRING_INDEX( room_name, RIGHT ( room_name, 2 ), 1 ) AS SIGNED )
+        ) a
+        ORDER BY
+        roomName DESC
+    </select>
+
+    <!-- 批量新增房间 -->
+    <insert id="insertBatch">
+        INSERT INTO xccj_community.bus_room
+        (community_id, building_id, unit_id, room_name, room_status, create_by, create_time, update_by, update_time,
+        del_flag)
+        VALUES
+        <foreach collection="list" item="l" separator=",">
+            (#{l.communityId}, #{l.buildingId}, #{l.unitId}, #{l.roomName}, '0',#{l.createBy}, NOW(), #{l.updateBy},
+            NOW(), '0')
+        </foreach>
+    </insert>
+
+    <!-- 新增房间 -->
+    <insert id="insert">
+        INSERT INTO xccj_community.bus_room
+        (community_id,
+         building_id,
+         unit_id,
+         room_name,
+         room_attribute,
+         house_address,
+         total_area,
+         room_status,
+         create_by,
+         create_time,
+         update_by, update_time,
+         del_flag)
+        VALUES (#{communityId},
+                #{buildingId},
+                #{unitId},
+                #{roomName},
+                #{roomType},
+                #{houseAddress},
+                #{totalArea},
+                '0',
+                #{createBy},
+                NOW(), #{updateBy},
+                NOW(), '0')
+    </insert>
+
+    <!-- 修改房间 -->
+    <insert id="update">
+        update xccj_community.bus_room
+        <set>
+            <if test="communityId !=null">
+                community_id=#{communityId},
+            </if>
+            <if test="buildingId !=null">
+                building_id=#{buildingId},
+            </if>
+            <if test="unitId !=null">
+                unit_id=#{unitId},
+            </if>
+            <if test="roomName !=null">
+                room_name=#{roomName},
+            </if>
+            <if test="roomType !=null and roomType !=''">
+                room_attribute=#{roomType},
+            </if>
+            <if test="houseAddress !=null and houseAddress !=''">
+                house_address=#{houseAddress},
+            </if>
+            <if test="totalArea !=null and totalArea !=''">
+                total_area=#{totalArea},
+            </if>
+            <if test="deliveryTime !=null">
+                delivery_time=#{deliveryTime},
+            </if>
+            <if test="updateBy !=null and updateBy !=''">
+                update_by=#{updateBy},
+                update_time=NOW()
+            </if>
+        </set>
+        where room_id = #{roomId}
+    </insert>
+
+    <!-- 根据楼栋ids查询所有房号 -->
+    <select id="listRoomNamesByCondition" resultType="java.lang.String">
+        SELECT DISTINCT RIGHT ( room_name, 2 ) FROM xccj_community.bus_room
+        WHERE del_flag = '0'
+        <if test="level == 1">
+            AND community_id = #{id}
+        </if>
+        <if test="level == 2">
+            AND building_id = #{id}
+        </if>
+        <if test="level == 3">
+            AND unit_id = #{id}
+        </if>
+        ORDER BY CAST(RIGHT ( room_name, 2 ) AS SIGNED)
+    </select>
+
+    <!-- 根据楼栋id查询所有房号 -->
+    <select id="listRoomNamesByBuildId" resultType="java.lang.String">
+        SELECT DISTINCT RIGHT(room_name, 2)
+        FROM xccj_community.bus_room
+        WHERE del_flag = '0'
+        <if test="level == 1">
+            AND community_id = #{id}
+        </if>
+        <if test="level == 2">
+            AND building_id = #{id}
+        </if>
+        <if test="level == 3">
+            AND unit_id = #{id}
+        </if>
+        ORDER BY CAST(RIGHT(room_name, 2) AS SIGNED)
+    </select>
+
+    <!-- 根据条件查询所有房屋信息 -->
+    <select id="roomOtherDetailByBuildingId" resultType="com.wr.remote.estate.center.vo.RoomDetailVO">
+        SELECT SUBSTRING_INDEX(room_name, RIGHT(room_name, 2), 1) AS currentFloor,
+        room_name AS roomName,
+        RIGHT(room_name, 2) AS roomNumber,
+        room_id AS roomId,
+        room_status AS roomStatus,
+        community_id as "communityId"
+        FROM xccj_community.bus_room
+        WHERE del_flag = '0'
+        <if test="level == 1">
+            AND community_id = #{id}
+        </if>
+        <if test="level == 2">
+            AND building_id = #{id}
+        </if>
+        <if test="level == 3">
+            AND unit_id = #{id}
+        </if>
+        ORDER BY CAST(SUBSTRING_INDEX(room_name, RIGHT(room_name, 2), 1) AS SIGNED) DESC
+    </select>
+
+    <!-- 过户 -->
+    <update id="transferOwnership">
+        UPDATE xccj_community.bus_room
+        <set>
+            owner_id = #{ownerId},
+            <if test="licenseUrl != null and licenseUrl != ''">
+                license_url = #{licenseUrl}
+            </if>
+        </set>
+        WHERE room_id = #{roomId}
+    </update>
+
+    <!-- 过户房产 -->
+    <update id="transferHouse">
+        UPDATE xccj_community.bus_house
+        <set>
+            owner_id = #{ownerId},
+            <if test="licenseUrl != null and licenseUrl != ''">
+                license_url = #{licenseUrl}
+            </if>
+        </set>
+        WHERE room_id = #{roomId}
+        AND audit_status = '1'
+    </update>
+
+    <!-- 批量更新房屋信息 -->
+    <update id="updateRoomBatch">
+        UPDATE xccj_community.bus_room
+        <set>
+            ,update_by = #{updateBy}
+            ,update_time = NOW()
+            <if test="roomType != null">
+                ,room_attribute = #{roomType}
+            </if>
+            <if test="structure != null">
+                ,structure = #{structure}
+            </if>
+            <if test="totalArea != null">
+                ,total_area = #{totalArea}
+            </if>
+            <if test="roomArea != null">
+                ,room_area = #{roomArea}
+            </if>
+            <if test="shareArea != null">
+                ,share_area = #{shareArea}
+            </if>
+            <if test="roomPattern != null and roomPattern != ''">
+                ,room_pattern = #{roomPattern}
+            </if>
+            <if test="roomUrl != null and roomUrl != ''">
+                ,room_url = #{roomUrl}
+            </if>
+        </set>
+        <where>
+            AND del_flag = '0'
+            AND community_id = #{communityId}
+            <if test="unitIds != null">
+                <foreach collection="unitIds" item="unitId" open="AND unit_id IN (" close=")" separator=",">
+                    #{unitId}
+                </foreach>
+            </if>
+            <if test="buildingIds != null">
+                <foreach collection="buildingIds" item="buildingId" open="AND building_id IN (" close=")" separator=",">
+                    #{buildingId}
+                </foreach>
+            </if>
+            <if test="roomNumbers != null">
+                <foreach collection="roomNumbers" item="roomNumber" open="AND (RIGHT ( room_name, 2 )) IN ("
+                         close=")" separator=",">
+                    #{roomNumber}
+                </foreach>
+            </if>
+        </where>
+    </update>
+
+    <!-- 修改房屋 -->
+    <update id="updateRoom">
+        UPDATE xccj_community.bus_room
+        <set>
+            ,update_by = #{updateBy}
+            ,update_time = NOW()
+            <if test="roomType != null">
+                ,room_attribute = #{roomType}
+            </if>
+            <if test="structure != null">
+                ,structure = #{structure}
+            </if>
+            <if test="totalArea != null">
+                ,total_area = #{totalArea}
+            </if>
+            <if test="roomArea != null">
+                ,room_area = #{roomArea}
+            </if>
+            <if test="shareArea != null">
+                ,share_area = #{shareArea}
+            </if>
+            <if test="roomPattern != null and roomPattern != ''">
+                ,room_pattern = #{roomPattern}
+            </if>
+            <if test="houseAddress !=null and houseAddress !=''">
+                ,house_address = #{houseAddress}
+            </if>
+            <if test="deliveryTime !=null">
+                ,delivery_time=#{deliveryTime}
+            </if>
+            <if test="roomUrl != null and roomUrl != ''">
+                ,room_url = #{roomUrl}
+            </if>
+            <if test="roomStatus != null and roomStatus != ''">
+                ,room_status = #{roomStatus}
+                <if test="roomStatus == 4">
+                    ,confirm_time = NOW()
+                </if>
+            </if>
+
+        </set>
+        WHERE room_id = #{roomId}
+    </update>
+
+    <!-- 批量删除房屋 -->
+    <update id="deleteRoomBatch">
+        UPDATE xccj_community.bus_room
+        SET del_flag = '1'
+        WHERE room_id IN
+        <foreach item="id" collection="list" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 根据房屋id查询房屋是否有产权房屋 -->
+    <select id="hasLicense" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM xccj_community.bus_room room LEFT JOIN xccj_community.bus_owner owner ON room.owner_id = owner.owner_id
+        WHERE room.room_id IN
+        <foreach collection="list" item="roomId" separator="," open="(" close=")">
+            #{roomId}
+        </foreach>
+        AND room.owner_id != 0
+        AND owner.del_flag = '0'
+    </select>
+
+    <select id="getByRoomIdBuildingUnit" resultType="com.wr.remote.estate.center.vo.RoomDetailVO">
+        select br.building_id as "buildingId",
+               br.room_id     as "roomId",
+               br.unit_id     as "unitId",
+               br.owner_id    as "ownerId"
+        FROM xccj_community.bus_room br
+        where br.room_id = #{roomId}
+    </select>
+    <!-- 根据id查询房屋详情 -->
+    <select id="getDetailById" resultType="com.wr.remote.estate.center.vo.RoomDetailVO">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        br.room_id,
+        br.building_id,
+        br.community_id,
+        br.unit_id,
+        bu.unit_name,
+        bb.building_name,
+        bc.community_name,
+        br.room_name,
+        IFNULL( br.room_attribute, "" ) AS room_type,
+        br.structure,
+        IFNULL( br.total_area, '0.00' ) AS total_area,
+        IFNULL( br.room_area, '0.00' ) AS room_area,
+        IFNULL( br.share_area, '0.00' ) AS share_area,
+        br.room_pattern,
+        br.room_url,
+        br.room_status,
+        br.delivery_time,
+        br.confirm_time,
+        br.live_num,
+        SUBSTRING_INDEX( br.room_name, RIGHT ( br.room_name, 2 ), 1 ) AS currentFloor,
+        br.license_url,
+        br.house_address,
+        SUBSTRING_INDEX( br.room_name, RIGHT ( br.room_name, 2 ), 1 ) AS "floor",
+        br.room_attribute AS "roomAttribute",
+        br.owner_id AS "ownerId",
+        bo.religion AS "religion"
+        FROM
+        xccj_community.`bus_room` `br`
+        LEFT JOIN xccj_community.`bus_community` `bc` ON `br`.`community_id` = `bc`.`community_id`
+        LEFT JOIN xccj_community.`bus_building` `bb` ON `br`.`building_id` = `bb`.`building_id`
+        LEFT JOIN xccj_community.`bus_unit` `bu` ON `br`.`unit_id` = `bu`.`unit_id`
+        LEFT JOIN xccj_community.`bus_house` `bh` ON `bh`.`room_id` = `br`.`room_id`
+        AND `bh`.`del_flag` = '0'
+        LEFT JOIN xccj_community.`bus_owner` `bo` ON `bo`.`owner_id` = `bh`.`owner_id`
+        AND `bo`.`del_flag` = '0'
+        WHERE
+        `bc`.`del_flag` = '0'
+        AND `bb`.`del_flag` = '0'
+        AND `bu`.`del_flag` = '0'
+        AND `br`.`del_flag` = '0'
+        AND br.room_id =#{roomId}
+        <if test="ownerId!=null">
+            AND bo.owner_id = #{ownerId}
+        </if>
+
+        UNION ALL
+        SELECT
+        br.room_id,
+        br.building_id,
+        br.community_id,
+        br.unit_id,
+        bu.unit_name,
+        bb.building_name,
+        bc.community_name,
+        br.room_name,
+        IFNULL( br.room_attribute, "" ) AS room_type,
+        br.structure,
+        IFNULL( br.total_area, '0.00' ) AS total_area,
+        IFNULL( br.room_area, '0.00' ) AS room_area,
+        IFNULL( br.share_area, '0.00' ) AS share_area,
+        br.room_pattern,
+        br.room_url,
+        br.room_status,
+        br.delivery_time,
+        br.confirm_time,
+        br.live_num,
+        SUBSTRING_INDEX( br.room_name, RIGHT ( br.room_name, 2 ), 1 ) AS currentFloor,
+        br.license_url,
+        br.house_address,
+        SUBSTRING_INDEX( br.room_name, RIGHT ( br.room_name, 2 ), 1 ) AS "floor",
+        br.room_attribute AS "roomAttribute",
+        br.owner_id AS "ownerId",
+        bo.religion AS "religion"
+        FROM
+        xccj_community.`bus_room` `br`
+        LEFT JOIN xccj_community.`bus_community` `bc` ON `br`.`community_id` = `bc`.`community_id`
+        LEFT JOIN xccj_community.`bus_building` `bb` ON `br`.`building_id` = `bb`.`building_id`
+        LEFT JOIN xccj_community.`bus_unit` `bu` ON `br`.`unit_id` = `bu`.`unit_id`
+        LEFT JOIN xccj_community.`bus_house` `bh` ON `bh`.`room_id` = `br`.`room_id`
+        AND `bh`.`del_flag` = '0'
+        LEFT JOIN xccj_community.`bus_owner` `bo` ON `bo`.parent_id = `bh`.`owner_id`
+        AND `bo`.`del_flag` = '0'
+        WHERE
+        `bc`.`del_flag` = '0'
+        AND `bb`.`del_flag` = '0'
+        AND `bu`.`del_flag` = '0'
+        AND `br`.`del_flag` = '0'
+        AND br.room_id = #{roomId}
+        <if test="ownerId!=null">
+            AND bo.owner_id = #{ownerId}
+        </if>
+        ) a
+        LIMIT 1
+    </select>
+
+    <select id="getRoomNameId" resultType="Long">
+        select room_id
+        from xccj_community.bus_room
+        where community_id = #{communityId}
+          AND building_id = #{buildingId}
+          AND unit_id = #{unitId}
+          AND room_name = #{roomName}
+    </select>
+    <!-- 根据楼栋id获取最大楼层 -->
+    <select id="maxFloorByBuildingId" resultType="java.lang.Integer">
+        SELECT SUBSTRING_INDEX(room_name, RIGHT(room_name, 2), 1)
+        FROM xccj_community.bus_room
+        WHERE building_id = #{buildingId}
+          AND del_flag = '0'
+        ORDER BY CAST(SUBSTRING_INDEX(
+                room_name,
+            RIGHT(room_name, 2), 1) AS SIGNED) DESC LIMIT 1
+    </select>
+
+    <!-- 查询业主信息以及家庭成员 -->
+    <select id="roomFamilyList" resultType="com.wr.remote.estate.center.vo.RoomSearchOwnerVO">
+        SELECT bo.owner_id,
+               bo.owner_name,
+               bo.owner_phone,
+               bo.card_no,
+               bo.owner_relation,
+               bo.audit_time
+        FROM xccj_community.bus_owner bo
+                 LEFT JOIN xccj_community.bus_house bh ON bh.owner_id = bo.owner_id
+        WHERE bh.room_id = #{roomId}
+          AND bo.del_flag = '0'
+          AND bo.audit_status = '1'
+    </select>
+
+    <update id="updateByRoomIdOwnerId">
+        update xccj_community.bus_room
+        set owner_id=#{ownerId}
+        where room_id = #{roomId}
+    </update>
+
+    <update id="updateByRoomIdRoomStatus">
+        update xccj_community.bus_room br
+        set room_status=#{roomStatus}
+        where room_id = #{roomId}
+    </update>
+    <select id="getByRoomIdRoomStatusCount" resultType="Integer">
+        select count(1)
+        from xccj_community.bus_room
+        where room_id = #{roomId}
+          and room_status in ('5', '6', '7')
+          and del_flag = '0'
+    </select>
+
+    <select id="getByRoomIdArea" resultType="java.math.BigDecimal">
+        select total_area
+        from xccj_community.bus_room
+        where room_id = #{roomId}
+          and del_flag = '0'
+    </select>
+
+    <select id="getByRoomIdRoomStatus" resultType="String">
+        select room_status
+        from xccj_community.bus_room
+        where room_id = #{roomId}
+          and del_flag = '0'
+    </select>
+    <select id="getRoomIdOwnerId" resultType="java.lang.Long">
+        select owner_id
+        from xccj_community.bus_room
+        where room_id = #{roomId}
+          and del_flag = '0'
+    </select>
+
+    <select id="getByRoomIdDeliveryTime" resultType="String">
+        select DATE_FORMAT(delivery_time, '%Y-%m-%d') as "deliveryTime"
+        from xccj_community.bus_room
+        where room_id = #{roomId}
+          and del_flag = '0'
+    </select>
+
+
+    <select id="getByOwnerIdRoomId" resultType="Long">
+        select room_id
+        from xccj_community.bus_room
+        where owner_id = #{ownerId}
+          and del_flag = '0'
+          and room_status != '0'
+    </select>
+</mapper>

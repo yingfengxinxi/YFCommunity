@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.CommunityMapper">
+
+
+    <select id="getCommunityIdEstateId" resultType="java.lang.Long">
+        SELECT
+            estate_id
+        FROM
+            xccj_community.bus_community
+        WHERE
+            community_id = #{communityId}
+    </select>
+
+    <!-- 查询所有小区 -->
+    <select id="selectAllCommunityList" resultType="com.wr.remote.domain.Community">
+        SELECT bc.community_id,
+               bc.community_name,
+               bc.estate_id,
+               bc.area_id
+        from xccj_community.bus_estate a
+                 LEFT JOIN xccj_community.bus_community bc on a.estate_id=bc.estate_id
+        where (a.estate_id=#{estateId} or a.parent_id=#{estateId}) and bc.del_flag = '0' and a.del_flag='0'
+    </select>
+
+    <select id="selectHikByCommunityId" resultType="com.wr.common.customize.util.CommunityHik">
+        SELECT
+            *
+        FROM xccj_community.bus_community_hik
+        WHERE del_flag = '0' AND community_id = #{communityId}
+            LIMIT 1
+    </select>
+
+</mapper>

@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.CommunityHealthCare.MedicalEntityMapper">
+
+    <resultMap type="com.wr.estate.entity.MedicalEntity" id="MedicalEntityResult">
+        <result property="medicalId" column="medical_id"/>
+        <result property="communityId" column="community_id"/>
+        <result property="ageLimit" column="age_limit"/>
+        <result property="activityName" column="activity_name"/>
+        <result property="medicalType" column="medical_type"/>
+        <result property="address" column="address"/>
+        <result property="medicalOrg" column="medical_org"/>
+        <result property="headName" column="head_name"/>
+        <result property="headPhone" column="head_phone"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="remark" column="remark"/>
+        <result property="totalNum" column="total_num"/>
+        <result property="joinNum" column="join_num"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+
+    <resultMap id="ExaminerExcelEntityMap" type="com.wr.estate.entity.vo.ExaminerExcelEntity">
+        <result property="examinerId" column="examiner_id"/>
+        <result property="examinerMedical" column="examiner_medical"/>
+        <result property="examinerName" column="examiner_name"/>
+        <result property="cardType" column="card_type"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="examinerTime" column="examiner_time"/>
+        <result property="examinerDoctor" column="examiner_doctor"/>
+        <result property="examinerImportStatus" column="examiner_import_status"/>
+        <result property="examinerSendStatus" column="examiner_send_status"/>
+        <result property="examinerReportTime" column="examiner_report_time"/>
+    </resultMap>
+
+
+    <resultMap id="meold" type="com.wr.estate.entity.MedacalOlderEntity">
+        <result property="examinerId" column="examiner_id"/>
+        <result property="activityName" column="activity_name"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="cardNo" column="card_no"/>
+        <result property="examinerTime" column="examiner_time"/>
+        <result property="medicalOrg" column="medical_org"/>
+        <result property="examinerDoctor" column="examiner_doctor"/>
+        <result property="examinerImportStatus" column="examiner_import_status"/>
+        <result property="examinerSendStatus" column="examiner_send_status"/>
+        <result property="examinerReportTime" column="examiner_report_time"/>
+    </resultMap>
+
+
+    <sql id="selectMedicalEntityVo">
+        select medical_id,
+               community_id,
+               age_limit,
+               activity_name,
+               medical_type,
+               address,
+               medical_org,
+               head_name,
+               head_phone,
+               start_time,
+               end_time,
+               remark,
+               total_num,
+               join_num,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag,
+               FORMAT(((SELECT COUNT(1)
+                        FROM xccj_community.bus_examiner
+                        WHERE examiner_medical = medical_id
+                          AND del_flag = '0'
+                          AND examiner_import_status = '0') / join_num * 100), 2) fileCompletion
+        from xccj_community.bus_medical
+    </sql>
+
+    <select id="selectMedicalEntityList" parameterType="com.wr.estate.entity.MedicalEntity"
+            resultMap="MedicalEntityResult">
+        <include refid="selectMedicalEntityVo"/>
+        <where>
+            <if test="headName != null ">and head_name like concat('%', #{headName}, '%')</if>
+            <if test="medicalId != null ">and medical_id = #{medicalId}</if>
+            <if test="communityId != null ">and community_id = #{communityId}</if>
+            <if test="activityName != null  and activityName != ''">and activity_name like concat('%', #{activityName},
+                '%')
+            </if>
+            <if test="medicalType != null  and medicalType != ''">and medical_type = #{medicalType}</if>
+            <if test="address != null  and address != ''">and address = #{address}</if>
+            <if test="medicalOrg != null  and medicalOrg != ''">and medical_org like concat('%', #{medicalOrg}, '%')
+            </if>
+            <if test="startTime!=null"><!-- 开始时间检索 -->
+                and date_format(start_time,'%y%m%d') &gt;= date_format(#{startTime},'%y%m%d')
+            </if>
+            <if test="endTime!=null"><!-- 结束时间检索 -->
+                and date_format(end_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectMedicalEntityByMedicalId" parameterType="Long" resultMap="MedicalEntityResult">
+        <include refid="selectMedicalEntityVo"/>
+        where medical_id = #{medicalId}
+    </select>
+
+    <insert id="insertMedicalEntity" parameterType="com.wr.estate.entity.MedicalEntity" useGeneratedKeys="true"
+            keyProperty="medicalId">
+        insert into xccj_community.bus_medical
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="ageLimit != null">age_limit,</if>
+            <if test="activityName != null and activityName != ''">activity_name,</if>
+            <if test="medicalType != null and medicalType != ''">medical_type,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="medicalOrg != null and medicalOrg != ''">medical_org,</if>
+            <if test="headName != null and headName != ''">head_name,</if>
+            <if test="headPhone != null and headPhone != ''">head_phone,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="totalNum != null">total_num,</if>
+            <if test="joinNum != null">join_num,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="ageLimit != null">#{ageLimit},</if>
+            <if test="activityName != null and activityName != ''">#{activityName},</if>
+            <if test="medicalType != null and medicalType != ''">#{medicalType},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="medicalOrg != null and medicalOrg != ''">#{medicalOrg},</if>
+            <if test="headName != null and headName != ''">#{headName},</if>
+            <if test="headPhone != null and headPhone != ''">#{headPhone},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="totalNum != null">#{totalNum},</if>
+            <if test="joinNum != null">#{joinNum},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateMedicalEntity" parameterType="com.wr.estate.entity.MedicalEntity">
+        update xccj_community.bus_medical
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="ageLimit != null">age_limit = #{ageLimit},</if>
+            <if test="activityName != null and activityName != ''">activity_name = #{activityName},</if>
+            <if test="medicalType != null and medicalType != ''">medical_type = #{medicalType},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="medicalOrg != null and medicalOrg != ''">medical_org = #{medicalOrg},</if>
+            <if test="headName != null and headName != ''">head_name = #{headName},</if>
+            <if test="headPhone != null and headPhone != ''">head_phone = #{headPhone},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="totalNum != null">total_num = #{totalNum},</if>
+            <if test="joinNum != null">join_num = #{joinNum},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where medical_id = #{medicalId}
+    </update>
+
+    <delete id="deleteMedicalEntityByMedicalId" parameterType="Long">
+        delete
+        from xccj_community.bus_medical
+        where medical_id = #{medicalId}
+    </delete>
+
+    <delete id="deleteMedicalEntityByMedicalIds" parameterType="String">
+        delete from xccj_community.bus_medical where medical_id in
+        <foreach item="medicalId" collection="array" open="(" separator="," close=")">
+            #{medicalId}
+        </foreach>
+    </delete>
+
+
+    <select id="lookoldere" resultMap="meold" parameterType="com.wr.estate.entity.MedacalOlderEntity">
+        SELECT
+        be.examiner_id,
+        bm.activity_name,
+        bo.owner_name,
+        bo.card_no,
+        be.examiner_time,
+        bm.medical_org,
+        be.examiner_doctor,
+        be.examiner_import_status,
+        be.examiner_send_status,
+        be.examiner_report_time
+        FROM
+        xccj_community.bus_examiner be
+        LEFT JOIN xccj_community.bus_medical bm ON bm.medical_id = be.examiner_medical
+        LEFT JOIN xccj_community.bus_owner bo ON bo.card_no = be.card_no
+        <where>
+            be.del_flag = 0
+            AND bm.del_flag = 0
+            AND bo.del_flag = 0
+            AND be.examiner_medical = #{medicalId}
+            <if test="ownerName!=null">
+                and bo.owner_name = #{ownerName}
+            </if>
+            <if test="examinerTime!=null">
+                and be.examiner_time like concat('%', #{examinerTime}, '%')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="lookoldere1" resultMap="meold">
+        SELECT be.examiner_id,
+               bm.activity_name,
+               bo.owner_name,
+               bo.card_no,
+               be.examiner_time,
+               bm.medical_org,
+               be.examiner_doctor,
+               be.examiner_report_path
+        FROM xccj_community.bus_examiner be
+                 LEFT JOIN xccj_community.bus_medical bm ON bm.medical_id = be.examiner_medical
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.card_no = be.card_no
+        WHERE be.examiner_id = #{examinerId}
+          AND be.del_flag = 0
+          AND bm.del_flag = 0
+          AND bo.del_flag = 0
+    </select>
+
+
+    <select id="getnamecount" resultType="int">
+        select count(*)
+        from xccj_community.bus_medical
+        where activity_name = #{activityName}
+    </select>
+
+    <!--    查id-->
+    <select id="meid" resultType="java.lang.Long">
+        select medical_id
+        from xccj_community.bus_medical
+        where activity_name = #{activityName}
+    </select>
+
+
+    <insert id="insoldere" parameterType="com.wr.estate.entity.vo.ExaminerExcelEntity">
+        INSERT INTO `xccj_community`.`bus_examiner`
+        (`examiner_medical`, `examiner_name`, `card_no`, `examiner_time`,
+        `examiner_doctor`, `create_by`)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.examinerMedical,jdbcType=VARCHAR},
+            #{item.examinerName,jdbcType=VARCHAR},
+            #{item.cardNo,jdbcType=VARCHAR},
+            #{item.examinerTime,jdbcType=DATE},
+            #{item.examinerDoctor,jdbcType=VARCHAR},
+            #{item.createBy,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+    <update id="addJoinNum">
+        UPDATE `xccj_community`.`bus_medical`
+        SET join_num = join_num + ${joinNum}
+        WHERE #{medicalId}
+    </update>
+
+
+    <update id="addpath">
+        UPDATE `xccj_community`.`bus_examiner`
+        SET `examiner_import_status` = 0,
+            `examiner_report_path`   = #{path},
+            `update_by`              = #{updateBy}
+        WHERE `examiner_id` = #{examinerId};
+    </update>
+
+</mapper>

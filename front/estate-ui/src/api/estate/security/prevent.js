@@ -1,0 +1,54 @@
+import request from '@/utils/request'
+
+//查询列表
+export function getList(query) {
+  return request({
+    url: '/estate/prevent/getList',
+    method: 'post',
+    data: query
+  })
+}
+
+//添加防控信息
+export function addPrevent(data) {
+  return request({
+    url: '/estate/prevent',
+    method: 'post',
+    data: data
+  })
+}
+
+//防空详情
+export function getPreventDetail(query) {
+  return request({
+    url: '/estate/prevent/getPreventDetail/' + query,
+    method: 'get',
+  })
+}
+
+//修改防控信息
+export function updatePrevent(data) {
+  return request({
+    url: '/estate/prevent',
+    method: 'put',
+    data: data
+  })
+}
+
+//删除防控信息
+export function delPrevent(query) {
+  return request({
+    url: '/estate/prevent/delPrevent/' + query,
+    method: 'get',
+  })
+}
+
+//文件上传
+export function upload(data) {
+  return request({
+    url: '/file/upload',
+    method: 'post',
+    data: data
+  })
+}
+

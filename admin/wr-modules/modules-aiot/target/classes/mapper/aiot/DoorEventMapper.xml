@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.DoorEventMapper">
+   <select id="getByIdEventInfo" resultType="com.wr.remote.domain.vo.DoorEventVo">
+       SELECT bde.id,
+              bd.door_no          AS "doorNo",
+              bd.door_serial      AS "doorSerial",
+              bd.channel_type     AS "channelType",
+              ba.`online`         AS "online",
+              bc.community_name   AS "communityName",
+              bb.building_name    AS "buildingName",
+              bu.unit_name        AS "unitName",
+              bd.address          AS "address",
+              bde.event_time      AS "eventTime",
+              bde.card_no         AS "cardNo",
+              bde.person_name     AS "personName",
+              bde.org_name        AS "orgName",
+              bde.door_name       AS "doorName",
+              bde.event_type      AS "eventType",
+              bde.in_and_out_type AS "inAndOutType",
+              bde.dev_name        AS "devName",
+              bde.cert_no         AS "certNo"
+       FROM xccj_device.bus_door_event bde
+                LEFT JOIN xccj_device.bus_door bd ON bd.index_code = bde.door_index_code
+                LEFT JOIN xccj_device.bus_access ba on ba.index_code = bde.dev_index_code
+                LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bd.community_id
+                LEFT JOIN xccj_community.bus_building bb ON bb.building_id = ba.building_id
+                LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = ba.unit_id
+       WHERE bde.id = #{id}
+   </select>
+</mapper>

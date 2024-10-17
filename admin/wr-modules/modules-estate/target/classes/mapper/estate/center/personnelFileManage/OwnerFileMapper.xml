@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.center.personnelfilemanage.OwnerFileMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="ownerId">
+        INSERT INTO `xccj_community`.`bus_owner` (
+        `owner_id`,
+        <if test="communityId!=null">`community_id`,</if>
+        <if test="accountId!=null">`account_id`,</if>
+        <if test="parentId!=null">`parent_id`,</if>
+        <if test="licenseUrl!=null and licenseUrl !=''">`license_url`,</if>
+        <if test="emergencyContactPhone!=null and emergencyContactPhone !=''">`emergency_contact_phone`,</if>
+        <if test="ownerRelation!=null and ownerRelation !=''">`owner_relation`,</if>
+        <if test="ownerName!=null and ownerName !=''">`owner_name`,</if>
+        <if test="ownerPhone!=null and ownerPhone !=''">`owner_phone`,</if>
+        <if test="gender!=null and gender !=''">`gender`,</if>
+        <if test="cardType!=null and cardType !=''">`card_type`,</if>
+        <if test="cardNo!=null and cardNo !=''">`card_no`,</if>
+        <if test="cardFont!=null and cardFont !=''">`card_font`,</if>
+        <if test="cardBack!=null and cardBack !=''">`card_back`,</if>
+        <if test="faceUrl!=null and faceUrl !=''">`face_url`,</if>
+        <if test="domicileAddress!=null and domicileAddress !=''">`domicile_address`,</if>
+        <if test="politicsStatus!=null and politicsStatus !=''">`politics_status`,</if>
+        <if test="emergencyContact!=null and emergencyContact !=''">`emergency_contact`,</if>
+        <if test="nation!=null and nation !=''">`nation`,</if>
+        <if test="nativePlace!=null and nativePlace !=''">`native_place`,</if>
+        <if test="religion!=null and religion !=''">`religion`,</if>
+        <if test="eduLevel!=null and eduLevel !=''">`edu_level`,</if>
+        <if test="military!=null and military !=''">`military`,</if>
+        <if test="marriageStatus!=null and marriageStatus !=''">`marriage_status`,</if>
+        <if test="nationality!=null and nationality !=''">`nationality`,</if>
+        <if test="population!=null and population !=''">`population`,</if>
+        <if test="career!=null and career !=''">`career`,</if>
+        <if test="qqNumber!=null and qqNumber !=''">`qq_number`,</if>
+        <if test="email!=null and email !=''">`email`,</if>
+        <if test="dataSource!=null and dataSource !=''">`data_source`,</if>
+        <if test="selfIntro!=null and selfIntro !=''">`self_intro`,</if>
+        <if test="auditStatus!=null and auditStatus !=''">`audit_status`,</if>
+        <if test="auditTime!=null">`audit_time`,</if>
+        <if test="rejectReason!=null and rejectReason !=''">`reject_reason`,</if>
+        <if test="by!=null and by !=''">`create_by`,</if>
+        create_time,
+        del_flag
+        )
+        VALUES
+        (
+        null,
+        <if test="communityId!=null">#{communityId},</if>
+        <if test="accountId!=null">#{accountId},</if>
+        <if test="parentId!=null">#{parentId},</if>
+        <if test="licenseUrl!=null and licenseUrl !=''">#{licenseUrl},</if>
+        <if test="emergencyContactPhone!=null and emergencyContactPhone !=''">#{emergencyContactPhone},</if>
+        <if test="ownerRelation!=null and ownerRelation !=''">#{ownerRelation},</if>
+        <if test="ownerName!=null and ownerName !=''">#{ownerName},</if>
+        <if test="ownerPhone!=null and ownerPhone !=''">#{ownerPhone},</if>
+        <if test="gender!=null and gender !=''">#{gender},</if>
+        <if test="cardType!=null and cardType !=''">#{cardType},</if>
+        <if test="cardNo!=null and cardNo !=''">#{cardNo},</if>
+        <if test="cardFont!=null and cardFont !=''">#{cardFont},</if>
+        <if test="cardBack!=null and cardBack !=''">#{cardBack},</if>
+        <if test="faceUrl!=null and faceUrl !=''">#{faceUrl},</if>
+        <if test="domicileAddress!=null and domicileAddress !=''">#{domicileAddress},</if>
+        <if test="politicsStatus!=null and politicsStatus !=''">#{politicsStatus},</if>
+        <if test="emergencyContact!=null and emergencyContact !=''">#{emergencyContact},</if>
+        <if test="nation!=null and nation !=''">#{nation},</if>
+        <if test="nativePlace!=null and nativePlace !=''">#{nativePlace},</if>
+        <if test="religion!=null and religion !=''">#{religion},</if>
+        <if test="eduLevel!=null and eduLevel !=''">#{eduLevel},</if>
+        <if test="military!=null and military !=''">#{military},</if>
+        <if test="marriageStatus!=null and marriageStatus !=''">#{marriageStatus},</if>
+        <if test="nationality!=null and nationality !=''">#{nationality},</if>
+        <if test="population!=null and population !=''">#{population},</if>
+        <if test="career!=null and career !=''">#{career},</if>
+        <if test="qqNumber!=null and qqNumber !=''">#{qqNumber},</if>
+        <if test="email!=null and email !=''">#{email},</if>
+        <if test="dataSource!=null and dataSource !=''">#{dataSource},</if>
+        <if test="selfIntro!=null and selfIntro !=''">#{selfIntro},</if>
+        <if test="auditStatus!=null and auditStatus !=''">#{auditStatus},</if>
+        <if test="auditTime!=null">#{auditTime},</if>
+        <if test="rejectReason!=null and rejectReason !=''">#{rejectReason},</if>
+        <if test="by!=null and by !=''">#{by},</if>
+        NOW(),
+        "0"
+        );
+    </insert>
+    <insert id="insertHouse" useGeneratedKeys="true" keyProperty="houseId">
+        INSERT into xccj_community.bus_house (community_id, building_id, unit_id, room_id, owner_id, license_url,
+                                              audit_status,
+                                              audit_time, reject_reason, create_by, create_time, update_by, update_time,
+                                              del_flag)
+        VALUES (#{communityId}, #{buildingId}, #{unitId}, #{roomId}, #{ownerId}, #{licenseUrl}, '1', now(), '', #{by},
+                now(), #{by}, now(), '0')
+    </insert>
+
+    <update id="update">
+        update xccj_community.bus_owner
+        <set>
+
+            <if test="licenseUrl !=null and licenseUrl !=''">
+                license_url=#{licenseUrl},
+            </if>
+            <if test="ownerRelation !=null and ownerRelation !=''">
+                owner_relation=#{ownerRelation},
+            </if>
+            <if test="ownerName !=null and ownerName !=''">
+                owner_name=#{ownerName},
+            </if>
+            <if test="gender !=null and gender !=''">
+                gender=#{gender},
+            </if>
+            <if test="cardType !=null and cardType !=''">
+                card_type=#{cardType},
+            </if>
+            <if test="cardNo !=null and cardNo !=''">
+                card_no=#{cardNo},
+            </if>
+            <if test="cardFont !=null and cardFont !=''">
+                card_font=#{cardFont},
+            </if>
+            <if test="cardBack !=null and cardBack !=''">
+                card_back=#{cardBack},
+            </if>
+            <if test="faceUrl !=null and faceUrl !=''">
+                face_url=#{faceUrl},
+            </if>
+            <if test="domicileAddress !=null and domicileAddress !=''">
+                domicile_address=#{domicileAddress},
+            </if>
+            <if test="politicsStatus !=null and politicsStatus !=''">
+                politics_status=#{politicsStatus},
+            </if>
+            <if test="nation !=null and nation !=''">
+                nation=#{nation},
+            </if>
+            <if test="nativePlace !=null and nativePlace !=''">
+                native_place=#{nativePlace},
+            </if>
+            <if test="religion !=null and religion !=''">
+                religion=#{religion},
+            </if>
+            <if test="eduLevel !=null and eduLevel !=''">
+                edu_level=#{eduLevel},
+            </if>
+            <if test="military !=null and military !=''">
+                military=#{military},
+            </if>
+            <if test="marriageStatus !=null and marriageStatus !=''">
+                marriage_status=#{marriageStatus},
+            </if>
+            <if test="nationality !=null and nationality !=''">
+                nationality=#{nationality},
+            </if>
+            <if test="population !=null and population !=''">
+                population=#{population},
+            </if>
+            <if test="career !=null and career !=''">
+                career=#{career},
+            </if>
+            <if test="qqNumber !=null and qqNumber !=''">
+                qq_number=#{qqNumber},
+            </if>
+            <if test="email !=null and email !=''">
+                email=#{email},
+            </if>
+            <if test="selfIntro !=null and selfIntro !=''">
+                self_intro=#{selfIntro},
+            </if>
+            <if test="emergencyContact !=null and emergencyContact !=''">
+                emergency_contact=#{emergencyContact},
+            </if>
+            <if test="emergencyContactPhone !=null and emergencyContactPhone !=''">
+                emergency_contact_phone=#{emergencyContactPhone},
+            </if>
+
+            <if test="by !=null and by !=''">
+                update_by=#{by},
+            </if>
+            update_time=now()
+        </set>
+        where owner_id = #{ownerId}
+    </update>
+    <update id="updateRoom">
+        update xccj_community.bus_room
+        set
+            owner_id=#{ownerId},
+            license_url=#{licenseUrl},
+            delivery_time=#{deliveryTime},
+            update_by=#{by},
+            update_time=now()
+        where room_id = #{roomId}
+    </update>
+    <update id="updateByRoomIdOwerId">
+        update xccj_community.bus_room
+        set owner_id=#{ownerId},
+            update_by=#{updateBy},
+            update_time=now()
+        where room_id = #{roomId}
+    </update>
+    <update id="updateRooms">
+        update xccj_community.bus_room set
+        owner_id=#{ownerId},
+        live_num=0,
+        license_url=#{licenseUrl},
+        delivery_time=#{deliveryTime},
+        update_by=#{by},
+        update_time=now()
+        where room_id in
+        <foreach collection="roomId" open="(" close=")" separator="," item="i">
+            #{i}
+        </foreach>
+    </update>
+    <update id="updateRoomState">
+        update xccj_community.bus_room
+        set
+            update_by=#{by},
+            live_num=0,
+            update_time=now()
+        where room_id = #{oldRoomId}
+          and owner_id = #{ownerId}
+    </update>
+    <select id="getOwnerInfo" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT
+        owner_id AS "ownerId",
+        community_id AS "communityId",
+        building_id AS "buildingId",
+        unit_id AS "unitId",
+        room_id AS "roomId",
+        account_id AS "accountId",
+        parent_id AS "parentId",
+        license_url AS "licenseUrl",
+        emergency_contact_phone AS "emergencyContactPhone",
+        owner_relation AS "ownerRelation",
+        owner_name AS "ownerName",
+        owner_phone AS "ownerPhone",
+        gender AS "gender",
+        card_type AS "cardType",
+        card_no AS "cardNo",
+        card_font AS "cardFont",
+        card_back AS "cardBack",
+        face_url AS "faceUrl",
+        domicile_address AS "domicileAddress",
+        politics_status AS "politicsStatus",
+        emergency_contact AS "emergencyContact",
+        nation AS "nation",
+        native_place AS "nativePlace",
+        religion AS "religion",
+        edu_level AS "eduLevel",
+        military AS "military",
+        marriage_status AS "marriageStatus",
+        nationality AS "nationality",
+        population AS "population",
+        career AS "career",
+        qq_number AS "qqNumber",
+        email AS "email",
+        data_source AS "dataSource",
+        self_intro AS "selfIntro",
+        audit_status AS "auditStatus",
+        audit_time AS "auditTime",
+        reject_reason AS "rejectReason",
+        create_by AS "createBy",
+        create_time AS "createTime",
+        update_by AS "updateBy",
+        update_time AS "updateTime",
+        del_flag AS "delFlag"
+        FROM
+        xccj_community.bus_owner bo
+        where del_flag="0"
+        <if test="ownerId !=null">
+            and owner_id=#{ownerId}
+        </if>
+        <if test="ownerPhone !=null and ownerPhone !=''">
+            and owner_phone=#{ownerPhone}
+        </if>
+        <if test="cardNo !=null and cardNo !=''">
+            and card_no=#{cardNo}
+        </if>
+        <if test="ownerRelation!=null and ownerRelation !=''">
+            and owner_relation=#{ownerRelation}
+        </if>
+        <if test="communityId!=null">
+            and community_id=#{communityId}
+        </if>
+
+    </select>
+    <update id="increaseLive">
+        update xccj_community.bus_room
+        set live_num=live_num + 1
+        where room_id = #{roomId,jdbcType=BIGINT}
+    </update>
+    <update id="updateByRoomIdLiveNum">
+        update xccj_community.bus_room
+        set live_num=#{liveNum}
+        where room_id = #{roomId,jdbcType=BIGINT}
+    </update>
+    <update id="decreaseLive">
+        UPDATE xccj_community.bus_room
+        SET live_num =
+                CASE
+                    WHEN live_num > 0 THEN live_num - 1
+                    WHEN live_num = 0 THEN 0
+                    ELSE live_num
+                    END
+        WHERE room_id = #{roomId,jdbcType=BIGINT}
+    </update>
+
+    <update id="reduceLiveNumOne">
+        update xccj_community.bus_room SET live_num =
+        CASE
+        WHEN live_num > 0 THEN live_num -1
+        WHEN live_num = 0 THEN 0
+        ELSE live_num
+        END
+        where room_id IN
+        <foreach collection="list" open="(" close=")" separator="," item="roomId">
+            #{roomId}
+        </foreach>
+    </update>
+
+    <delete id="deleteds">
+        update xccj_community.bus_owner set del_flag='1' where owner_id
+        in
+        <foreach collection="array" open="(" close=")" separator="," item="i">
+            #{i}
+        </foreach>
+    </delete>
+    <delete id="deleted">
+        update xccj_community.bus_owner
+        set del_flag='1'
+        where owner_id = #{id}
+    </delete>
+    <select id="getRoomIdAndAccountId" resultType="java.util.LinkedHashMap">
+        select account_id as "accountId",room_id as "roomId",owner_relation as "ownerRelation" from
+        xccj_community.bus_owner where owner_id
+        in
+        <foreach collection="array" open="(" close=")" separator="," item="i">
+            #{i}
+        </foreach>
+    </select>
+    <select id="queryByCommunityId" resultType="com.wr.remote.estate.center.vo.OwnerFileVo">
+        select * from (
+        SELECT DISTINCT
+        o.owner_id AS "ownerId",
+        o.owner_name AS "ownerName",
+        o.owner_phone AS "ownerPhone",
+        o.card_no AS "cardNo",
+        o.card_type as "cardType",
+        o.gender AS "gender",
+        o.data_source AS "dataSource",
+        ( SELECT count( 1 ) FROM xccj_community.bus_vehicle WHERE del_flag = '0' AND account_id = o.account_id AND
+        audit_status = '1' ) AS carNum,
+        ( SELECT count( 1 ) FROM xccj_community.bus_tenant WHERE owner_id = o.owner_id AND audit_status = '1' ) AS
+        'space',
+        ( SELECT count( 1 ) FROM xccj_community.bus_room br WHERE br.owner_id = o.owner_id AND br.del_flag = '0' ) AS
+        'roomSpace',
+        o.update_time AS "updateTime",
+        o.create_time AS "createTime",
+        o.update_by AS "updateBy",
+        bh.community_id as "communityId"
+        FROM
+        xccj_community.bus_owner o
+        LEFT JOIN xccj_community.bus_house bh ON bh.owner_id = o.owner_id
+        WHERE
+        o.del_flag = '0'
+        AND o.audit_status = '1'
+        AND bh.community_id =#{communityId}
+        <if test="name != '' and name != null">
+            AND o.owner_name like concat('%',#{name},'%')
+        </if>
+        <if test="phone != '' and phone != null">
+            and o.owner_phone like concat('%',#{phone},'%')
+        </if>
+        <if test="ids!='' and ids != null">
+            and o.owner_id in
+            <foreach collection="ids" item="i" separator="," close=")" open="(">
+                #{i}
+            </foreach>
+        </if>
+        )a
+        <where>
+            <if test="isCar != '' and isCar != null ">
+                <choose>
+                    <when test="isCar == 0 ">
+                        and carNum > 0
+                    </when>
+                    <otherwise>
+                        and carNum = 0
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="isOutIn != '' and isOutIn != null ">
+                <choose>
+                    <when test="isOutIn == 0 ">
+                        and `space` > 0
+                    </when>
+                    <otherwise>
+                        and `space` = 0
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        order by a.createTime desc
+    </select>
+    <select id="queryByRoomId" resultType="java.util.LinkedHashMap">
+        SELECT o.owner_name     as "ownerName"
+             , o.owner_phone    as "ownerPhone"
+             , o.card_no        as "cardNo"
+             , o.gender
+             , o.owner_relation as "ownerRelation"
+             , c.community_name as "communityName"
+             , o.account_id     as "accountId"
+        from xccj_community.bus_owner o,
+             xccj_community.bus_community c
+        WHERE o.del_flag = '0'
+          and o.community_id = c.community_id
+          and o.audit_status = '1'
+          and o.community_id = #{communityId}
+          and o.building_id = #{buildingId}
+          and o.unit_id = #{unitId}
+          and o.room_id = #{roomId}
+    </select>
+
+    <select id="queryRoomByOwnerId" resultType="java.util.LinkedHashMap">
+        SELECT c.community_name                                  as "communityName",
+               CONCAT(b.building_name, u.unit_name, r.room_name) as "room",
+               o.owner_name                                      as "ownerName",
+               r.room_status                                     as "roomStatus",
+               r.delivery_time                                   as "deliveryTime"
+        from xccj_community.bus_house h,
+             xccj_community.bus_room r,
+             xccj_community.bus_community c,
+             xccj_community.bus_building b,
+             xccj_community.bus_unit u,
+             xccj_community.bus_owner o
+        WHERE r.del_flag = '0'
+          AND h.audit_status = '1'
+          AND h.del_flag = '0'
+          and r.community_id = c.community_id
+          and r.building_id = b.building_id
+          and r.unit_id = u.unit_id
+          and h.room_id = r.room_id
+          and h.owner_id = #{id}
+          and o.owner_id = h.owner_id
+    </select>
+    <select id="queryCarByOwnerId" resultType="java.util.LinkedHashMap">
+
+        SELECT v.plate_no                           as "plateNo",
+               (SELECT dict_label
+                from xccj_estate_sys.sys_dict_data
+                WHERE dict_type = 'sys_plate_color'
+                  and v.plate_color = dict_value)   as "plateColor",
+               v.vehicle_status                     as "vehicleStatus",
+               v.vehicle_brand                      as "vehicleBrand",
+               vehicle_type                         as "vehicleType",
+               (SELECT dict_label
+                from xccj_estate_sys.sys_dict_data
+                WHERE dict_type = 'sys_vehicle_color'
+                  and v.vehicle_color = dict_value) as "vehicleColor"
+
+        from xccj_community.bus_vehicle v
+
+        WHERE v.audit_status = '1'
+          and v.account_id = #{id}
+    </select>
+    <select id="queryTenantByOwnerId" resultType="java.util.LinkedHashMap">
+        SELECT t.tenant_name  as "tenantName",
+               t.tenant_phone as "tenantPhone",
+               t.card_no      as "cardNo",
+               t.gender,
+               t.account_id   as "accountId",
+               if(now() >= r.contract_end, '已结束', '进行中') as 'state',c.community_name as "communityName"
+        from xccj_community.bus_tenant t,
+             xccj_community.bus_rent_contract r,
+             xccj_community.bus_community c
+        WHERE t.del_flag = '0'
+          and r.tenant_id = t.tenant_id
+          and t.community_id = c.community_id
+          and t.audit_status = '1'
+          and t.owner_id = #{id}
+    </select>
+    <select id="queryCarByAccountId" resultType="java.lang.String">
+        SELECT plate_no as "plateNo"
+        from xccj_community.bus_vehicle
+        WHERE del_flag = '0'
+          and account_id = #{id}
+          and audit_status = '1'
+    </select>
+    <select id="queryCarPortByOwnerId" resultType="java.util.LinkedHashMap">
+        SELECT carport_no     as "carportNo",
+               rental_type    as "rentalType",
+               carport_fee    as "carportFee",
+               rental_start   as "rentalStart",
+               rental_end     as "rentalEnd",
+               carport_nature as "carportNature",
+               IF(rental_type = '0', '永久', TIMESTAMPDIFF(MONTH,rental_start, rental_end)) as 'space'
+        from xccj_community.bus_carport
+        WHERE del_flag = '0'
+          and account_id = #{id}
+    </select>
+    <select id="getOwnerId" resultType="java.lang.Integer">
+        SELECT IFNULL(owner_id, 0) as "ownerId"
+        from xccj_community.bus_owner
+        WHERE del_flag = '0'
+          and owner_relation = '0'
+          and room_id = #{id}
+          and audit_status = '1'
+    </select>
+    <select id="getPhoneNum" resultType="java.lang.Integer">
+        select count(1)
+        from xccj_community.bus_owner
+        where owner_phone = #{no}
+          and del_flag = '0'
+    </select>
+    <select id="getCardNoNum" resultType="java.lang.Integer">
+        select count(1)
+        from xccj_community.bus_owner
+        where card_no = #{no}
+          and del_flag = '0'
+    </select>
+
+    <select id="getDictData" resultType="java.util.LinkedHashMap">
+        SELECT dict_value, dict_label
+        from xccj_estate_sys.sys_dict_data
+        WHERE dict_type = 'sys_certificate'
+    </select>
+
+    <select id="selectAccessList" resultType="com.wr.remote.aiot.Access">
+        SELECT access_id,
+               index_code,
+               access_name,
+               inout_type,
+               online
+        FROM xccj_device.bus_access
+        WHERE del_flag = '0'
+          AND community_id = #{communityId}
+    </select>
+
+    <select id="selectOwnerById" resultType="com.wr.remote.estate.manage.contract.Owner">
+        select *
+        from xccj_community.bus_owner
+        where del_flag = '0'
+          AND owner_id = #{ownerId}
+    </select>
+
+    <select id="getByRoomIdOwnerInfo" resultType="com.wr.remote.estate.center.vo.OwnerVo">
+        SELECT DISTINCT a.*
+        FROM (SELECT bo.owner_id                AS "id",
+                     bo.owner_name              AS "ownerName",
+                     bo.owner_phone             AS "ownerPhone",
+                     bo.card_type               AS "cardType",
+                     bo.card_no                 AS "cardNo",
+                     bo.card_font               AS "cardFont",
+                     bo.card_back               AS "cardBack",
+                     bo.gender                  AS "gender",
+                     bo.owner_relation          AS "ownerRelation",
+                     bo.politics_status         AS "politicsStatus",
+                     br.license_url             AS "licenseUrl",
+                     bo.emergency_contact       AS "emergencyContact",
+                     bo.emergency_contact_phone AS "emergencyContactPhone",
+                     bo.self_intro              AS "selfIntro",
+                     bo.account_id              AS "accountId",
+                     br.room_id                 AS "roomId"
+              FROM xccj_community.`bus_owner` `bo`
+                       LEFT JOIN xccj_community.`bus_house` `bh` ON `bo`.`owner_id` = `bh`.`owner_id`
+                       LEFT JOIN xccj_community.`bus_community` `bc` ON `bh`.`community_id` = `bc`.`community_id`
+                       LEFT JOIN xccj_community.`bus_building` `bb` ON `bh`.`building_id` = `bb`.`building_id`
+                       LEFT JOIN xccj_community.`bus_unit` `bu` ON `bh`.`unit_id` = `bu`.`unit_id`
+                       LEFT JOIN xccj_community.`bus_room` `br` ON `bh`.`room_id` = `br`.`room_id`
+              WHERE br.room_id = #{roomId}
+              UNION ALL
+              SELECT bo.owner_id                AS "id",
+                     bo.owner_name              AS "ownerName",
+                     bo.owner_phone             AS "ownerPhone",
+                     bo.card_type               AS "cardType",
+                     bo.card_no                 AS "cardNo",
+                     bo.card_font               AS "cardFont",
+                     bo.card_back               AS "cardBack",
+                     bo.gender                  AS "gender",
+                     bo.owner_relation          AS "ownerRelation",
+                     bo.politics_status         AS "politicsStatus",
+                     br.license_url             AS "licenseUrl",
+                     bo.emergency_contact       AS "emergencyContact",
+                     bo.emergency_contact_phone AS "emergencyContactPhone",
+                     bo.self_intro              AS "selfIntro",
+                     bo.account_id              AS "accountId",
+                     br.room_id                 AS "roomId"
+              FROM xccj_community.`bus_owner` `bo`
+                       LEFT JOIN xccj_community.`bus_owner` `bos` ON `bo`.`parent_id` = `bos`.`owner_id`
+                       LEFT JOIN xccj_community.`bus_house` `bh` ON `bos`.`owner_id` = `bh`.`owner_id`
+                       LEFT JOIN xccj_community.`bus_community` `bc` ON `bh`.`community_id` = `bc`.`community_id`
+                       LEFT JOIN xccj_community.`bus_building` `bb` ON `bh`.`building_id` = `bb`.`building_id`
+                       LEFT JOIN xccj_community.`bus_unit` `bu` ON `bh`.`unit_id` = `bu`.`unit_id`
+                       LEFT JOIN xccj_community.`bus_room` `br` ON `bh`.`room_id` = `br`.`room_id`
+              WHERE br.room_id = #{roomId}) a
+        ORDER BY a.ownerRelation
+    </select>
+
+    <select id="getByOwnerIdOwnerInfo" resultType="com.wr.remote.estate.center.vo.OwnerVo">
+        SELECT voa.owner_id                AS "id",
+               voa.owner_name              AS "ownerName",
+               voa.owner_phone             AS "ownerPhone",
+               voa.card_type               AS "cardType",
+               voa.card_no                 AS "cardNo",
+               voa.card_font               AS "cardFont",
+               voa.card_back               AS "cardBack",
+               voa.gender                  AS "gender",
+               voa.owner_relation          AS "ownerRelation",
+               voa.politics_status         AS "politicsStatus",
+               voa.license_url             AS "licenseUrl",
+               voa.emergency_contact       AS "emergencyContact",
+               voa.emergency_contact_phone AS "emergencyContactPhone",
+               voa.self_intro              AS "selfIntro",
+               voa.account_id              AS "accountId",
+               voa.room_id                 AS "roomId",
+               voa.religion                as "religion"
+        FROM xccj_community.view_owner_audit voa
+        where voa.owner_id = #{ownerId} and voa.community_id =#{communityId}
+    </select>
+    <select id="getByRoomIdOwnerRelationCount" resultType="Integer">
+        SELECT
+        count(1)
+        FROM
+        xccj_community.bus_owner bo
+        LEFT JOIN xccj_community.bus_house bh ON bo.owner_id = bh.owner_id
+        WHERE
+        bh.room_id = #{roomId}
+        <if test="ownerId!=null">
+            AND bo.owner_id!=#{ownerId}
+        </if>
+        AND bo.owner_relation = "0"
+    </select>
+    <select id="getAllOwnerList" resultType="com.wr.remote.estate.center.vo.OwnerFileVo">
+        SELECT
+            bo.account_id AS "accountId",
+            bo.owner_name AS "ownerName",
+            bo.owner_phone AS "ownerPhone",
+            bo.card_no AS "cardNo",
+            (
+                SELECT
+                    count( 1 )
+                FROM
+                    xccj_community.bus_vote_owner bvo
+                WHERE
+                    bvo.del_flag = "0"
+                  AND bvo.vote_scope_id = #{voteScopeId}
+                  AND bo.account_id = bvo.account_id
+            ) AS "count"
+        FROM
+            xccj_community.bus_owner bo
+        WHERE
+            bo.del_flag = '0'
+          AND bo.audit_status = '1' and bo.community_id=#{communityId}
+    </select>
+
+    <select id="getOwnerPhoneInfo" resultType="com.wr.remote.estate.center.vo.OwnerFileVo">
+        SELECT bo.owner_id    AS "ownerId",
+               bo.owner_name  AS "ownerName",
+               bo.owner_phone AS "ownerPhone",
+               bo.account_id as "accountId"
+        FROM xccj_community.bus_owner bo
+        WHERE bo.owner_phone = #{ownerPhone}
+    </select>
+</mapper>

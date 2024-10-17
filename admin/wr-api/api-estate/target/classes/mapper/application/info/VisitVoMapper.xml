@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.estate.mapper.application.info.VisitVoMapper">
+    <!--    访客列表-->
+    <select id="getList" resultType="com.wr.api.estate.entity.vo.application.info.VisitLogVo">
+        SELECT
+        user_name,user_phone,id_card,count(id_card) AS visitNum,community_id
+        FROM ${tableName}
+        WHERE del_flag = '0' AND DATE_FORMAT(into_time, '%y-%m-%d') = DATE_FORMAT(NOW(), '%y-%m-%d') AND community_id =
+        #{communityId}
+        <if test="userName != null">AND user_name like concat ('%',#{userName},'%')</if>
+        group by id_card
+    </select>
+
+    <select id="getVisitList" resultType="com.wr.api.estate.entity.vo.application.info.VisitLogVo">
+        SELECT owner_name,
+               into_time,
+               community_name,
+               room_name,
+               plant_no,
+               with_num + 1 AS with_num
+        FROM ${tableName}
+        WHERE del_flag = '0'
+          AND DATE_FORMAT(into_time, '%y-%m-%d') = DATE_FORMAT(NOW(), '%y-%m-%d')
+          AND id_card = #{idCard}
+          and community_id = #{communityId}
+    </select>
+
+    <select id="getVisitCount" resultType="int">
+        SELECT count(DISTINCT id_card)
+        FROM ${tableName}
+        WHERE del_flag = '0'
+          AND DATE_FORMAT(into_time, '%Y-%M-%D') = DATE_FORMAT(NOW(), '%Y-%M-%D')
+          AND community_id = #{communityId}
+    </select>
+
+
+    <select id="getVisitPageList" resultType="com.wr.api.estate.entity.vo.LiaisonVo">
+        SELECT
+        bl.liaison_id,
+        bl.user_name,
+        bl.user_phone,
+        bl.begin_time,
+        bo.owner_name,
+        com.community_name,
+        bui.building_name,
+        uni.unit_name,
+        oom.room_name,
+        bl.liaison_status
+        FROM
+        xccj_community.bus_liaison AS bl
+        LEFT JOIN xccj_community.bus_owner AS bo ON bo.owner_id = bl.owner_id
+        LEFT JOIN xccj_community.bus_community AS com ON bo.community_id = com.community_id
+        LEFT JOIN xccj_community.bus_room AS oom ON bl.room_id = oom.room_id
+        LEFT JOIN xccj_community.bus_building AS bui ON oom.building_id = bui.building_id
+        LEFT JOIN xccj_community.bus_unit AS uni ON oom.unit_id = uni.unit_id
+        WHERE
+        bl.del_flag = '0'
+        AND bo.community_id = #{communityId}
+        AND bl.liaison_status='1'
+        <if test="userName !=null and userName !=''">
+            and bl.user_name like CONCAT('%',#{userName},'%')
+        </if>
+        order by bl.begin_time desc
+    </select>
+
+    <!--根据通行表id查询详情-->
+    <select id="getVisitorById" parameterType="Long" resultType="com.wr.api.estate.entity.vo.LiaisonVo">
+        select bl.user_name,
+               bl.user_phone,
+               bl.card_no,
+               bl.with_num,
+               bl.plant_no,
+               bl.apply_time,
+               com.community_name,
+               bui.building_name,
+               uni.unit_name,
+               oom.room_name,
+               bo.owner_name,
+               bo.owner_phone,
+               bl.liaison_status,
+               bl.begin_time,
+               bl.end_time
+        from xccj_community.bus_liaison as bl
+                 left join xccj_community.bus_owner as bo on bo.owner_id = bl.owner_id
+                 left join xccj_community.bus_room as oom on bl.room_id = oom.room_id
+                 left join xccj_community.bus_community as com on oom.community_id = com.community_id
+                 left join xccj_community.bus_building as bui on oom.building_id = bui.building_id
+                 left join xccj_community.bus_unit as uni on oom.unit_id = uni.unit_id
+        where bl.liaison_id = #{liaisonId}
+    </select>
+</mapper>

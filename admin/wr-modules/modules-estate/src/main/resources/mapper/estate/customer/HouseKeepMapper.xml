@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.customer.HouseKeepMapper">
+    <select id="pageList" resultType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO"
+            parameterType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO">
+        SELECT
+        xba.majordomo_id,
+        xbb.building_name,
+        xbs.staff_name,
+        xbs.gender,
+        xbs.staff_phone,
+        xba.update_by,
+        xba.update_time,
+        xbs.work_post as postId,
+        (
+        substring( now(), 1, 4 )- substring( xbs.card_no, 7, 4 ))-(
+        substring( xbs.card_no, 11, 4 )- date_format( now(), '%m%d' )> 0
+        ) AS age
+        FROM
+        xccj_community.bus_majordomo xba
+        LEFT JOIN xccj_community.bus_staff xbs ON xba.staff_id = xbs.staff_id
+        LEFT JOIN xccj_community.bus_community xbc ON xba.community_id = xbc.community_id
+        LEFT JOIN xccj_community.bus_building xbb ON xba.building_id = xbb.building_id
+        WHERE
+        xba.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            AND xba.community_id = #{communityId}
+        </if>
+        <if test="postId != null and postId != ''">
+            AND xbs.work_post = #{postId}
+        </if>
+        <if test="staffPhone != null and staffPhone != ''">
+            AND xbs.staff_phone Like CONCAT('%',#{staffPhone},'%')
+        </if>
+        <if test="staffName != null and staffName != ''">
+            AND xbs.staff_name Like CONCAT('%',#{staffName},'%')
+        </if>
+    </select>
+
+
+    <delete id="del" parameterType="long">
+        UPDATE xccj_community.bus_majordomo
+        set del_flag = '1'
+        where majordomo_id = #{majordomoId}
+    </delete>
+
+    <select id="postSelect" resultType="java.util.Map">
+        SELECT post_id   postId,
+               post_name postName
+        FROM xccj_estate_sys.sys_post
+        WHERE STATUS = '0'
+    </select>
+
+    <select id="staffSelect" resultType="java.util.Map">
+        SELECT post_id   postId,
+               post_name postName
+        FROM xccj_estate_sys.sys_post
+        WHERE STATUS = '0'
+    </select>
+
+    <select id="queryDetail" parameterType="long" resultType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO">
+        SELECT xbm.majordomo_id,
+               xbs.staff_phone,
+               xbb.building_id,
+               xbs.work_post as postId,
+               xbm.staff_id
+        FROM xccj_community.bus_majordomo xbm
+                 JOIN xccj_community.bus_staff xbs ON xbm.staff_id = xbs.staff_id
+                 join xccj_community.bus_building xbb on xbm.building_id = xbb.building_id
+        WHERE xbm.majordomo_id = #{majordomoId}
+    </select>
+
+
+    <select id="selectBuild" resultType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO" parameterType="long">
+        select building_name, building_id
+        from xccj_community.bus_building
+        where community_id = #{communityId}
+          and del_flag = '0'
+    </select>
+
+    <select id="selectStaff" resultType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO"
+            parameterType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO">
+        select staff_id, staff_name, staff_phone
+        from xccj_community.bus_staff
+        where community_id = #{communityId}
+          and work_post = #{postId}
+          and del_flag = '0'
+    </select>
+
+    <select id="selectPhone" resultType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO" parameterType="long">
+        select staff_phone
+        from xccj_community.bus_staff
+        where staff_id = #{staffId}
+    </select>
+
+    <select id="select" resultType="int" parameterType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO">
+        select count(majordomo_id)
+        from xccj_community.bus_majordomo
+        where building_id = #{buildingId}
+          and staff_id = #{staffId}
+    </select>
+    <select id="checkBuildUnique" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM xccj_community.bus_majordomo
+        WHERE del_flag = '0'
+        AND community_id = #{communityId}
+        AND building_id = #{buildingId}
+        <if test="null != majordomoId">
+            AND majordomo_id != #{majordomoId}
+        </if>
+    </select>
+    <insert id="insertBuild" parameterType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO">
+        insert into xccj_community.bus_majordomo(
+        <if test="communityId != null and communityId != 0">
+            community_id,
+        </if>
+        <if test="buildingId != null and buildingId != 0">
+            building_id,
+        </if>
+        <if test="staffId != null and staffId !=''">
+            staff_id,
+        </if>
+        <if test="createBy != null and createBy !=''">
+            create_by,
+        </if>
+        create_time
+        )values(
+        <if test="communityId != null and communityId !=0">
+            #{communityId},
+        </if>
+        <if test="buildingId != null and buildingId !=0">
+            #{buildingId},
+        </if>
+        <if test="staffId != null and staffId !=''">
+            #{staffId},
+        </if>
+        <if test="createBy != null and createBy != ''">
+            #{createBy},
+        </if>
+        sysdate()
+        )
+    </insert>
+    <update id="updateKeepList" parameterType="com.wr.remote.estate.housekeep.vo.HouseKeepListVO">
+        update xccj_community.bus_majordomo
+        set building_id = #{buildingId},
+            staff_id    = #{staffId},
+            update_by   = #{updateBy},
+            update_time = sysdate()
+        where majordomo_id = #{majordomoId}
+    </update>
+</mapper>

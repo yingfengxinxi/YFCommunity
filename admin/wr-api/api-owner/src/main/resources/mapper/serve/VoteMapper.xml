@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.VoteMapper">
+    <insert id="addVote">
+        <selectKey resultType="java.lang.Long" order="AFTER" keyProperty="voteId">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO xccj_govern.`bus_vote`(
+        <if test="null != estateId">
+            estate_id,
+        </if>
+        <if test="null != voteName and '' != voteName">
+            vote_name,
+        </if>
+        vote_status,
+        data_source,
+        <if test="null != startTime">
+            start_time,
+        </if>
+        <if test="null != endTime">
+            end_time,
+        </if>
+        <if test="null != content and '' != content">
+            content,
+        </if>
+        <if test="null != createBy and '' != createBy">
+            create_by,
+        </if>
+        create_time,
+        <if test="null != updateBy and '' != updateBy">
+            update_by,
+        </if>
+        update_time,
+        del_flag
+        ) VALUES (
+        <if test="null != estateId">
+            #{estateId},
+        </if>
+        <if test="null != voteName and '' != voteName">
+            #{voteName},
+        </if>
+        '0',
+        '1',
+        <if test="null != startTime">
+            #{startTime},
+        </if>
+        <if test="null != endTime">
+            #{endTime},
+        </if>
+        <if test="null != content and '' != content">
+            #{content},
+        </if>
+        <if test="null != createBy and '' != createBy">
+            #{createBy},
+        </if>
+        sysdate(),
+        <if test="null != updateBy and '' != updateBy">
+            #{updateBy},
+        </if>
+        sysdate(),
+        '0'
+        )
+    </insert>
+    <insert id="addVoteItem">
+        INSERT INTO xccj_govern.bus_vote_item(vote_id,item_name) VALUES
+        <foreach collection="itemList" item="item" index="index" separator=",">
+            ( #{voteId}, #{item.itemName} )
+        </foreach>
+    </insert>
+    <insert id="addVoteCommunity">
+        INSERT INTO xccj_govern.bus_vote_community(vote_id,community_id) VALUES (#{voteId}, #{communityId})
+    </insert>
+    <update id="upVoteItem">
+        UPDATE xccj_govern.bus_vote_item
+        SET vote_num = vote_num + 1
+        WHERE item_id = #{itemId}
+    </update>
+    <select id="getVoteItemAll" resultType="com.wr.api.owner.entity.vo.serve.VoteItemVO">
+        SELECT item_id, vote_id, item_name, vote_num
+        FROM xccj_govern.bus_vote_item
+        WHERE del_flag = '0'
+          AND vote_id = #{voteId}
+    </select>
+    <select id="getVoidAll" resultType="com.wr.api.owner.entity.vo.serve.VoidVO">
+        SELECT bv.vote_id,
+               bv.vote_name,
+               bv.start_time,
+               bv.end_time,
+               bv.content,
+               (
+                   CASE
+                       WHEN SYSDATE() >= bv.start_time AND
+
+                                    SYSDATE() &lt;= bv.end_time THEN
+                           '0'
+                       WHEN SYSDATE() > bv.end_time THEN
+                           '1'
+                       END
+                   )                       AS `status`,
+               IF(record.id IS NULL, 0, 1) AS hasVote
+        FROM xccj_govern.`bus_vote` bv
+                 LEFT JOIN xccj_govern.`bus_vote_record` record
+                           ON record.vote_id = bv.vote_id AND record.owner_id = #{ownerId}
+                 LEFT JOIN xccj_govern.bus_vote_community bvc ON bvc.vote_id = bv.vote_id
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bvc.community_id
+                 LEFT JOIN xccj_govern.bus_vote_unit unit ON bv.vote_id = unit.vote_id
+                 LEFT JOIN xccj_govern.bus_vote_building building ON bv.vote_id = building.vote_id
+        WHERE bv.del_flag = '0'
+          AND SYSDATE() >= bv.start_time
+          AND bvc.community_id = #{communityId}
+          AND (unit.unit_id IS NULL OR unit.unit_id = #{unitId})
+          AND (building.building_id IS NULL OR building.building_id = #{buildingId})
+        ORDER BY bv.create_time DESC
+    </select>
+    <select id="checkVoteNameUnique" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM xccj_govern.`bus_vote` bv WHERE bv.del_flag = '0' AND bv.vote_name = #{voteName}
+    </select>
+
+    <!-- 保存投票记录 -->
+    <insert id="insertVoteRecord">
+        INSERT INTO xccj_govern.`bus_vote_record` (vote_id, owner_id, item_id, vote_time)
+        VALUES (#{voteId},#{ownerId},#{itemId},NOW())
+    </insert>
+
+    <!-- 根据业主id查询是否已经投票了 -->
+    <select id="countByOwnerId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM xccj_govern.`bus_vote_record`
+        WHERE vote_id = #{voteId} AND owner_id = #{ownerId}
+    </select>
+
+    <!-- 投票统计 -->
+    <select id="voteStatistics" resultType="com.wr.api.owner.entity.vo.serve.VoteStatisticsVO">
+        SELECT IFNULL(SUM(IF(item.item_name = '同意',1,0)),0) AS consentCount,
+               IFNULL(SUM(IF(item.item_name = '不同意',1,0)),0) AS unConsentCount
+        FROM xccj_govern.bus_vote_record record
+                 LEFT JOIN xccj_govern.bus_vote_item item ON record.item_id = item.item_id
+        WHERE record.vote_id = #{voteId}
+    </select>
+</mapper>

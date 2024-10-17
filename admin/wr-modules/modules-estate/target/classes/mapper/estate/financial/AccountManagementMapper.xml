@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.financial.AccountManagementMapper">
+
+    <select id="selectAliList" resultType="com.wr.remote.domain.CommunityAli">
+        SELECT
+            xba.alipay_id, xba.community_id, bc.community_name, xba.alipay_name, xba.app_id, xba.public_key, xba.private_key,
+            xba.ali_status, xba.create_by, xba.create_time, xba.update_by, xba.update_time, xba.del_flag
+        FROM xccj_community.bus_alipay xba
+        LEFT JOIN xccj_community.bus_community bc ON xba.community_id = bc.community_id
+        WHERE xba.del_flag = '0'
+        AND bc.estate_id = #{estateId}
+        <if test="communityId != null">AND xba.community_id = #{communityId}</if>
+        <if test="alipayName != null and alipayName != ''">
+            AND xba.alipay_name LIKE concat('%', #{alipayName}, '%')
+        </if>
+    </select>
+
+    <insert id="insertAli">
+        INSERT INTO xccj_community.bus_alipay (
+            community_id, alipay_name, app_id, public_key, private_key,
+            ali_status, create_by, create_time, update_by, update_time, del_flag
+        ) VALUES (
+            #{communityId}, #{alipayName}, #{appId}, #{publicKey}, #{privateKey},
+            '0', #{createBy}, sysdate(), #{createBy}, sysdate(), '0'
+        )
+    </insert>
+
+    <update id="updateAli">
+        UPDATE xccj_community.bus_alipay SET
+         community_id = #{communityId}, alipay_name = #{alipayName}, app_id = #{appId},
+         public_key = #{publicKey}, private_key = #{privateKey},
+         ali_status = #{aliStatus}, update_by = #{updateBy}, update_time = sysdate()
+        WHERE alipay_id = #{alipayId}
+    </update>
+
+    <update id="removeAli">
+        UPDATE xccj_community.bus_alipay SET del_flag = '1' WHERE alipay_id = #{alipayId}
+    </update>
+
+    <select id="selectWechatList" resultType="com.wr.remote.domain.CommunityWechat">
+        SELECT
+            xbw.wechat_id, xbw.community_id, bc.community_name, xbw.wechat_name, xbw.app_id, xbw.app_secret,
+            xbw.mch_id, xbw.serial_no AS serialNumber, xbw.private_url, xbw.api_key, xbw.refund_url,
+            xbw.wechat_status, xbw.create_by, xbw.create_time, xbw.update_by, xbw.update_time, xbw.del_flag,xbw.owner_app_id,xbw.owner_app_secret
+        FROM xccj_community.bus_wechat xbw
+        LEFT JOIN xccj_community.bus_community bc ON xbw.community_id = bc.community_id
+        WHERE xbw.del_flag = '0'
+        AND bc.estate_id = #{estateId}
+        <if test="communityId != null">AND xbw.community_id = #{communityId}</if>
+        <if test="wechatName != null and wechatName != ''">
+            AND xbw.wechat_name LIKE concat('%', #{wechatName}, '%')
+        </if>
+    </select>
+
+    <insert id="insertWechat">
+        INSERT INTO xccj_community.bus_wechat (
+            community_id, wechat_name, app_id, app_secret, mch_id,
+            serial_no, private_url, api_key, refund_url, wechat_status,
+            create_by, create_time, update_by, update_time, del_flag,owner_app_id,owner_app_secret
+        ) VALUES (
+            #{communityId}, #{wechatName}, #{appId}, #{appSecret}, #{mchId},
+            #{serialNumber}, #{privateUrl}, #{apiKey}, '', '0',
+            #{createBy}, sysdate(), #{createBy}, sysdate(), '0',#{ownerAppId},#{ownerAppSecret}
+        )
+    </insert>
+
+    <update id="updateWechat">
+        UPDATE xccj_community.bus_wechat SET
+         community_id = #{communityId}, wechat_name = #{wechatName}, app_id = #{appId}, app_secret = #{appSecret},
+         mch_id = #{mchId}, serial_no = #{serialNumber}, private_url = #{privateUrl}, api_key = #{apiKey},
+         wechat_status = #{wechatStatus}, update_by = #{updateBy}, update_time = sysdate(),
+         owner_app_id=#{ownerAppId},owner_app_secret=#{ownerAppSecret}
+        WHERE wechat_id = #{wechatId}
+    </update>
+
+    <update id="removeWechat">
+        UPDATE xccj_community.bus_wechat SET del_flag = '1' WHERE wechat_id = #{wechatId}
+    </update>
+
+
+</mapper>

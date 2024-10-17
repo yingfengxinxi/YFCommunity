@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.home.location.AreaMapper" >
+  <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.home.location.Area" >
+    <id column="area_id" property="areaId" jdbcType="BIGINT" />
+    <result column="parent_id" property="parentId" jdbcType="BIGINT" />
+    <result column="ancestors" property="ancestors" jdbcType="VARCHAR" />
+    <result column="area_name" property="areaName" jdbcType="VARCHAR" />
+    <result column="create_by" property="createBy" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="VARCHAR" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="del_flag" property="delFlag" jdbcType="CHAR" />
+  </resultMap>
+
+  <resultMap id="AreaMap" type="com.wr.api.owner.entity.vo.location.AreaAndcommunityVo" >
+    <id column="area_id" property="areaId" jdbcType="BIGINT" />
+    <result column="area_name" property="areaName" jdbcType="VARCHAR" />
+    <collection property="children" ofType="com.wr.api.owner.entity.vo.location.AreaAndcommunityVo" >
+      <id column="cityId" property="areaId"  />
+      <result column="cityIdName" property="areaName"/>
+      <collection property="children" ofType="com.wr.api.owner.entity.vo.location.AreaAndcommunityVo" >
+        <id column="districtId" property="areaId"  />
+        <result column="districtName" property="areaName"/>
+        <collection property="children" ofType="com.wr.api.owner.entity.vo.location.AreaAndcommunityVo" >
+          <id column="communityId" property="areaId"  />
+          <result column="communityName" property="areaName"/>
+        </collection>
+      </collection>
+    </collection>
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    area_id, parent_id, ancestors, area_name, create_by, create_time, update_by, update_time, 
+    del_flag
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.wr.api.owner.entity.home.location.AreaExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from xccj_community.bus_area
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from xccj_community.bus_area
+    where area_id = #{areaId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from xccj_community.bus_area
+    where area_id = #{areaId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.wr.api.owner.entity.home.location.AreaExample" >
+    delete from xccj_community.bus_area
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.wr.api.owner.entity.home.location.Area" >
+    insert into xccj_community.bus_area (area_id, parent_id, ancestors, 
+      area_name, create_by, create_time, 
+      update_by, update_time, del_flag
+      )
+    values (#{areaId,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{ancestors,jdbcType=VARCHAR}, 
+      #{areaName,jdbcType=VARCHAR}, #{createBy,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateBy,jdbcType=VARCHAR}, #{updateTime,jdbcType=TIMESTAMP}, #{delFlag,jdbcType=CHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.wr.api.owner.entity.home.location.Area" >
+    insert into xccj_community.bus_area
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="areaId != null" >
+        area_id,
+      </if>
+      <if test="parentId != null" >
+        parent_id,
+      </if>
+      <if test="ancestors != null" >
+        ancestors,
+      </if>
+      <if test="areaName != null" >
+        area_name,
+      </if>
+      <if test="createBy != null" >
+        create_by,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateBy != null" >
+        update_by,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="delFlag != null" >
+        del_flag,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="areaId != null" >
+        #{areaId,jdbcType=BIGINT},
+      </if>
+      <if test="parentId != null" >
+        #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="ancestors != null" >
+        #{ancestors,jdbcType=VARCHAR},
+      </if>
+      <if test="areaName != null" >
+        #{areaName,jdbcType=VARCHAR},
+      </if>
+      <if test="createBy != null" >
+        #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null" >
+        #{updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="delFlag != null" >
+        #{delFlag,jdbcType=CHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.wr.api.owner.entity.home.location.AreaExample" resultType="java.lang.Integer" >
+    select count(*) from xccj_community.bus_area
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update xccj_community.bus_area
+    <set >
+      <if test="record.areaId != null" >
+        area_id = #{record.areaId,jdbcType=BIGINT},
+      </if>
+      <if test="record.parentId != null" >
+        parent_id = #{record.parentId,jdbcType=BIGINT},
+      </if>
+      <if test="record.ancestors != null" >
+        ancestors = #{record.ancestors,jdbcType=VARCHAR},
+      </if>
+      <if test="record.areaName != null" >
+        area_name = #{record.areaName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createBy != null" >
+        create_by = #{record.createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateBy != null" >
+        update_by = #{record.updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.delFlag != null" >
+        del_flag = #{record.delFlag,jdbcType=CHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update xccj_community.bus_area
+    set area_id = #{record.areaId,jdbcType=BIGINT},
+      parent_id = #{record.parentId,jdbcType=BIGINT},
+      ancestors = #{record.ancestors,jdbcType=VARCHAR},
+      area_name = #{record.areaName,jdbcType=VARCHAR},
+      create_by = #{record.createBy,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_by = #{record.updateBy,jdbcType=VARCHAR},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      del_flag = #{record.delFlag,jdbcType=CHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.home.location.Area" >
+    update xccj_community.bus_area
+    <set >
+      <if test="parentId != null" >
+        parent_id = #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="ancestors != null" >
+        ancestors = #{ancestors,jdbcType=VARCHAR},
+      </if>
+      <if test="areaName != null" >
+        area_name = #{areaName,jdbcType=VARCHAR},
+      </if>
+      <if test="createBy != null" >
+        create_by = #{createBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateBy != null" >
+        update_by = #{updateBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="delFlag != null" >
+        del_flag = #{delFlag,jdbcType=CHAR},
+      </if>
+    </set>
+    where area_id = #{areaId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.wr.api.owner.entity.home.location.Area" >
+    update xccj_community.bus_area
+    set parent_id = #{parentId,jdbcType=BIGINT},
+      ancestors = #{ancestors,jdbcType=VARCHAR},
+      area_name = #{areaName,jdbcType=VARCHAR},
+      create_by = #{createBy,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_by = #{updateBy,jdbcType=VARCHAR},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      del_flag = #{delFlag,jdbcType=CHAR}
+    where area_id = #{areaId,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectListArea" resultMap="AreaMap">
+    SELECT
+      parent.area_id,
+      parent.area_name,
+      city.area_id cityId,
+      city.area_name cityIdName,
+      district.area_id districtId,
+      district.area_name districtName,
+      community.community_id communityId ,
+      community.community_name communityName
+    FROM
+      xccj_community.bus_area parent
+        LEFT JOIN xccj_community.bus_area city ON city.parent_id = parent.area_id
+        LEFT JOIN xccj_community.bus_area district ON district.parent_id = city.area_id
+        LEFT JOIN xccj_community.bus_community community ON community.area_id = district.area_id
+    WHERE
+      parent.parent_id = 0 and community.del_flag ='0'
+  </select>
+
+
+  <select id="selectDoorEquipment" resultType="com.wr.api.owner.entity.vo.location.DoorVo">
+    SELECT
+      xba.access_name AS location, xbd.index_code AS indexCode
+    FROM xccj_device.bus_access xba
+           LEFT JOIN xccj_device.bus_door xbd ON xbd.door_id = xba.door_id
+    WHERE xba.community_id = #{communityId}
+      AND xba.unit_id = (
+      SELECT unit_id FROM xccj_community.bus_owner WHERE del_flag = '0' AND account_id = #{accountId}
+    )
+  </select>
+
+  <select id="selectCameraList" resultType="com.wr.api.owner.entity.vo.location.CameraVO">
+    SELECT
+        camera_id, index_code, camera_name, camera_type, device_type, device_qr,
+        community_id, building_id, unit_id, address
+    FROM xccj_device.bus_camera
+    WHERE del_flag ='0'
+    <if test="communityId != null">AND community_id = #{communityId}</if>
+    <if test="buildingId != null">AND building_id = #{buildingId}</if>
+    <if test="unitId != null">AND unit_id = #{unitId}</if>
+  </select>
+
+  <select id="selectHikByCommunityId" resultType="com.wr.common.customize.util.CommunityHik">
+    SELECT
+        community_id, hik_ip, hik_port, hik_ak, hik_sk
+    FROM xccj_community.bus_community_hik
+    WHERE del_flag = '0' AND community_id = #{communityId} LIMIT 1
+  </select>
+
+</mapper>

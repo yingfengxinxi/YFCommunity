@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.api.owner.mapper.serve.GoodsMapper">
+    <resultMap id="BaseResultMap" type="com.wr.api.owner.entity.serve.ApiGoods">
+        <!--@mbg.generated-->
+        <id column="goods_id" jdbcType="BIGINT" property="goodsId"/>
+        <result column="community_id" jdbcType="BIGINT" property="communityId"/>
+        <result column="goods_no" jdbcType="VARCHAR" property="goodsNo"/>
+        <result column="goods_name" jdbcType="VARCHAR" property="goodsName"/>
+        <result column="classify_id" jdbcType="BIGINT" property="classifyId"/>
+        <result column="goods_price" jdbcType="DECIMAL" property="goodsPrice"/>
+        <result column="goods_url" jdbcType="VARCHAR" property="goodsUrl"/>
+        <result column="borrow_status" jdbcType="CHAR" property="borrowStatus"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="create_by" jdbcType="VARCHAR" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="del_flag" jdbcType="CHAR" property="delFlag"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        goods_id,
+        community_id,
+        goods_no,
+        goods_name,
+        classify_id,
+        goods_price,
+        goods_url,
+        borrow_status,
+        address,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        del_flag
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List"/>
+        from xccj_community.bus_goods
+        where goods_id = #{goodsId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update xccj_community.bus_goods
+        <set>
+            del_flag = '1'
+        </set>
+        where goods_id = #{goodsId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insertSelective" keyColumn="goods_id" keyProperty="goodsId"
+            parameterType="com.wr.api.owner.entity.serve.ApiGoods"
+            useGeneratedKeys="true">
+        <!--@mbg.generated-->
+        insert into xccj_community.bus_goods
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                community_id,
+            </if>
+            <if test="goodsNo != null">
+                goods_no,
+            </if>
+            <if test="goodsName != null">
+                goods_name,
+            </if>
+            <if test="classifyId != null">
+                classify_id,
+            </if>
+            <if test="goodsPrice != null">
+                goods_price,
+            </if>
+            <if test="goodsUrl != null">
+                goods_url,
+            </if>
+            <if test="borrowStatus != null">
+                borrow_status,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="createBy != null">
+                create_by,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateBy != null">
+                update_by,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="delFlag != null">
+                del_flag,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">
+                #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsNo != null">
+                #{goodsNo,jdbcType=VARCHAR},
+            </if>
+            <if test="goodsName != null">
+                #{goodsName,jdbcType=VARCHAR},
+            </if>
+            <if test="classifyId != null">
+                #{classifyId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsPrice != null">
+                #{goodsPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="goodsUrl != null">
+                #{goodsUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="borrowStatus != null">
+                #{borrowStatus,jdbcType=CHAR},
+            </if>
+            <if test="address != null">
+                #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                #{delFlag,jdbcType=CHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.wr.api.owner.entity.serve.ApiGoods">
+        <!--@mbg.generated-->
+        update xccj_community.bus_goods
+        <set>
+            <if test="communityId != null">
+                community_id = #{communityId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsNo != null">
+                goods_no = #{goodsNo,jdbcType=VARCHAR},
+            </if>
+            <if test="goodsName != null">
+                goods_name = #{goodsName,jdbcType=VARCHAR},
+            </if>
+            <if test="classifyId != null">
+                classify_id = #{classifyId,jdbcType=BIGINT},
+            </if>
+            <if test="goodsPrice != null">
+                goods_price = #{goodsPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="goodsUrl != null">
+                goods_url = #{goodsUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="borrowStatus != null">
+                borrow_status = #{borrowStatus,jdbcType=CHAR},
+            </if>
+            <if test="address != null">
+                address = #{address,jdbcType=VARCHAR},
+            </if>
+            <if test="createBy != null">
+                create_by = #{createBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag,jdbcType=CHAR},
+            </if>
+        </set>
+        where goods_id = #{goodsId,jdbcType=BIGINT}
+    </update>
+
+    <select id="listPage" resultType="com.wr.api.owner.entity.vo.serve.ApiGoodsVo">
+        SELECT bgs.goods_id,
+               bgs.goods_name    AS goodsName,
+               bgs.goods_url     AS goodsUrl,
+               bgs.goods_no      AS goodsNo,
+               bgs.borrow_status AS borrowStatus
+        FROM xccj_community.bus_goods AS bgs
+        <where>
+            bgs.community_id = #{communityId}
+              AND bgs.del_flag = '0'
+            <!--              AND bb.audit_status = '2'-->
+        </where>
+        ORDER BY bgs.borrow_status, bgs.goods_name
+    </select>
+
+    <select id="detail" resultType="com.wr.api.owner.entity.vo.serve.ApiGoodsVo">
+        SELECT bg.*, bc.classify_name AS classifyname, bc.remark
+        FROM xccj_community.bus_goods AS bg
+                 LEFT JOIN xccj_community.bus_classify AS bc ON bc.classify_id = bg.classify_id
+        WHERE bg.goods_id = #{goodsId}
+          AND bg.del_flag = '0'
+    </select>
+
+    <update id="updateById">
+        update xccj_community.bus_goods
+        <set>
+            borrow_status = '1'
+        </set>
+        where goods_id = #{goodsId,jdbcType=BIGINT}
+    </update>
+</mapper>

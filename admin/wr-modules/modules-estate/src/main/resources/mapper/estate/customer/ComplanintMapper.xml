@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.estate.mapper.ComplanintMapper">
+
+    <!-- 查询投诉表扬表 -->
+    <select id="getAllComplanint" parameterType="com.wr.remote.estate.custom.vo.ComplanintPraiseVO"
+            resultType="com.wr.remote.estate.custom.vo.ComplanintPraiseVO">
+        SELECT
+        xbc.complaint_id,
+        xbc.account_id,
+        xbc.title,
+        xbc.complaint_type,
+        xbc.create_time,
+        xbc.complaint_url,
+        xba.data_source,
+        xba.account_name,
+        xbc.public_status
+        FROM
+        xccj_community.bus_complaint AS xbc
+        JOIN xccj_community.bus_account AS xba ON xbc.account_id = xba.account_id
+        WHERE
+        xbc.del_flag = '0'
+        <if test="complaintType != null and complaintType != ''">
+            AND xbc.complaint_type = #{complaintType}
+        </if>
+        <if test="complaintId != null and complaintId != '' ">
+            and xbc.complaint_id = #{complaintId}
+        </if>
+        <if test="accountName != null and accountName != '' ">
+            and xba.account_name = #{accountName}
+        </if>
+        <if test="dataSource != null and dataSource != '' ">
+            and xba.data_source = #{dataSource}
+        </if>
+        <if test="communityId !=null and communityId != ''">
+            and xbc.community_id = #{communityId}
+        </if>
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(xbc.create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(xbc.create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        ORDER BY xbc.create_time DESC
+    </select>
+
+    <select id="getComplaintNullById" parameterType="long"
+            resultType="com.wr.remote.estate.custom.vo.ComplaintDeatilVO">
+        SELECT xbc.complaint_id,
+               xbc.account_id,
+               xbc.title,
+               xbc.remark,
+               xba.login_name,
+               xbc.complaint_type,
+               xbc.create_time,
+               xbc.complaint_url,
+               xba.account_name,
+               xbc.order_id,
+               xbc.public_status,
+               xbc.public_time,
+               bc.community_name
+        FROM xccj_community.bus_complaint AS xbc
+                 JOIN xccj_community.bus_account AS xba ON xbc.account_id = xba.account_id
+                 join xccj_community.bus_community bc on xbc.community_id = bc.community_id
+        WHERE xbc.del_flag = '0'
+          AND xbc.complaint_type = '0'
+          AND xbc.complaint_id = #{complaintId}
+    </select>
+
+    <select id="selectType" parameterType="long" resultType="String">
+        select xbc.complaint_type
+        FROM xccj_community.bus_complaint xbc
+        WHERE xbc.del_flag = '0'
+          AND xbc.complaint_id = #{complaintId}
+    </select>
+
+    <select id="getComplaintById" parameterType="long" resultType="com.wr.remote.estate.custom.vo.ComplaintDeatilVO">
+        SELECT xbc.complaint_id,
+               xbc.account_id,
+               xbc.title,
+               xbc.remark,
+               xba.login_name,
+               xbc.complaint_type,
+               xbc.create_time,
+               xbc.complaint_url,
+               xba.account_name,
+               xbc.order_id,
+               xbc.public_status,
+               xbc.public_time,
+               bc.community_name,
+               bo.order_no,
+               bo.order_name,
+               br.repair_name,
+               bo.image_url,
+               bo.address,
+               bo.execute_status,
+               bo.create_time,
+               bo.execute_time,
+               bo.finish_time,
+               bs.staff_name,
+               bs.staff_phone,
+               bs.work_post,
+               br.deposit,
+               bot.accept_type,
+               bot.submit_time AS coTime,
+               brs.staff_name  AS coName,
+               bra.staff_name  AS receiveName,
+               boa.audit_time  as examineTime,
+               ssu.user_name   AS examineName,
+               bor.data_type,
+               bor.user_name   AS submitName,
+               bor.create_time AS submitTime
+        FROM xccj_community.bus_complaint AS xbc
+                 LEFT JOIN xccj_work.`bus_home_order` bo on xbc.order_id = bo.order_id
+                 left JOIN xccj_community.bus_account AS xba ON xbc.account_id = xba.account_id
+                 LEFT JOIN xccj_work.bus_home_repair br ON br.repair_id = bo.repair_id
+                 LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+                 LEFT JOIN xccj_work.bus_order_transfer AS bot ON bot.order_id = bo.order_id AND bot.order_type = '5'
+                 LEFT JOIN xccj_work.bus_order_audit as boa
+                           ON boa.order_id = bot.order_id AND audit_type = '0' AND boa.order_type = '5'
+                 LEFT JOIN xccj_community.bus_staff brs ON brs.staff_id = bot.source_id
+                 LEFT JOIN xccj_community.bus_staff bra ON bra.staff_id = bot.target_id
+                 LEFT JOIN xccj_estate_sys.sys_user AS ssu on ssu.user_id = boa.user_id
+                 LEFT JOIN xccj_work.bus_order_record AS bor ON bor.order_id = bo.order_id AND bor.order_type = '5'
+                 JOIN xccj_community.bus_community bc ON xbc.community_id = bc.community_id
+        WHERE xbc.del_flag = '0'
+          AND xbc.complaint_id = #{complaintId}
+        GROUP BY xbc.complaint_id
+    </select>
+
+
+    <select id="getParkById" parameterType="long" resultType="com.wr.remote.estate.custom.vo.ComplaintDeatilVO">
+        SELECT xbc.complaint_id,
+               xbc.account_id,
+               xbc.title,
+               xbc.remark,
+               xba.login_name,
+               xbc.complaint_type,
+               xbc.create_time,
+               xbc.complaint_url,
+               xba.account_name,
+               xbc.order_id,
+               xbc.public_status,
+               xbc.public_time,
+               bc.community_name,
+               bo.order_no,
+               bo.order_name,
+               br.repair_name,
+               bo.image_url,
+               pa.address,
+               bo.execute_status,
+               bo.create_time,
+               bo.execute_time,
+               bo.finish_time,
+               bs.staff_name,
+               bs.staff_phone,
+               bs.work_post,
+               bot.accept_type,
+               bot.submit_time AS coTime,
+               brs.staff_name  AS coName,
+               bra.staff_name  AS receiveName,
+               boa.audit_time  as examineTime,
+               ssu.user_name   AS examineName,
+               bor.data_type,
+               bor.user_name   AS submitName,
+               bor.create_time AS submitTime
+        FROM xccj_community.bus_complaint AS xbc
+                 LEFT JOIN xccj_work.`bus_park_order` bo ON xbc.order_id = bo.order_id
+                 LEFT JOIN xccj_community.bus_account AS xba ON xbc.account_id = xba.account_id
+                 LEFT JOIN xccj_work.bus_park_repair br ON br.repair_id = bo.audit_id
+                 LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+                 LEFT JOIN xccj_work.bus_park_audit AS pa ON pa.repair_id = br.repair_id
+                 LEFT JOIN xccj_work.bus_order_transfer AS bot ON bot.order_id = bo.order_id AND bot.order_type = '7'
+                 LEFT JOIN xccj_work.bus_order_audit as boa
+                           ON boa.order_id = bot.order_id AND audit_type = '0' AND boa.order_type = '7'
+                 LEFT JOIN xccj_community.bus_staff brs ON brs.staff_id = bot.source_id
+                 LEFT JOIN xccj_community.bus_staff bra ON bra.staff_id = bot.target_id
+                 LEFT JOIN xccj_estate_sys.sys_user AS ssu on ssu.user_id = boa.user_id
+                 LEFT JOIN xccj_work.bus_order_record AS bor ON bor.order_id = bo.order_id AND bor.order_type = '7'
+                 JOIN xccj_community.bus_community bc ON xbc.community_id = bc.community_id
+        WHERE xbc.del_flag = '0'
+          AND xbc.complaint_id = #{complaintId}
+        GROUP BY xbc.complaint_id
+    </select>
+
+
+    <select id="getDisasterById" parameterType="long" resultType="com.wr.remote.estate.custom.vo.ComplaintDeatilVO">
+        SELECT xbc.complaint_id,
+               xbc.account_id,
+               xbc.title,
+               xbc.remark,
+               xba.login_name,
+               xbc.complaint_type,
+               xbc.create_time,
+               xbc.complaint_url,
+               xba.account_name,
+               xbc.order_id,
+               xbc.public_status,
+               xbc.public_time,
+               bc.community_name,
+               bo.order_no,
+               bo.order_name,
+               br.disaster_name,
+               bo.image_url,
+               pa.address,
+               bo.execute_status,
+               bo.create_time,
+               bo.execute_time,
+               bo.finish_time,
+               bs.staff_name,
+               bs.staff_phone,
+               bs.work_post,
+               bot.accept_type,
+               bot.submit_time AS coTime,
+               brs.staff_name  AS coName,
+               bra.staff_name  AS receiveName,
+               boa.audit_time  as examineTime,
+               ssu.user_name   AS examineName,
+               bor.data_type,
+               bor.user_name   AS submitName,
+               bor.create_time AS submitTime
+        FROM xccj_community.bus_complaint AS xbc
+                 LEFT JOIN xccj_work.`bus_disaster_order` bo ON xbc.order_id = bo.order_id
+                 LEFT JOIN xccj_community.bus_account AS xba ON xbc.account_id = xba.account_id
+                 LEFT JOIN xccj_work.bus_disaster_audit AS pa ON pa.audit_id = bo.audit_id
+                 LEFT JOIN xccj_work.bus_disaster br ON br.disaster_id = pa.disaster_id
+                 LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bo.staff_id
+                 LEFT JOIN xccj_work.bus_order_transfer AS bot ON bot.order_id = bo.order_id AND bot.order_type = '8'
+                 LEFT JOIN xccj_work.bus_order_audit as boa
+                           ON boa.order_id = bot.order_id AND audit_type = '0' AND boa.order_type = '8'
+                 LEFT JOIN xccj_community.bus_staff brs ON brs.staff_id = bot.source_id
+                 LEFT JOIN xccj_community.bus_staff bra ON bra.staff_id = bot.target_id
+                 LEFT JOIN xccj_estate_sys.sys_user AS ssu on ssu.user_id = boa.user_id
+                 LEFT JOIN xccj_work.bus_order_record AS bor ON bor.order_id = bo.order_id AND bor.order_type = '8'
+                 JOIN xccj_community.bus_community bc ON xbc.community_id = bc.community_id
+        WHERE xbc.del_flag = '0'
+          AND xbc.complaint_id = #{complaintId}
+        GROUP BY xbc.complaint_id
+    </select>
+
+    <update id="upPublicStatus">
+        UPDATE xccj_community.bus_complaint
+        SET public_status = '1',
+            public_time   = SYSDATE()
+        WHERE complaint_id = #{complaintId}
+    </update>
+</mapper>

@@ -1,0 +1,4 @@
+com\wr\common\redis\configure\RedisListenerConfig.class
+com\wr\common\redis\configure\RedisConfig.class
+com\wr\common\redis\service\RedisService.class
+com\wr\common\redis\configure\FastJson2JsonRedisSerializer.class

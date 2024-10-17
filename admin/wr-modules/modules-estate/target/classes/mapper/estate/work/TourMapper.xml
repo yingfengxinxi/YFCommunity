@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.TourMapper">
+    <resultMap type="com.wr.remote.work.Tour" id="TourResult">
+        <result property="tourId" column="tour_id"/>
+        <result property="estateId" column="estate_id"/>
+        <result property="tourType" column="tour_type"/>
+        <result property="tourName" column="tour_name"/>
+        <result property="tourStatus" column="tour_status"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectTourVo">
+        select tour_id,
+               estate_id,
+               tour_type,
+               tour_name,
+               tour_status,
+               create_by,
+               create_time,
+               update_by,
+               update_time,
+               del_flag
+        from xccj_work.bus_tour
+    </sql>
+
+    <select id="selectTourList" parameterType="com.wr.remote.work.Tour" resultMap="TourResult">
+        <include refid="selectTourVo"/>
+        <where>
+            <if test="estateId != null ">
+                and estate_id = #{estateId}
+            </if>
+            <if test="tourType != null  and tourType != ''">
+                and tour_type = #{tourType}
+            </if>
+            <if test="tourName != null  and tourName != ''">
+                and tour_name like concat('%', #{tourName}, '%')
+            </if>
+            <if test="tourStatus != null  and tourStatus != ''">
+                and tour_status = #{tourStatus}
+            </if>
+            <if test="delFlag != null  and delFlag != ''">
+                and del_flag = #{delFlag}
+            </if>
+        </where>
+        ORDER BY tour_id DESC
+    </select>
+
+    <select id="selectTourByTourId" parameterType="Long" resultMap="TourResult">
+        <include refid="selectTourVo"/>
+        where tour_id = #{tourId}
+    </select>
+    <select id="checkName" resultType="java.lang.Integer">
+        SELECT count(*) FROM xccj_work.bus_tour
+        WHERE del_flag = '0' AND estate_id = #{estateId} AND tour_name = #{tourName}
+        <if test="tourId != null">and tour_id != #{tourId}</if>
+        <if test="tourType != null">and tour_type = #{tourType}</if>
+    </select>
+
+    <insert id="insertTour" parameterType="com.wr.remote.work.Tour" useGeneratedKeys="true" keyProperty="tourId">
+        insert into xccj_work.bus_tour
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                estate_id,
+            </if>
+            <if test="tourType != null and tourType != ''">
+                tour_type,
+            </if>
+            <if test="tourName != null and tourName != ''">
+                tour_name,
+            </if>
+            <if test="tourStatus != null and tourStatus != ''">
+                tour_status,
+            </if>
+            <if test="createBy != null and createBy != ''">
+                create_by,
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by,
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                del_flag,
+            </if>
+            create_time,update_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="estateId != null">
+                #{estateId},
+            </if>
+            <if test="tourType != null and tourType != ''">
+                #{tourType},
+            </if>
+            <if test="tourName != null and tourName != ''">
+                #{tourName},
+            </if>
+            <if test="tourStatus != null and tourStatus != ''">
+                #{tourStatus},
+            </if>
+            <if test="createBy != null and createBy != ''">
+                #{createBy},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                #{updateBy},
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                #{delFlag},
+            </if>
+            NOW(),NOW()
+        </trim>
+    </insert>
+
+    <update id="updateTour" parameterType="com.wr.remote.work.Tour">
+        update xccj_work.bus_tour
+        <trim prefix="SET" suffixOverrides=",">
+            update_time = NOW(),
+            <if test="tourName != null and tourName != ''">
+                tour_name = #{tourName},
+            </if>
+            <if test="tourStatus != null and tourStatus != ''">
+                tour_status = #{tourStatus},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by = #{updateBy},
+            </if>
+        </trim>
+        where tour_id = #{tourId}
+    </update>
+
+    <update id="deleteTourByTourId" parameterType="Long">
+        update xccj_work.bus_tour
+        set del_flag = '1'
+        where tour_id = #{tourId}
+    </update>
+
+    <update id="deleteTourByTourIds" parameterType="String">
+        update xccj_work.bus_tour set del_flag = '1' where tour_id in
+        <foreach item="tourId" collection="array" open="(" separator="," close=")">
+            #{tourId}
+        </foreach>
+    </update>
+</mapper>

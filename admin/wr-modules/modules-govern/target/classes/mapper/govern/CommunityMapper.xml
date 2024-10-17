@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.govern.mapper.CommunityMapper">
+
+    <select id="getCurrentEstateId" resultType="java.lang.Long">
+        SELECT xbe.estate_id
+        FROM xccj_community.bus_estate xbe
+        WHERE xbe.del_flag = '0'
+          AND xbe.dept_id = #{deptId}
+    </select>
+
+    <select id="selectCommunityList" resultType="com.wr.remote.domain.Community">
+        SELECT bc.community_id,
+               bc.community_name,
+               bc.estate_id,
+               bc.area_id
+        FROM xccj_community.bus_community bc
+        WHERE bc.del_flag = '0'
+          AND bc.estate_id IN (SELECT xbe.estate_id
+                               FROM xccj_community.bus_estate xbe
+                               WHERE xbe.del_flag = '0'
+                                 AND (xbe.estate_id = #{estateId} OR find_in_set(#{estateId}, xbe.ancestors)))
+    </select>
+
+    <select id="selectBuildingList" resultType="com.wr.remote.estate.center.Building">
+        SELECT xbb.building_id, xbb.community_id, xbb.building_name
+        FROM xccj_community.bus_building xbb
+        WHERE xbb.del_flag = '0' AND xbb.community_id = #{communityId}
+    </select>
+
+    <select id="selectUnitList" resultType="com.wr.remote.estate.center.Unit">
+        SELECT xbu.unit_id, xbu.community_id, xbu.building_id, xbu.unit_name
+        FROM xccj_community.bus_unit xbu
+        WHERE xbu.del_flag = '0' AND xbu.building_id = #{buildingId}
+    </select>
+
+    <select id="selectRoomList" resultType="com.wr.remote.estate.center.Room">
+        SELECT xbr.room_id, xbr.community_id, xbr.building_id, xbr.unit_id, xbr.room_name,xbr.room_status,xbr.owner_id
+        FROM xccj_community.bus_room xbr
+        WHERE xbr.del_flag = '0' AND xbr.unit_id = #{unitId}
+    </select>
+
+    <select id="selectHikByCommunityId" resultType="com.wr.common.customize.util.CommunityHik">
+        SELECT
+            community_id,hik_ip,hik_port,hik_ak,hik_sk,del_flag
+        FROM xccj_community.bus_community_hik
+        WHERE del_flag = '0' AND community_id = #{communityId}
+        LIMIT 1
+    </select>
+
+    <select id="selectOwnerList" resultType="com.wr.remote.estate.manage.contract.Owner">
+        SELECT
+               xbo.owner_id, xbo.community_id, xbo.building_id, xbo.unit_id, xbo.room_id,
+               xbo.account_id, xbo.owner_name, xbo.owner_phone, xbo.card_type, xbo.card_no
+        FROM xccj_community.bus_owner xbo
+        WHERE xbo.del_flag = '0' AND xbo.audit_status = '1'
+        <if test="communityId != null">AND xbo.community_id = #{communityId}</if>
+        <if test="buildingId != null">AND xbo.building_id = #{buildingId}</if>
+        <if test="unitId != null">AND xbo.unit_id = #{unitId}</if>
+        <if test="roomId != null">AND xbo.room_id = #{roomId}</if>
+    </select>
+
+    <select id="selectTenantList" resultType="com.wr.remote.estate.manage.contract.Tenant">
+        SELECT
+            xbt.tenant_id, xbt.community_id, xbt.building_id, xbt.unit_id, xbt.room_id,
+            xbt.account_id, xbt.owner_id, xbt.tenant_name, xbt.tenant_phone, xbt.card_type, xbt.card_no
+        FROM xccj_community.bus_tenant xbt
+        WHERE xbt.del_flag = '0' AND xbt.audit_status = '1'
+        <if test="communityId != null">AND xbt.community_id = #{communityId}</if>
+        <if test="buildingId != null">AND xbt.building_id = #{buildingId}</if>
+        <if test="unitId != null">AND xbt.unit_id = #{unitId}</if>
+        <if test="roomId != null">AND xbt.room_id = #{roomId}</if>
+    </select>
+
+</mapper>

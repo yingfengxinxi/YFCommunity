@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.owner.mapper.serve.RescueMapper">
+    <insert id="addRescue">
+        INSERT INTO xccj_govern.bus_rescue(
+        <if test="null != releaseId">
+            release_id,
+        </if>
+        <if test="null != releaseType">
+            release_type,
+        </if>
+        <if test="null != rescueTitle">
+            rescue_title,
+        </if>
+        <if test="null != address">
+            address,
+        </if>
+        <if test="null != needNum">
+            need_num,
+        </if>
+        <if test="null != content">
+            content,
+        </if>
+        <if test="null != startTime">
+            start_time,
+        </if>
+        <if test="null != endTime">
+            end_time,
+        </if>
+        community_id, release_time)
+        VALUES (
+        <if test="null != releaseId">
+            #{releaseId},
+        </if>
+        <if test="null != releaseType">
+            #{releaseType},
+        </if>
+        <if test="null != rescueTitle">
+            #{rescueTitle},
+        </if>
+        <if test="null != address">
+            #{address},
+        </if>
+        <if test="null != needNum">
+            #{needNum},
+        </if>
+        <if test="null != content">
+            #{content},
+        </if>
+        <if test="null != startTime">
+            #{startTime},
+        </if>
+        <if test="null != endTime">
+            #{endTime},
+        </if>
+        #{communityId}, sysdate())
+    </insert>
+
+    <select id="getOwnerRescueAll" resultType="com.wr.api.owner.entity.vo.serve.RescueVO">
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bo.owner_name AS `releaseName`,
+               br.release_time,
+               br.start_time,
+               br.end_time,
+               (
+                   CASE
+
+                       WHEN SYSDATE() &lt; br.start_time THEN '0'
+                       WHEN SYSDATE() >= br.start_time
+                           AND SYSDATE() &lt;= br.end_time THEN '1'
+                       WHEN SYSDATE() > br.end_time THEN
+                           '2'
+                       END
+                   )         AS `status`
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = #{releaseType}
+          AND br.community_id = #{communityId}
+          AND br.release_id = #{releaseId}
+    </select>
+    <select id="getTenantRescueAll" resultType="com.wr.api.owner.entity.vo.serve.RescueVO">
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bt.tenant_name AS `releaseName`,
+               br.release_time,
+               br.start_time,
+               br.end_time,
+               (
+                   CASE
+
+                       WHEN SYSDATE() &lt; br.start_time THEN '0'
+                       WHEN SYSDATE() >= br.start_time
+                           AND SYSDATE() &lt;= br.end_time THEN '1'
+                       WHEN SYSDATE() > br.end_time THEN
+                           '2'
+                       END
+                   )          AS `status`
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_community bc ON bc.community_id = br.community_id
+                 LEFT JOIN xccj_community.bus_tenant bt ON bt.tenant_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = #{releaseType}
+          AND br.community_id = #{communityId}
+          AND br.release_id = #{releaseId}
+    </select>
+    <select id="getRescueById" resultType="com.wr.api.owner.entity.vo.serve.RescueVO">
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bo.owner_name AS `releaseName`,
+               br.release_time,
+               br.address,
+               br.need_num,
+               br.start_time,
+               br.end_time,
+               br.content
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_owner bo ON bo.owner_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = '0'
+          AND br.rescue_id = #{rescueId}
+        UNION ALL
+        SELECT br.rescue_id,
+               br.rescue_title,
+               bt.tenant_name AS `releaseName`,
+               br.release_time,
+               br.address,
+               br.need_num,
+               br.start_time,
+               br.end_time,
+               br.content
+        FROM xccj_govern.bus_rescue br
+                 LEFT JOIN xccj_community.bus_tenant bt ON bt.tenant_id = br.release_id
+        WHERE br.del_flag = '0'
+          AND br.release_type = '1'
+          AND br.rescue_id = #{rescueId}
+    </select>
+    <select id="getRescueUsers" resultType="com.wr.api.owner.entity.serve.RescueUser">
+        SELECT *
+        FROM xccj_govern.bus_rescue_user
+        WHERE rescue_id = #{rescueId}
+    </select>
+</mapper>

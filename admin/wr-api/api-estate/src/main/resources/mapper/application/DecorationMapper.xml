@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.api.estate.mapper.application.DecorationMapper">
+
+
+    <!--给每个装修工添加账号-->
+    <insert id="insertAccount" parameterType="com.wr.remote.estate.customer.decorate.Account" useGeneratedKeys="true"
+            keyProperty="accountId">
+        insert into xccj_community.bus_account(
+        <if test="communityId != null and communityId != 0">community_id,</if>
+        <if test="loginName != null and loginName != ''">login_name,</if>
+        <if test="password != null and password != ''">password,</if>
+        <if test="accountType != null and accountType != ''">account_type,</if>
+        <if test="accountName != null and accountName != ''">account_name,</if>
+        <if test="accountNick != null and accountNick != ''">account_nick,</if>
+        <if test="dataSource != null and dataSource != ''">data_source,</if>
+        <if test="createBy != null and createBy != ''">create_by,</if>
+        create_time
+        )values(
+        <if test="communityId != null and communityId != 0">#{communityId},</if>
+        <if test="loginName != null and loginName != ''">#{loginName},</if>
+        <if test="password != null and password != ''">#{password},</if>
+        <if test="accountType != null and accountType != ''">#{accountType},</if>
+        <if test="accountName != null and accountName != ''">#{accountName},</if>
+        <if test="accountNick != null and accountNick != ''">#{accountNick},</if>
+        <if test="dataSource != null and dataSource != ''">#{dataSource},</if>
+        <if test="createBy != null and createBy != ''">#{createBy},</if>
+        sysdate()
+        )
+    </insert>
+
+
+    <!--将装修工审核通过-->
+    <update id="workerAdopt" parameterType="com.wr.remote.estate.customer.decorate.Worker">
+        update xccj_community.bus_worker
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="auditBy != null and auditBy != ''">audit_by = #{auditBy},</if>
+            <if test="accountId != null">account_id = #{accountId},</if>
+            audit_time = sysdate()
+        </set>
+        where worker_id = #{workerId}
+    </update>
+
+    <!--将装修审核通过-->
+    <update id="decorateAdopt" parameterType="com.wr.remote.estate.customer.decorate.Decorate">
+        update xccj_community.bus_decorate
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="auditBy != null and auditBy != ''">audit_by = #{auditBy},</if>
+            audit_time = sysdate()
+        </set>
+        where decorate_id = #{decorateId}
+    </update>
+
+    <!--装修驳回-->
+    <update id="decorateReject">
+        update xccj_community.bus_decorate
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="auditBy != null and auditBy != ''">audit_by = #{auditBy},</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason = #{rejectReason},</if>
+            audit_time = sysdate()
+        </set>
+        where decorate_id = #{decorateId}
+    </update>
+
+    <!--装修工驳回-->
+    <update id="workerReject">
+        update xccj_community.bus_worker
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="auditBy != null and auditBy != ''">audit_by = #{auditBy},</if>
+            <if test="rejectReason != null and rejectReason != ''">reject_reason = #{rejectReason},</if>
+            audit_time = sysdate()
+        </set>
+        where decorate_id = #{decorateId} and worker_type = '0' and audit_status = '0' and del_flag = '0'
+    </update>
+
+    <!--装修延期-->
+    <update id="decorateDelay">
+        update xccj_community.bus_decorate
+        <set>
+            <if test="auditStatus != null and auditStatus != ''">audit_status = #{auditStatus},</if>
+            <if test="decorateType != null and decorateType != ''">decorate_type = #{decorateType},</if>
+            <if test="delayDay != null">plan_end = DATE_ADD(plan_end, INTERVAL #{delayDay} DAY)</if>
+        </set>
+        where decorate_id = #{decorateId}
+    </update>
+
+    <update id="updateByRenovationAuditStatus">
+        update xccj_community.bus_decorate
+        set renovation_audit_status=#{renovationAuditStatus},
+            update_by=#{updateBy},
+            update_time=#{updateTime}
+        where id = #{id}
+    </update>
+
+    <!--查询装修列表-->
+    <select id="getDecorateVoList" resultType="com.wr.remote.estate.customer.vo.decorate.DecorateVo">
+        SELECT
+        xcbd.id,
+        xcbd.`no`,
+        xcbd.company_name as "companyName",
+        xcbr.house_address as "houseAddress",
+        xcbd.renovation_audit_status as "renovationAuditStatus",
+        sdd.dict_label as "renovationAuditStatusName",
+        xcbd.create_time as "createTime"
+        FROM
+        xccj_community.bus_decorate xcbd
+        LEFT JOIN xccj_community.bus_room xcbr ON xcbr.community_id = xcbd.community_id
+        AND xcbr.building_id = xcbr.building_id
+        AND xcbr.unit_id = xcbr.unit_id
+        AND xcbd.room_id = xcbr.room_id
+        AND xcbr.del_flag = '0'
+        LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_type = 'renovation_audit_status' AND sdd.dict_value =xcbd.renovation_audit_status
+        WHERE
+        xcbd.del_flag = '0'
+        AND xcbd.community_id =#{communityId}
+        <if test="renovationAuditStatus != null and renovationAuditStatus != ''">
+            AND xcbd.renovation_audit_status = #{renovationAuditStatus}
+        </if>
+        <if test="renovationAuditStatusList != null and renovationAuditStatusList.size()>=1">
+            AND xcbd.renovation_audit_status in
+                <foreach collection="renovationAuditStatusList" item="renovationAuditStatus" open="(" separator="," close=")">
+                    #{renovationAuditStatus}
+                </foreach>
+        </if>
+
+
+        ORDER BY
+        xcbd.create_time DESC
+    </select>
+
+    <!--查询装修详情-->
+    <select id="getDecorationDetail" resultType="com.wr.remote.estate.customer.vo.decorate.DecorateInfoVo" >
+        SELECT xcbd.`no`,
+               sdd.dict_label               AS "renovationAuditStatusName",
+               xcbd.renovation_audit_status AS "renovationAuditStatus",
+               xcbd.create_time             AS "createTime",
+               xcbc.community_name          AS "communityName",
+               xcbb.building_name           AS "buildingName",
+               xcbu.unit_name               AS "unitName",
+               xcbr.room_name               AS "roomName",
+               SUBSTRING_INDEX(xcbr.room_name, RIGHT(xcbr.room_name, 2), 1) AS "floor",
+               xcbr.total_area               AS "roomArea",
+               xcbr.house_address           AS "houseAddress",
+               sd.dict_label                AS "roomType",
+               xcbd.plan_start              AS "planStart",
+               xcbd.plan_end                AS "planEnd",
+               xcbd.company_name            AS "companyName",
+               xcbd.person_name             AS "personName",
+               xcbd.person_phone            AS "personPhone",
+               xcbd.project_item            AS "projectItem",
+               xcbd.remarks                 AS "remarks",
+               xcbd.warrant                 AS "warrant",
+               xcbd.card_font               AS "cardFont",
+               xcbd.card_back               AS "cardBack",
+               xcbd.design_scheme           AS "designScheme",
+               xcbd.decoration_contract     AS "decorationContract",
+               xcbd.other                   AS "other",
+               xcbd.room_id                 as "roomId"
+        FROM xccj_community.bus_decorate xcbd
+                 LEFT JOIN xccj_estate_sys.sys_dict_data sdd ON sdd.dict_type = 'renovation_audit_status'
+            AND sdd.dict_value = xcbd.renovation_audit_status
+                 LEFT JOIN xccj_community.bus_community xcbc ON xcbd.community_id = xcbc.community_id
+            AND xcbc.del_flag = '0'
+                 LEFT JOIN xccj_community.bus_building xcbb ON xcbd.building_id = xcbb.building_id
+            AND xcbb.del_flag = '0'
+                 LEFT JOIN xccj_community.bus_unit xcbu ON xcbd.unit_id = xcbu.unit_id
+            AND xcbu.del_flag = '0'
+                 LEFT JOIN xccj_community.bus_room xcbr ON xcbd.room_id = xcbr.room_id
+            AND xcbr.del_flag = '0'
+                 LEFT JOIN xccj_community.bus_owner xcbo ON xcbo.owner_id = xcbr.owner_id
+            AND xcbo.del_flag = '0'
+                 LEFT JOIN xccj_estate_sys.sys_dict_data sd ON sd.dict_type = 'property_of_house'
+            AND sd.dict_value = xcbr.room_attribute
+        WHERE xcbd.id = #{id}
+          AND xcbd.del_flag = '0'
+    </select>
+
+    <!--查询装修工信息-->
+    <select id="getWorkerList" resultType="com.wr.remote.estate.customer.decorate.Worker">
+        SELECT worker_id       workerid,
+               decorate_id     decorateid,
+               worker_name     workername,
+               worker_phone    workerphone,
+               card_no         cardno,
+               account_id      accountid,
+               audit_by        auditby,
+               audit_time      audittime,
+               int_out         intOut,
+               company_name as "companyName",
+               person_name  as "personName",
+               person_phone as "personPhone"
+        FROM xccj_community.bus_worker
+        WHERE decorate_id = #{decorateId}
+          AND del_flag = '0'
+    </select>
+
+    <!--根据装修id查询首次的装修人员-->
+    <select id="getWorkerListByDecorateId" resultType="com.wr.remote.estate.customer.decorate.Worker">
+        SELECT worker_id workerid, worker_name workername, worker_phone workerphone, card_no cardno
+        FROM xccj_community.bus_worker
+        WHERE decorate_id = #{decorateId}
+          AND worker_type = '0'
+          AND del_flag = '0'
+    </select>
+
+    <!--查询装修信息-->
+    <select id="getDecorateByDecorateId" resultType="com.wr.remote.estate.customer.decorate.Decorate">
+        SELECT xcbd.decorate_id                                                                            decorateid,
+               xcbd.owner_id                                                                               ownerid,
+               xcbd.community_id                                                                           communityid,
+               xcbd.building_id                                                                            buildingid,
+               xcbd.unit_id                                                                                unitid,
+               xcbd.room_id                                                                                roomid,
+               xcbd.plan_start                                                                             planstart,
+               xcbd.plan_end                                                                               planend,
+               (SELECT owner_phone FROM xccj_community.bus_owner xcbo WHERE xcbo.owner_id = xcbd.owner_id) ownerphone,
+               (SELECT owner_name FROM xccj_community.bus_owner xcbo WHERE xcbo.owner_id = xcbd.owner_id)  ownername
+        FROM xccj_community.bus_decorate xcbd
+        WHERE decorate_id = #{decorateId}
+    </select>
+
+    <select id="getViolationList" resultType="com.wr.remote.estate.customer.decorate.DecorateViolation">
+        SELECT
+            id,
+            content,
+            image,
+            create_time AS "createTime",
+            create_by AS "createBy"
+        FROM
+            xccj_community.bus_decorate_violation
+        WHERE
+            decorate_id = #{decorateId}
+        ORDER BY
+            create_time DESC
+    </select>
+</mapper>

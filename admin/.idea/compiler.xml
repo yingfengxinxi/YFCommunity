@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="modules-govern" />
+        <module name="remote-system" />
+        <module name="api-base" />
+        <module name="common-redis" />
+        <module name="visual-monitor" />
+        <module name="modules-work" />
+        <module name="modules-system" />
+        <module name="api-payment" />
+        <module name="common-swagger" />
+        <module name="modules-payment" />
+        <module name="remote-pay" />
+        <module name="common-security" />
+        <module name="api-estate" />
+        <module name="common-customize" />
+        <module name="api-device" />
+        <module name="common-datascope" />
+        <module name="common-log" />
+        <module name="wr-auth" />
+        <module name="common-payment" />
+        <module name="modules-aiot" />
+        <module name="common-datasource" />
+        <module name="modules-job" />
+        <module name="modules-estate" />
+        <module name="modules-file" />
+        <module name="api-owner" />
+        <module name="wr-gateway" />
+        <module name="common-core" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.activity.ActiviteTypeMapper">
+    <resultMap type="com.wr.remote.estate.activity.ActiviteType" id="ActiviteTypeResult">
+        <id     property="typeId"       column="type_id"      />
+        <result property="communityId"    column="community_id"    />
+        <result property="communityName"    column="community_name"    />
+        <result property="typeName"    column="type_name"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <select id="selectList" resultMap="ActiviteTypeResult">
+        SELECT
+        type_id,
+        community_id,
+        type_name,
+        create_by,
+        create_time,
+        update_by,
+        update_time
+        FROM
+        xccj_community.bus_act_type
+        WHERE
+        del_flag = 0
+        <if test="typeName != null  and typeName != ''"> and type_name like concat('%', #{typeName}, '%')</if>
+        <if test="communityId != null  and communityId != ''"> and community_id = #{communityId}</if>
+        <if test="null != estateId">
+            AND community_id IN (SELECT community_id FROM xccj_community.bus_community WHERE del_flag = '0' AND estate_id = #{estateId})
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <insert id="insertActivite" parameterType="com.wr.remote.estate.activity.ActiviteType">
+        INSERT INTO xccj_community.bus_act_type (
+            community_id,type_name,create_by,create_time,update_by,update_time,del_flag)
+        VALUES (
+            #{communityId},#{typeName},#{createBy},sysdate(),#{createBy},sysdate(),'0'
+        )
+    </insert>
+
+    <update id="updateActiviteById" parameterType="com.wr.remote.estate.activity.ActiviteType" >
+        UPDATE xccj_community.bus_act_type set type_name=#{typeName},update_by=#{updateBy},update_time=sysdate() where type_id = #{typeId}
+    </update>
+
+    <select id="selectInfoById" resultMap="ActiviteTypeResult">
+        SELECT
+            type_id,
+            community_id,
+            type_name,
+            create_by,
+            create_time,
+            update_by,
+            update_time
+        FROM
+            xccj_community.bus_act_type
+        WHERE
+            type_id = #{typeId} AND del_flag = '0'
+    </select>
+
+    <update id="removeActiviteById" parameterType="Long" >
+        UPDATE xccj_community.bus_act_type set del_flag = '1' where type_id = #{typeId}
+    </update>
+
+    <!--根据类型名称查询是否存在-->
+    <select id="selectTypeName" resultType="int">
+        SELECT
+            count(*)
+        FROM
+            xccj_community.bus_act_type
+        WHERE
+            type_name = #{typeName}
+            and community_id = #{communityId}
+          AND del_flag = 0
+    </select>
+
+
+</mapper>

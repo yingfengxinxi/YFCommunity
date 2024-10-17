@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wr.aiot.mapper.VisitingSecordMapper">
+   <select id="getByIdVisitingSecordInfo" resultType="com.wr.remote.domain.vo.VisitingSecordVo">
+       SELECT bde.id,
+              bd.door_no               AS "doorNo",
+              bd.door_serial           AS "doorSerial",
+              bd.channel_type          AS "channelType",
+              bd.door_name             AS "doorName",
+              ba.`online`              AS "online",
+              bc.community_name        AS "communityName",
+              bb.building_name         AS "buildingName",
+              bu.unit_name             AS "unitName",
+              bd.address               AS "address",
+              bde.order_id             AS "orderId",
+              bde.visitor_name         AS "visitorName",
+              bde.visitor_sex          AS "visitorSex",
+              bde.be_visit_person_name AS "beVisitPersonName",
+              bde.card_num             AS "cardNum",
+              bde.card_type            AS "cardType",
+              bde.device_type          AS "deviceType",
+              bde.device_desc          AS "deviceDesc",
+              bde.event_name           AS "eventName",
+              bde.phone_num            AS "phoneNum",
+              bde.car_number           AS "carNumber",
+              bde.identity_id          AS "identityId",
+              bde.identity_num         AS "identityNum",
+              bde.event_time           AS "eventTime",
+              bde.visit_start_time     AS "visitStartTime",
+              bde.visit_end_time       AS "visitEndTime",
+              bde.visit_register_time  AS "visitRegisterTime",
+              bde.visit_real_end_time  AS "visitRealEndTime"
+       FROM xccj_device.bus_visiting_secord bde
+                LEFT JOIN xccj_device.bus_door bd ON bd.index_code = bde.door_index_code
+                LEFT JOIN xccj_device.bus_access ba ON ba.door_id = bd.door_id
+                LEFT JOIN xccj_community.bus_community bc ON bc.community_id = bd.community_id
+                LEFT JOIN xccj_community.bus_building bb ON bb.building_id = ba.building_id
+                LEFT JOIN xccj_community.bus_unit bu ON bu.unit_id = ba.unit_id
+       WHERE bde.id = #{id}
+   </select>
+</mapper>

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.customer.Venue.VenueMapper">
+
+    <resultMap type="com.wr.estate.entity.VenueEntity" id="VenueResult">
+        <result property="venueId"    column="venue_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="venueName"    column="venue_name"    />
+        <result property="address"    column="address"    />
+        <result property="deposit"    column="deposit"    />
+        <result property="hourFee"    column="hour_fee"    />
+        <result property="staffId"    column="staff_id"    />
+        <result property="venueImage"    column="venue_image"    />
+        <result property="venueStatus"    column="venue_status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <resultMap id="VenueVo" type="com.wr.estate.entity.vo.VenueVo">
+        <result property="venueId"    column="venue_id"    />
+        <result property="communityId"    column="community_id"    />
+        <result property="venueName"    column="venue_name"    />
+        <result property="address"    column="address"    />
+        <result property="deposit"    column="deposit"    />
+        <result property="hourFee"    column="hour_fee"    />
+        <result property="staffId"    column="staff_id"    />
+        <result property="venueImage"    column="venue_image"    />
+        <result property="venueStatus"    column="venue_status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="staffId" column="staff_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="staffName" column="staff_name"/>
+        <result property="staffPhone" column="staff_phone"/>
+        <result property="gender" column="gender"/>
+
+    </resultMap>
+
+    <sql id="selectVenueVo">
+        select venue_id, community_id, venue_name, address, deposit, hour_fee, staff_id, venue_image, venue_status, create_by, create_time, update_by, update_time, del_flag from xccj_community.bus_venue
+    </sql>
+
+    <sql id="selectVenueVo1">
+        SELECT
+            bv.venue_id,
+            bv.community_id,
+            bv.venue_name,
+            bv.address,
+            bv.deposit,
+            bv.hour_fee,
+            bv.staff_id,
+            bs.staff_name,
+            bv.venue_image,
+            bv.venue_status,
+            bv.create_by,
+            bv.create_time,
+            bv.update_by,
+            bv.update_time,
+            bv.del_flag
+        FROM
+            xccj_community.bus_venue bv
+
+                LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bv.staff_id
+    </sql>
+
+    <select id="selectVenueList" parameterType="com.wr.estate.entity.VenueEntity" resultMap="VenueVo">
+        <include refid="selectVenueVo1"/>
+        <where>
+            bv.del_flag = 0 and bs.del_flag = 0
+            <if test="communityId != null  and communityId != ''"> and bv.community_id like concat('%', #{communityId}, '%')</if>
+            <if test="venueName != null  and venueName != ''"> and bv.venue_name like concat('%', #{venueName}, '%')</if>
+            <if test="address != null  and address != ''"> and bv.address like concat('%', #{address}, '%')</if>
+            <if test="venueStatus != null  and venueStatus != ''"> and bv.venue_status = #{venueStatus}</if>
+        </where>
+    </select>
+
+    <select id="selectVenueByVenueId" parameterType="Long" resultMap="VenueResult">
+        <include refid="selectVenueVo"/>
+        where venue_id = #{venueId} and del_flag = 0
+    </select>
+
+    <insert id="insertVenue" parameterType="com.wr.estate.entity.VenueEntity" useGeneratedKeys="true" keyProperty="venueId">
+        insert into xccj_community.bus_venue
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">community_id,</if>
+            <if test="venueName != null">venue_name,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="deposit != null">deposit,</if>
+            <if test="hourFee != null">hour_fee,</if>
+            <if test="staffId != null">staff_id,</if>
+            <if test="venueImage != null and venueImage != ''">venue_image,</if>
+            <if test="venueStatus != null and venueStatus != ''">venue_status,</if>
+            <if test="createBy != null">create_by,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="communityId != null">#{communityId},</if>
+            <if test="venueName != null">#{venueName},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="deposit != null">#{deposit},</if>
+            <if test="hourFee != null">#{hourFee},</if>
+            <if test="staffId != null">#{staffId},</if>
+            <if test="venueImage != null and venueImage != ''">#{venueImage},</if>
+            <if test="venueStatus != null and venueStatus != ''">#{venueStatus},</if>
+            <if test="createBy != null">#{createBy},</if>
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateVenue" parameterType="com.wr.estate.entity.VenueEntity">
+        update xccj_community.bus_venue
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="communityId != null">community_id = #{communityId},</if>
+            <if test="venueName != null">venue_name = #{venueName},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="deposit != null">deposit = #{deposit},</if>
+            <if test="hourFee != null">hour_fee = #{hourFee},</if>
+            <if test="staffId != null">staff_id = #{staffId},</if>
+            <if test="venueImage != null and venueImage != ''">venue_image = #{venueImage},</if>
+            <if test="venueStatus != null and venueStatus != ''">venue_status = #{venueStatus},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            update_time = now()
+        </trim>
+        where venue_id = #{venueId}
+    </update>
+
+    <delete id="deleteVenueByVenueId" parameterType="Long">
+        update xccj_community.bus_venue set del_flag = 1 where venue_id = #{venueId}
+    </delete>
+
+    <delete id="deleteVenueByVenueIds" parameterType="String">
+        update xccj_community.bus_venue set del_flag = 1 where venue_id in
+        <foreach item="venueId" collection="array" open="(" separator="," close=")">
+            #{venueId}
+        </foreach>
+    </delete>
+
+
+    <select id="g" resultMap="VenueVo">
+        SELECT staff_id,user_id,staff_name,staff_phone FROM xccj_community.bus_staff
+        WHERE del_flag = '0' AND work_post = '3' and community_id = #{communityId} and dimission_time is null and audit_status = '1'
+    </select>
+
+    <select id="getvenue" resultMap="VenueVo">
+        SELECT venue_id,venue_name,address,deposit,hour_fee,staff_id,venue_status FROM xccj_community.bus_venue
+        WHERE community_id = #{communityId} and del_flag = 0 and venue_status = 0
+    </select>
+
+    <select id="getvenue1" resultMap="VenueVo">
+        SELECT venue_id,venue_name,address,deposit,hour_fee,staff_id,venue_status FROM xccj_community.bus_venue
+        WHERE del_flag = 0
+    </select>
+
+    <select id="downVenueList" parameterType="com.wr.estate.entity.vo.VenueVo" resultMap="VenueVo">
+        SELECT
+        bv.venue_id,
+        bv.venue_name
+        FROM
+        xccj_community.bus_venue bv
+        LEFT JOIN xccj_community.bus_staff bs ON bs.staff_id = bv.staff_id  and bs.del_flag = 0
+        <where>
+            bv.del_flag = 0
+            <if test="null != communityId">
+             and bv.community_id = #{communityId}
+            </if>
+        </where>
+    </select>
+</mapper>

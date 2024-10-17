@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.investigation.ItemMapper">
+
+        <resultMap type="com.wr.remote.govern.autonomy.investigation.Item" id="Item">
+            <result property="itemId"    column="item_id"    />
+            <result property="itemName"    column="item_name"    />
+            <result property="questionId"    column="question_id"    />
+        </resultMap>
+
+    <insert id="insertItem" parameterType="com.wr.remote.govern.autonomy.investigation.Item" useGeneratedKeys="true" keyProperty="itemId" >
+        insert into xccj_govern.bus_question_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--<if test="selectValue != null and selectValue != ''">select_value,</if>-->
+            <if test="questionId != null">question_id,</if>
+            <if test="itemName != null and itemName != ''">item_name,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+           <!-- <if test="selectValue != null and selectValue != ''">#{selectValue},</if>-->
+            <if test="questionId != null">#{questionId},</if>
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+        </trim>
+    </insert>
+
+
+    <select id="selectItem"  parameterType="long"  resultType="com.wr.remote.govern.autonomy.investigation.Item">
+        select item_id,item_name,question_id from  xccj_govern.bus_question_item  where  question_id  =#{questionId}
+    </select>
+
+    <update id="updateItem" parameterType="com.wr.remote.govern.autonomy.investigation.Item">
+        update xccj_govern.bus_question_item
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="questionId != null">question_id = #{questionId},</if>
+            <if test="itemName != null and itemName !=''">item_name = #{itemName},</if>
+        </trim>
+        where item_id = #{itemId}
+    </update>
+
+
+</mapper>

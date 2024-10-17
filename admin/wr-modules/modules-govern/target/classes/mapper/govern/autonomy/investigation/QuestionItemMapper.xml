@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.govern.mapper.autonomy.investigation.QuestionItemMapper">
+
+    <insert id="insertQuestionItem" parameterType="com.wr.remote.govern.autonomy.investigation.Question" useGeneratedKeys="true" keyProperty="itemId">
+        insert into xccj_govern.bus_question_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="questionId != null and questionId != ''">question_id,</if>
+            <if test="itemName != null and itemName != ''">item_name,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="questionId != null and questionId != ''">#{questionId},</if>
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+        </trim>
+    </insert>
+
+
+
+    <select id="selectQuestionItem"  parameterType="long"  resultType="com.wr.remote.govern.autonomy.investigation.Question">
+        select item_id,question_id,item_name,del_flag from xccj_govern.bus_question_item  where  question_id  =#{questionId}
+       and del_flag='0'
+    </select>
+</mapper>

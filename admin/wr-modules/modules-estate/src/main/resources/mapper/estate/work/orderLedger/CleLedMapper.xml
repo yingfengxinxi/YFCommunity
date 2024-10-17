@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.work.orderLedger.CleLedMapper">
+    <select id="listCleLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.CleanLedVo">
+        SELECT bc.clean_id,bc.clean_no,bc.clean_name,bc.data_source,bc.address,
+                bs.staff_name
+        FROM xccj_work.bus_clean bc
+        LEFT JOIN xccj_community.bus_staff bs ON bc.execute_id = bs.staff_id
+        WHERE bc.del_flag = '0'
+        <if test="communityId != null and communityId != ''">
+            AND bc.community_id = #{communityId}
+        </if>
+        <if test="staffName != null and staffName != ''">
+            AND bs.staff_name like concat('%', #{staffName}, '%')
+        </if>
+        <if test="cleanName != null and cleanName != ''">
+            AND bc.clean_name like concat('%', #{cleanName}, '%')
+        </if>
+        and bc.execute_status = '2' or bc.execute_status = '3'
+    </select>
+    <select id="getCleLed" resultType="com.wr.remote.estate.order.vo.ledgerVo.CleanLedVo">
+        SELECT bc.clean_id,bc.clean_no,bc.clean_name,bc.data_source,bc.order_no,
+               bc.start_time,bc.end_time,bc.finish_time,bc.remark,bc.image_url,bsf.staff_name,
+               if(ba.abnormal_id != '' and ba.abnormal_id != null ,'异常','正常') AS status
+        FROM xccj_work.bus_clean bc
+                 LEFT JOIN xccj_work.bus_abnormal ba ON bc.clean_id = ba.order_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = bc.staff_id AND bsf.del_flag = '0'
+        WHERE bc.clean_id = #{cleanId}
+    </select>
+    <select id="getCleStaffList" resultType="com.wr.remote.estate.order.vo.ledgerVo.CleanLedVo">
+        SELECT bsf.staff_name,
+               bsf.staff_phone,
+               bsf.card_no,
+               bsf.work_post
+        FROM xccj_work.bus_order_audit AS boat
+                 LEFT JOIN xccj_work.bus_order_assist AS boar ON boar.audit_id = boat.audit_id
+                 LEFT JOIN xccj_community.bus_staff AS bsf ON bsf.staff_id = boar.staff_id
+                 LEFT JOIN xccj_work.bus_clean AS bc ON bc.clean_id = boat.order_id
+        WHERE bsf.del_flag = '0' and boat.audit_status='1' and boat.del_flag='0' and boat.audit_type='1'
+          AND boat.order_type = '3'
+          AND bc.clean_id = #{cleanId}
+    </select>
+</mapper>

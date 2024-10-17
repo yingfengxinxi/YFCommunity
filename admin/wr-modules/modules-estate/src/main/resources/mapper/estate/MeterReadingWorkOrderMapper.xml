@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wr.estate.mapper.manage.meter.MeterReadingWorkOrderMapper">
+
+    <select id="getYearList" resultType="String">
+        SELECT DISTINCT DATE_FORMAT(CONCAT(meter_reading_time, '-01'), '%Y') AS "year"
+        FROM xccj_community.bus_meter_reading_work_order
+        where community_id = #{communityId}
+        ORDER BY meter_reading_time ASC
+    </select>
+
+    <select id="getMeterReadingCountList" resultType="com.wr.remote.estate.manage.meter.RecordVo">
+        SELECT
+        mrwo.meter_reading_type AS "meterReadingType",
+        MONTH(CONCAT(mrwo.meter_reading_time,'-01')) AS "meterReadingTime",
+        IFNULL(SUM( mrrwo.DATA ),'-') AS "data",
+        mrwo.`no` as "no"
+        FROM
+        xccj_community.bus_meter_reading_work_order mrwo
+        LEFT JOIN xccj_community.bus_meter_reading_record_work_order mrrwo ON mrrwo.meter_reading_work_order_id =
+        mrwo.id
+        WHERE
+        mrwo.meter_reading_status ='1'
+        AND mrwo.energy_consumption_type = #{energyConsumptionType}
+        and mrwo.community_id=#{communityId}
+        <if test="meterReadingType !=null and meterReadingType !=''">
+            and mrwo.meter_reading_type=#{meterReadingType}
+        </if>
+        <if test="meterReadingTime !=null and meterReadingTime !=''">
+            and mrwo.meter_reading_time like CONCAT('%',#{meterReadingTime},'%')
+        </if>
+        GROUP BY
+        mrwo.meter_reading_time,
+        mrwo.meter_reading_type
+    </select>
+
+    <select id="getMeterReadingEquipmentCountList" resultType="com.wr.remote.estate.manage.meter.RecordVo">
+        SELECT
+            mre.equipment_no AS "equipmentNo",
+            MONTH (CONCAT(mrwo.meter_reading_time,'-01')) AS "meterReadingTime",
+            IFNULL(SUM(mrrwo.`data`),'-') AS "data"
+        FROM
+            xccj_community.bus_meter_reading_work_order mrwo
+            INNER JOIN xccj_community.bus_meter_reading_record_work_order mrrwo ON mrrwo.meter_reading_work_order_id = mrwo.id
+            INNER JOIN xccj_community.bus_meter_reading_equipment mre ON mre.id = mrrwo.meter_reading_equipment_id
+        where mrwo.community_id=#{communityId}
+        and mrwo.meter_reading_time like CONCAT('%',#{year},'%')
+        and mrwo.meter_reading_type=#{meterReadingType}
+        GROUP BY
+            mre.equipment_no,mrwo.meter_reading_time
+    </select>
+
+    <select id="getMeterReadingWorkOrderCount" resultType="java.math.BigDecimal">
+        SELECT
+        IFNULL( SUM( mrrwo.`data` ), '0' ) AS "data"
+        FROM
+        xccj_community.bus_meter_reading_work_order mrwo
+        LEFT JOIN xccj_community.bus_meter_reading_record_work_order mrrwo ON mrrwo.meter_reading_work_order_id =
+        mrwo.id
+        WHERE
+        mrwo.energy_consumption_type = #{energyConsumptionType}
+        AND mrwo.community_id = #{communityId}
+        AND mrwo.meter_reading_status = '1'
+        <if test="meterReadingType !=null and meterReadingType !=''">
+            AND mrwo.meter_reading_type = #{meterReadingType}
+        </if>
+        <if test="meterReadingTime !=null and meterReadingTime !=''">
+            AND mrwo.meter_reading_time like CONCAT('%',#{meterReadingTime},'%')
+        </if>
+
+    </select>
+</mapper>
+
